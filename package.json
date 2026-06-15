@@ -1,0 +1,28 @@
+{
+  "name": "hotdoc",
+  "version": "0.1.0",
+  "description": "hotdoc is a local-first, keyboard driven desktop launcher that answers one question fast: \"what's the command for the tool I already know?\" Press a global hotkey, type a few fuzzy words, get the command, copy, paste, and back to flow.",
+  "type": "module",
+  "scripts": {
+    "bnr": "pnpm build && pnpm dev",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
+    "tauri": "tauri"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "@tauri-apps/cli": "^2"
+  }
+}

@@ -1,0 +1,29 @@
+.DS_Store
+node_modules
+
+# Build Artifacts
+/build
+/.svelte-kit
+/package
+dist
+
+# Environment Files
+.env
+.env.*
+!.env.example
+
+# Logs
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Internal Documentation
+docs/internal
+
+# AI Agents
+CLAUDE.md
+.codex
+.opencode
+.hermes
+.claude
+superpowers/
+graphify-out

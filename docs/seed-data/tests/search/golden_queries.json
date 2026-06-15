@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "description": "Golden query set — CI gate for NFR-3 (first-result accuracy >= 95%). DRAFT v0, authored by Claude for owner review (D4). Tweak expected_first / acceptable_top3 to match real curated entry IDs once packs exist. Entry IDs below are PROPOSED and must line up with the actual pack JSON.",
+    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9).",
+    "target_count_v1": 50,
+    "target_count_v1_1": 200,
+    "draft_count": 50
+  },
+  "queries": [
+    { "query": "docker logs since", "expected_first": "docker-compose-logs-since", "acceptable_top3": ["docker-compose-logs-since", "docker-logs-since", "docker-logs-tail"] },
+    { "query": "docker comp logs sinc", "expected_first": "docker-compose-logs-since", "acceptable_top3": ["docker-compose-logs-since", "docker-logs-since"] },
+    { "query": "docker exec interactive", "expected_first": "docker-exec-interactive", "acceptable_top3": ["docker-exec-interactive", "docker-exec-shell", "docker-run-interactive"] },
+    { "query": "docker prune all", "expected_first": "docker-system-prune-all", "acceptable_top3": ["docker-system-prune-all", "docker-image-prune", "docker-container-prune"] },
+    { "query": "docker build tag", "expected_first": "docker-build-tag", "acceptable_top3": ["docker-build-tag", "docker-build-file", "docker-tag"] },
+    { "query": "docker compose up detached", "expected_first": "docker-compose-up-detach", "acceptable_top3": ["docker-compose-up-detach", "docker-compose-up", "docker-run-detach"] },
+
+    { "query": "git undo last commit", "expected_first": "git-reset-soft-head", "acceptable_top3": ["git-reset-soft-head", "git-revert", "git-reset-hard-head"] },
+    { "query": "git amend", "expected_first": "git-commit-amend", "acceptable_top3": ["git-commit-amend", "git-commit-amend-no-edit", "git-commit"] },
+    { "query": "git stash pop", "expected_first": "git-stash-pop", "acceptable_top3": ["git-stash-pop", "git-stash", "git-stash-apply"] },
+    { "query": "git rebase interactive", "expected_first": "git-rebase-interactive", "acceptable_top3": ["git-rebase-interactive", "git-rebase", "git-rebase-onto"] },
+    { "query": "git delete branch", "expected_first": "git-branch-delete", "acceptable_top3": ["git-branch-delete", "git-branch-delete-force", "git-push-delete-remote"] },
+    { "query": "git discard changes file", "expected_first": "git-restore", "acceptable_top3": ["git-restore", "git-checkout-file", "git-clean"] },
+    { "query": "git log oneline graph", "expected_first": "git-log-oneline-graph", "acceptable_top3": ["git-log-oneline-graph", "git-log-oneline", "git-log"] },
+    { "query": "git cherry pick", "expected_first": "git-cherry-pick", "acceptable_top3": ["git-cherry-pick", "git-cherry-pick-continue"] },
+
+    { "query": "kubectl get pods all namespaces", "expected_first": "kubectl-get-pods-all-namespaces", "acceptable_top3": ["kubectl-get-pods-all-namespaces", "kubectl-get-pods", "kubectl-get-all"] },
+    { "query": "kubectl logs follow", "expected_first": "kubectl-logs-follow", "acceptable_top3": ["kubectl-logs-follow", "kubectl-logs", "kubectl-logs-previous"] },
+    { "query": "kubectl exec shell", "expected_first": "kubectl-exec-interactive", "acceptable_top3": ["kubectl-exec-interactive", "kubectl-exec", "kubectl-run-interactive"] },
+    { "query": "kubectl port forward", "expected_first": "kubectl-port-forward", "acceptable_top3": ["kubectl-port-forward", "kubectl-proxy"] },
+    { "query": "kubectl apply file", "expected_first": "kubectl-apply-f", "acceptable_top3": ["kubectl-apply-f", "kubectl-apply-k", "kubectl-create-f"] },
+    { "query": "kubectl describe pod", "expected_first": "kubectl-describe-pod", "acceptable_top3": ["kubectl-describe-pod", "kubectl-get-pod-yaml", "kubectl-describe-node"] },
+
+    { "query": "terraform apply var", "expected_first": "terraform-apply-var", "acceptable_top3": ["terraform-apply-var", "terraform-apply-var-file", "terraform-apply"] },
+    { "query": "terraform plan out", "expected_first": "terraform-plan-out", "acceptable_top3": ["terraform-plan-out", "terraform-plan", "terraform-apply-plan"] },
+    { "query": "terraform import resource", "expected_first": "terraform-import", "acceptable_top3": ["terraform-import", "terraform-state-show"] },
+    { "query": "terraform destroy target", "expected_first": "terraform-destroy-target", "acceptable_top3": ["terraform-destroy-target", "terraform-destroy", "terraform-apply-target"] },
+
+    { "query": "bash find files modified today", "expected_first": "bash-find-mtime-today", "acceptable_top3": ["bash-find-mtime-today", "bash-find-newer", "bash-find-name"] },
+    { "query": "bash parameter expansion default", "expected_first": "bash-param-default", "acceptable_top3": ["bash-param-default", "bash-param-substring", "bash-param-length"] },
+    { "query": "bash loop over files", "expected_first": "bash-for-loop-glob", "acceptable_top3": ["bash-for-loop-glob", "bash-while-read-line", "bash-for-loop"] },
+    { "query": "bash trap exit", "expected_first": "bash-trap-exit", "acceptable_top3": ["bash-trap-exit", "bash-trap-signal"] },
+    { "query": "bash redirect stderr stdout", "expected_first": "bash-redirect-stderr-stdout", "acceptable_top3": ["bash-redirect-stderr-stdout", "bash-redirect-stdout-file", "bash-pipe-stderr"] },
+    { "query": "bash here document", "expected_first": "bash-heredoc", "acceptable_top3": ["bash-heredoc", "bash-herestring"] },
+
+    { "query": "aws s3 sync", "expected_first": "aws-s3-sync", "acceptable_top3": ["aws-s3-sync", "aws-s3-cp", "aws-s3-ls"] },
+    { "query": "aws cli query jmespath", "expected_first": "aws-cli-query", "acceptable_top3": ["aws-cli-query", "aws-cli-output-json", "aws-cli-filter"] },
+    { "query": "aws ec2 describe instances", "expected_first": "aws-ec2-describe-instances", "acceptable_top3": ["aws-ec2-describe-instances", "aws-ec2-describe-instances-filter"] },
+
+    { "query": "python pathlib read text", "expected_first": "python-pathlib-read-text", "acceptable_top3": ["python-pathlib-read-text", "python-open-read", "python-pathlib-glob"] },
+    { "query": "python venv create", "expected_first": "python-venv-create", "acceptable_top3": ["python-venv-create", "python-venv-activate", "python-m-pip-install"] },
+    { "query": "python http server", "expected_first": "python-http-server", "acceptable_top3": ["python-http-server", "python-m-module"] },
+
+    { "query": "pnpm install frozen lockfile", "expected_first": "pnpm-install-frozen-lockfile", "acceptable_top3": ["pnpm-install-frozen-lockfile", "pnpm-install", "pnpm-ci"] },
+    { "query": "pnpm dlx", "expected_first": "pnpm-dlx", "acceptable_top3": ["pnpm-dlx", "pnpm-exec", "pnpm-add"] },
+
+    { "query": "curl post json", "expected_first": "curl-post-json", "acceptable_top3": ["curl-post-json", "curl-post-data", "curl-header"] },
+    { "query": "curl follow redirects", "expected_first": "curl-follow-redirects", "acceptable_top3": ["curl-follow-redirects", "curl-output-file", "curl-silent"] },
+
+    { "query": "jq select filter", "expected_first": "jq-select", "acceptable_top3": ["jq-select", "jq-map", "jq-pipe"] },
+    { "query": "jq raw output", "expected_first": "jq-raw-output", "acceptable_top3": ["jq-raw-output", "jq-compact-output"] },
+
+    { "query": "ripgrep case insensitive", "expected_first": "rg-ignore-case", "acceptable_top3": ["rg-ignore-case", "rg-smart-case", "rg-fixed-strings"] },
+
+    { "query": "gh pr create", "expected_first": "gh-pr-create", "acceptable_top3": ["gh-pr-create", "gh-pr-checkout", "gh-pr-view"] },
+
+    { "query": "make run target dry run", "expected_first": "make-dry-run", "acceptable_top3": ["make-dry-run", "make-target", "make-jobs"] },
+
+    { "query": "ssh port forward local", "expected_first": "ssh-local-forward", "acceptable_top3": ["ssh-local-forward", "ssh-remote-forward", "ssh-config-host"] },
+
+    { "query": "nginx reload config", "expected_first": "nginx-reload", "acceptable_top3": ["nginx-reload", "nginx-test-config", "nginx-stop"] },
+
+    { "query": "psql connect string", "expected_first": "psql-connect-url", "acceptable_top3": ["psql-connect-url", "psql-connect-flags", "psql-list-databases"] },
+
+    { "query": "tmux new session named", "expected_first": "tmux-new-session-named", "acceptable_top3": ["tmux-new-session-named", "tmux-attach", "tmux-list-sessions"] },
+
+    { "query": "systemctl restart service", "expected_first": "systemctl-restart", "acceptable_top3": ["systemctl-restart", "systemctl-status", "systemctl-enable-now"] },
+    { "query": "journalctl follow unit", "expected_first": "systemctl-journalctl-follow-unit", "acceptable_top3": ["systemctl-journalctl-follow-unit", "systemctl-status"] },
+
+    { "query": "kubctl xyzzy nonsense", "expected_first": null, "acceptable_top3": [] },
+    { "query": "qwertyuiop asdf", "expected_first": null, "acceptable_top3": [] },
+    { "query": "how do i center a div", "expected_first": null, "acceptable_top3": [] }
+  ]
+}
