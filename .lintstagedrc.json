@@ -1,0 +1,5 @@
+{
+  "*.{ts,js,svelte,mjs,cjs}": ["eslint --fix", "prettier --write"],
+  "*.rs": ["rustfmt --edition 2021"],
+  "*.{json,md,css,html,yaml,yml}": ["prettier --write"]
+}

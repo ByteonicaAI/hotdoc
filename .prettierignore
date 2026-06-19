@@ -1,0 +1,17 @@
+dist
+build
+release
+node_modules
+coverage
+src-tauri/target
+src-tauri/gen
+src-tauri/Cargo.lock
+pnpm-lock.yaml
+*.min.js
+*.min.css
+
+# Hand-curated fixture data — formatter must not touch these
+docs/seed-data/**
+
+# Editor config files (managed by the editor, not prettier)
+.vscode/**

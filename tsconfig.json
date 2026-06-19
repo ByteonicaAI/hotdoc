@@ -15,7 +15,14 @@
     "allowJs": true,
     "checkJs": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "types": ["svelte", "vite/client"]
+    "types": ["svelte", "vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "vite.config.js"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "vite.config.js"
+  ]
 }

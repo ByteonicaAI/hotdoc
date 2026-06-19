@@ -3,14 +3,29 @@
   "version": "0.1.0",
   "description": "hotdoc is a local-first, keyboard driven desktop launcher that answers one question fast: \"what's the command for the tool I already know?\" Press a global hotkey, type a few fuzzy words, get the command, copy, paste, and back to flow.",
   "type": "module",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
+  },
   "scripts": {
     "bnr": "pnpm build && pnpm dev",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "tauri": "tauri",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:rust": "cd src-tauri && cargo test",
+    "verify:all": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run && (cd src-tauri && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test)",
+    "prepare": "husky"
   },
   "license": "MIT",
   "dependencies": {
@@ -18,11 +33,29 @@
     "@tauri-apps/plugin-opener": "^2"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tauri-apps/cli": "^2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/svelte": "^5.3.1",
+    "@vitest/coverage-v8": "^4.1.9",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-svelte": "^3.19.0",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.4",
+    "prettier-plugin-svelte": "^4.1.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
+    "svelte-eslint-parser": "^1.8.0",
     "typescript": "~5.6.2",
+    "typescript-eslint": "^8.61.1",
     "vite": "^6.0.3",
-    "@tauri-apps/cli": "^2"
+    "vitest": "^4.1.9"
   }
 }

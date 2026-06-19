@@ -23,3 +23,16 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+[lints.clippy]
+# Pedantic and nursery are noisy on Tauri-generated code; start with the
+# correctness/style groups and opt into stricter groups later if useful.
+all = { level = "warn", priority = -1 }
+correctness = { level = "deny", priority = 1 }
+suspicious = { level = "warn", priority = 1 }
+style = { level = "warn", priority = 1 }
+complexity = { level = "warn", priority = 1 }
+perf = { level = "warn", priority = 1 }
+
+[lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"

@@ -1,0 +1,4 @@
+pnpm exec lint-staged --concurrent false
+pnpm typecheck
+pnpm lint
+pnpm format:check
