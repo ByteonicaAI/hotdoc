@@ -1,0 +1,62 @@
+{
+  "_meta": {
+    "description": "M1 golden query set: 10 git-only queries, CI gate for NFR-3 (first-result accuracy >= 95%). Authored 2026-06-20 against the actual packs/curate/git.json card IDs.",
+    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9).",
+    "target_count_v1": 50,
+    "target_count_v1_1": 200,
+    "draft_count": 10,
+    "scope": "git pack only (M1 = 1 pack)"
+  },
+  "queries": [
+    {
+      "query": "git stash",
+      "expected_first": "git-stash",
+      "acceptable_top3": ["git-stash", "git-stash-pop", "git-stash-list"]
+    },
+    {
+      "query": "git stash pop",
+      "expected_first": "git-stash-pop",
+      "acceptable_top3": ["git-stash-pop", "git-stash", "git-stash-list"]
+    },
+    {
+      "query": "git stsh",
+      "expected_first": "git-stash",
+      "acceptable_top3": ["git-stash", "git-stash-pop", "git-stash-list"]
+    },
+    {
+      "query": "git undo last commit",
+      "expected_first": "git-reset-soft-head-1",
+      "acceptable_top3": ["git-reset-soft-head-1", "git-reset-hard-head", "git-rebase-interactive"]
+    },
+    {
+      "query": "git discard all changes",
+      "expected_first": "git-reset-hard-head",
+      "acceptable_top3": ["git-reset-hard-head", "git-reset-soft-head-1"]
+    },
+    {
+      "query": "git create branch",
+      "expected_first": "git-checkout-b",
+      "acceptable_top3": ["git-checkout-b", "git-checkout", "git-branch-delete"]
+    },
+    {
+      "query": "git delete branch",
+      "expected_first": "git-branch-delete",
+      "acceptable_top3": ["git-branch-delete", "git-checkout-b", "git-checkout"]
+    },
+    {
+      "query": "git cherry pick",
+      "expected_first": "git-cherry-pick",
+      "acceptable_top3": ["git-cherry-pick"]
+    },
+    {
+      "query": "git log graph",
+      "expected_first": "git-log-graph",
+      "acceptable_top3": ["git-log-graph", "git-log-oneline"]
+    },
+    {
+      "query": "asdfqwer",
+      "expected_first": null,
+      "acceptable_top3": []
+    }
+  ]
+}

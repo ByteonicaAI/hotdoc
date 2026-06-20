@@ -9,7 +9,7 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "hotdoc-cli"
-path = "src/cli.rs"
+path = "src/bin/hotdoc-cli.rs"
 
 [dependencies]
 tantivy = "0.22"
