@@ -1,0 +1,200 @@
+{
+  "id": "git",
+  "name": "Git",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M1 (no tldr derivation; honest provenance)",
+  "license": "MIT",
+  "homepage": "https://git-scm.com",
+  "entries": [
+    {
+      "id": "git-stash",
+      "title": "Stash changes",
+      "syntax": "git stash",
+      "description": "Stash the working tree state (tracked changes) onto the stash stack.",
+      "examples": [
+        {
+          "description": "Stash all tracked changes with a message",
+          "code": "git stash push -m \"wip before refactor\""
+        }
+      ],
+      "tags": ["stash", "save", "working tree"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-stash-pop",
+      "title": "Restore stashed changes",
+      "syntax": "git stash pop",
+      "description": "Apply the most recent stash and remove it from the stash stack.",
+      "examples": [{ "description": "Pop the top stash", "code": "git stash pop" }],
+      "tags": ["stash", "restore", "apply"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-stash-list",
+      "title": "List stashes",
+      "syntax": "git stash list",
+      "description": "List all stashes in the stash stack.",
+      "examples": [{ "description": "Show stashes with their messages", "code": "git stash list" }],
+      "tags": ["stash", "list", "show"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-reset-hard-head",
+      "title": "Discard all local changes",
+      "syntax": "git reset --hard HEAD",
+      "description": "Reset the working tree and index to HEAD; destroys uncommitted changes.",
+      "examples": [
+        {
+          "description": "Throw away all unstaged and staged changes",
+          "code": "git reset --hard HEAD"
+        }
+      ],
+      "tags": ["reset", "discard", "hard", "undo"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-reset-soft-head-1",
+      "title": "Undo last commit, keep changes staged",
+      "syntax": "git reset --soft HEAD~1",
+      "description": "Move HEAD back one commit, leaving the changes staged for re-commit.",
+      "examples": [
+        {
+          "description": "Uncommit the last commit but keep its changes staged",
+          "code": "git reset --soft HEAD~1"
+        }
+      ],
+      "tags": ["reset", "soft", "uncommit", "undo"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-checkout-b",
+      "title": "Create and switch to a new branch",
+      "syntax": "git checkout -b <branch>",
+      "description": "Create a new branch and switch to it in one step.",
+      "examples": [
+        {
+          "description": "Create branch feat/auth and check it out",
+          "code": "git checkout -b feat/auth"
+        }
+      ],
+      "tags": ["branch", "create", "checkout", "new"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-checkout",
+      "title": "Switch to an existing branch",
+      "syntax": "git checkout <branch>",
+      "description": "Switch the working tree to an existing branch.",
+      "examples": [{ "description": "Switch to main", "code": "git checkout main" }],
+      "tags": ["branch", "switch", "checkout"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-branch-delete",
+      "title": "Delete a local branch",
+      "syntax": "git branch -d <branch>",
+      "description": "Delete a fully-merged local branch. Use -D to force-delete an unmerged branch.",
+      "examples": [
+        { "description": "Delete merged branch feat/old", "code": "git branch -d feat/old" }
+      ],
+      "tags": ["branch", "delete", "remove"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-cherry-pick",
+      "title": "Apply a commit from another branch",
+      "syntax": "git cherry-pick <commit>",
+      "description": "Apply the changes introduced by an existing commit onto the current branch.",
+      "examples": [
+        {
+          "description": "Cherry-pick commit abc1234 onto current branch",
+          "code": "git cherry-pick abc1234"
+        }
+      ],
+      "tags": ["cherry-pick", "apply", "commit"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-log-oneline",
+      "title": "Show recent commits one-per-line",
+      "syntax": "git log --oneline -n 20",
+      "description": "Print the last 20 commits as one line each (sha + subject).",
+      "examples": [
+        { "description": "Last 20 commits, compact", "code": "git log --oneline -n 20" }
+      ],
+      "tags": ["log", "oneline", "history"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-log-graph",
+      "title": "Visualize commit graph",
+      "syntax": "git log --oneline --graph --all",
+      "description": "Show the commit graph across all branches, one line per commit.",
+      "examples": [
+        { "description": "Visualize branch topology", "code": "git log --oneline --graph --all" }
+      ],
+      "tags": ["log", "graph", "history", "branches"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-diff-staged",
+      "title": "Show staged changes",
+      "syntax": "git diff --staged",
+      "description": "Show the diff of changes that are staged (added but not committed).",
+      "examples": [
+        { "description": "Inspect what's about to be committed", "code": "git diff --staged" }
+      ],
+      "tags": ["diff", "staged", "cached", "review"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-rebase-interactive",
+      "title": "Interactive rebase to squash/edit commits",
+      "syntax": "git rebase -i HEAD~<n>",
+      "description": "Rebase the last n commits interactively to squash, reword, or drop.",
+      "examples": [{ "description": "Squash the last 3 commits", "code": "git rebase -i HEAD~3" }],
+      "tags": ["rebase", "interactive", "squash", "edit"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-fetch-prune",
+      "title": "Fetch and prune deleted remote branches",
+      "syntax": "git fetch --prune",
+      "description": "Fetch from remotes and delete remote-tracking branches that no longer exist upstream.",
+      "examples": [
+        { "description": "Clean up deleted remote branches", "code": "git fetch --prune" }
+      ],
+      "tags": ["fetch", "prune", "remote", "cleanup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-remote-add",
+      "title": "Add a remote",
+      "syntax": "git remote add <name> <url>",
+      "description": "Add a remote repository at <url> with the short name <name>.",
+      "examples": [
+        {
+          "description": "Add origin pointing at GitHub",
+          "code": "git remote add origin git@github.com:me/repo.git"
+        }
+      ],
+      "tags": ["remote", "add", "url"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

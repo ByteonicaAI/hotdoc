@@ -1,0 +1,25 @@
+{
+  "id": "ripgrep",
+  "name": "ripgrep",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "ripgrep-placeholder",
+      "title": "ripgrep placeholder",
+      "syntax": "ripgrep <command>",
+      "description": "Skeleton entry for the ripgrep pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "ripgrep example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

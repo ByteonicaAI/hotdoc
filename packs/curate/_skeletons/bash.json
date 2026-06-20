@@ -1,0 +1,25 @@
+{
+  "id": "bash",
+  "name": "bash",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "bash-placeholder",
+      "title": "bash placeholder",
+      "syntax": "bash <command>",
+      "description": "Skeleton entry for the bash pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "bash example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

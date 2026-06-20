@@ -1,0 +1,25 @@
+{
+  "id": "python",
+  "name": "python",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "python-placeholder",
+      "title": "python placeholder",
+      "syntax": "python <command>",
+      "description": "Skeleton entry for the python pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "python example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

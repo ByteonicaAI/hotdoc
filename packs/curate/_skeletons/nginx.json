@@ -1,0 +1,25 @@
+{
+  "id": "nginx",
+  "name": "nginx",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "nginx-placeholder",
+      "title": "nginx placeholder",
+      "syntax": "nginx <command>",
+      "description": "Skeleton entry for the nginx pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "nginx example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

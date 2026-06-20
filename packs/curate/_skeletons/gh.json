@@ -1,0 +1,25 @@
+{
+  "id": "gh",
+  "name": "gh",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "gh-placeholder",
+      "title": "gh placeholder",
+      "syntax": "gh <command>",
+      "description": "Skeleton entry for the gh pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "gh example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

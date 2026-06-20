@@ -1,0 +1,25 @@
+{
+  "id": "aws-cli",
+  "name": "aws-cli",
+  "version": "0.0.1-skeleton",
+  "source": "skeleton placeholder for hotdoc M1 loader/validator coverage",
+  "license": "MIT",
+  "homepage": null,
+  "entries": [
+    {
+      "id": "aws-cli-placeholder",
+      "title": "aws-cli placeholder",
+      "syntax": "aws-cli <command>",
+      "description": "Skeleton entry for the aws-cli pack. Real content ships in the public-readiness milestone.",
+      "examples": [
+        {
+          "description": "placeholder example",
+          "code": "aws-cli example"
+        }
+      ],
+      "tags": ["placeholder"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}
