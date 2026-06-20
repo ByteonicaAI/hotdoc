@@ -6,6 +6,8 @@ node_modules
 /.svelte-kit
 /package
 dist
+/target
+/src-tauri/target
 
 # Environment Files
 .env
