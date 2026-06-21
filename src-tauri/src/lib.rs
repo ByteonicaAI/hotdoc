@@ -63,6 +63,10 @@ fn hide_window(window: tauri::WebviewWindow) {
     let _ = window.hide();
 }
 
+fn should_hide_on_focus_loss(event: &tauri::WindowEvent) -> bool {
+    matches!(event, tauri::WindowEvent::Focused(false))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let index = match load_or_build_index() {
@@ -85,6 +89,11 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .invoke_handler(tauri::generate_handler![search, copy_syntax, hide_window])
+        .on_window_event(|window, event| {
+            if should_hide_on_focus_loss(event) {
+                let _ = window.hide();
+            }
+        })
         .setup(|app| {
             use tauri_plugin_global_shortcut::ShortcutState;
             let shortcut = "Ctrl+Shift+Space";
@@ -112,5 +121,12 @@ mod tests {
             bundled_packs_dir().is_dir() || dev_packs_dir().is_dir(),
             "neither bundled-packs nor packs/curate is present at build/test time"
         );
+    }
+
+    #[test]
+    fn focus_loss_hides_only_on_blur() {
+        assert!(should_hide_on_focus_loss(&tauri::WindowEvent::Focused(false)));
+        assert!(!should_hide_on_focus_loss(&tauri::WindowEvent::Focused(true)));
+        assert!(!should_hide_on_focus_loss(&tauri::WindowEvent::Destroyed));
     }
 }

@@ -14,6 +14,7 @@ export default [
     ignores: [
       "dist/**",
       "node_modules/**",
+      "target/**",
       "src-tauri/target/**",
       "src-tauri/gen/**",
       "src-tauri/Cargo.lock",
