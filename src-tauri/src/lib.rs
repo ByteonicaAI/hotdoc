@@ -96,6 +96,14 @@ pub fn run() {
         })
         .setup(|app| {
             use tauri_plugin_global_shortcut::ShortcutState;
+            if let Some(w) = app.get_webview_window("main") {
+                if let Ok(Some(monitor)) = app.primary_monitor() {
+                    let mon_w = monitor.size().width as i32;
+                    let win_w = 720i32;
+                    let x = (mon_w - win_w) / 2;
+                    let _ = w.set_position(tauri::PhysicalPosition::new(x, 60));
+                }
+            }
             let shortcut = "Ctrl+Shift+Space";
             app.global_shortcut().on_shortcut(shortcut, |app, _scut, event| {
                 if event.state == ShortcutState::Pressed {

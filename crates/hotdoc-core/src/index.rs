@@ -18,7 +18,10 @@ pub struct SearchHit {
     pub pack_id: String,
     pub title: String,
     pub syntax: String,
+    pub description: String,
     pub source: String,
+    pub source_url: Option<String>,
+    pub example_code: Option<String>,
     pub score: f32,
 }
 
@@ -26,6 +29,7 @@ pub struct HotdocIndex {
     _index: Index,
     reader: IndexReader,
     schema: Schema,
+    entry_meta: std::collections::HashMap<String, (String, Option<String>, Option<String>)>,
 }
 
 impl HotdocIndex {
@@ -60,10 +64,12 @@ impl HotdocIndex {
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
+        let entry_meta = collect_entry_meta(packs);
         Ok(Self {
             _index: index,
             reader,
             schema,
+            entry_meta,
         })
     }
 
@@ -78,6 +84,7 @@ impl HotdocIndex {
             _index: index,
             reader,
             schema,
+            entry_meta: std::collections::HashMap::new(),
         })
     }
 
@@ -94,12 +101,21 @@ impl HotdocIndex {
         let mut hits = Vec::with_capacity(top_docs.len());
         for (score, addr) in top_docs {
             let doc: tantivy::TantivyDocument = searcher.doc(addr)?;
+            let id = get_text(&doc, id_field);
+            let (description, source_url, example_code) = self
+                .entry_meta
+                .get(&id)
+                .cloned()
+                .unwrap_or_else(|| (String::new(), None, None));
             hits.push(SearchHit {
-                id: get_text(&doc, id_field),
+                id,
                 pack_id: get_text(&doc, pack_id_field),
                 title: get_text(&doc, title_field),
                 syntax: get_text(&doc, syntax_field),
+                description,
                 source: get_text(&doc, source_field),
+                source_url,
+                example_code,
                 score,
             });
         }
@@ -300,6 +316,22 @@ fn get_text(doc: &tantivy::TantivyDocument, field: Field) -> String {
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string()
+}
+
+fn collect_entry_meta(
+    packs: &[Pack],
+) -> std::collections::HashMap<String, (String, Option<String>, Option<String>)> {
+    let mut m = std::collections::HashMap::new();
+    for p in packs {
+        for e in &p.entries {
+            let first_example = e.examples.first().map(|x| x.code.clone());
+            m.insert(
+                e.id.clone(),
+                (e.description.clone(), e.source_url.clone(), first_example),
+            );
+        }
+    }
+    m
 }
 
 #[cfg(test)]

@@ -14,12 +14,13 @@
       {
         "label": "main",
         "title": "hotdoc",
-        "width": 800,
-        "height": 600,
+        "width": 720,
+        "height": 420,
         "visible": true,
-        "decorations": true,
+        "decorations": false,
         "resizable": true,
-        "center": true
+        "center": true,
+        "alwaysOnTop": true
       }
     ],
     "security": {
