@@ -19,3 +19,17 @@ export async function copySyntaxFor(query: string): Promise<string | null> {
 export async function hideWindow(): Promise<void> {
   await invoke("hide_window");
 }
+
+export type LogLevel = "info" | "warn" | "error";
+
+export async function logToBackend(
+  level: LogLevel,
+  msg: string,
+  context?: Record<string, unknown>,
+): Promise<void> {
+  await invoke("log_error", {
+    level,
+    msg,
+    context: context ? JSON.stringify(context) : null,
+  });
+}

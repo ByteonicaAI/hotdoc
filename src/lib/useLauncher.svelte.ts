@@ -2,6 +2,7 @@ import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manage
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { hideWindow, searchPacks } from "./tauri";
 import type { SearchHit } from "./types";
+import { log } from "./logger";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -71,6 +72,7 @@ export class Launcher {
       this.results = await searchPacks(q);
     } catch (e) {
       this.results = [];
+      log.error("search failed", { query: q, error: String(e) });
       this.#showToast(`Search failed: ${String(e)}`);
     }
   }
@@ -86,6 +88,7 @@ export class Launcher {
       await clipboardWrite(text);
       this.#showToast(`Copied: ${text}`);
     } catch (e) {
+      log.error("copy failed", { text, error: String(e) });
       this.#showToast(`Copy failed: ${String(e)}`);
     }
   }
