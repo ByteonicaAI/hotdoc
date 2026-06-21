@@ -1,10 +1,11 @@
 import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { getRecents, hideWindow, searchPacks } from "./tauri";
+import { clearRecents, getRecents, hideWindow, listPacks, searchPacks } from "./tauri";
 import type { Recent, SearchHit } from "./types";
 import { log } from "./logger";
 import * as recents from "./launcher/recents";
 import * as pinned from "./launcher/pinned";
+import { parseCommand } from "./launcher/commandMode";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -32,6 +33,8 @@ export class Launcher {
   pinnedList = $state<SearchHit[]>([]);
   pinnedIds = $state<Set<string>>(new Set());
   selectedIndex = $state<number>(-1);
+  validPackIds = $state<Set<string>>(new Set());
+  packFilter = $state<string | null>(null);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
   emptyQuery = $derived(this.query.trim() === "");
@@ -102,6 +105,34 @@ export class Launcher {
     void this.runSearch();
   }
 
+  openSettings() {
+    // ponytail: T8 replaces this stub with the real SettingsPanel route.
+    // Until then, a toast is the smallest useful surface (FR-X4 says the
+    // route must exist; the panel itself is T8's deliverable).
+    this.#showToast("Settings coming soon");
+  }
+
+  openHelp() {
+    this.#showToast(
+      "↑/↓ navigate · Enter copy · Shift+Enter example · Ctrl+P pin · Ctrl+Shift+? palette",
+    );
+  }
+
+  async initPalette(): Promise<void> {
+    // ponytail: T6 — populates validPackIds for `> <pack_id>` filter
+    // validation. Fire-and-forget from App.svelte onMount. Race: the
+    // first palette parse may run before this resolves; parseCommand
+    // treats an empty Set as "no valid pack ids" and falls through to
+    // search. Acceptable — the user sees `> dctr` search instead of
+    // pack-filter for ~10ms at app start.
+    try {
+      const ids = await listPacks();
+      this.validPackIds = new Set(ids);
+    } catch (e) {
+      log.warn("list packs failed", { error: String(e) });
+    }
+  }
+
   async doHide() {
     this.#clearTimers();
     await hideWindow();
@@ -112,7 +143,51 @@ export class Launcher {
     if (!q) {
       this.results = [];
       this.selectedIndex = -1;
+      this.packFilter = null;
       return;
+    }
+    if (q.startsWith(">")) {
+      const cmd = parseCommand(q, this.validPackIds);
+      switch (cmd.kind) {
+        case "recents":
+          this.query = "";
+          await this.loadEmptyView();
+          return;
+        case "settings":
+          this.openSettings();
+          return;
+        case "help":
+          this.openHelp();
+          return;
+        case "recents-clear":
+          this.query = "";
+          try {
+            await clearRecents();
+          } catch (e) {
+            log.warn("clear recents failed", { error: String(e) });
+          }
+          await this.loadEmptyView();
+          return;
+        case "pack-filter":
+          this.packFilter = cmd.pack_id;
+          // ponytail: post-filter the existing results rather than adding
+          // pack_id to the Rust search signature — top-8 results filtered
+          // client-side is fine for the 5-pack dev set; revisit if v1.1
+          // telemetry shows users refining within a pack.
+          this.results = this.results.filter((h) => h.pack_id === cmd.pack_id);
+          this.selectedIndex = this.results.length > 0 ? 0 : -1;
+          return;
+        case "fallthrough":
+          this.query = cmd.query;
+          this.packFilter = null;
+          // Re-enter the search path with the new query. Falling through
+          // to the bottom of this function would re-run with the stale
+          // outer `q` (= "> dctr"), not the stripped "dctr".
+          await this.runSearch();
+          return;
+      }
+    } else {
+      this.packFilter = null;
     }
     try {
       this.results = await searchPacks(q);

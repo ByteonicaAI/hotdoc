@@ -40,6 +40,8 @@ describe("App launcher", () => {
     vi.mocked(invoke).mockReset();
     vi.mocked(invoke).mockImplementation((cmd: string) => {
       if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
       return Promise.resolve(undefined);
     });
     vi.mocked(writeText).mockClear();
@@ -381,6 +383,97 @@ describe("App launcher", () => {
     await fireEvent.keyDown(input, { key: "p", ctrlKey: true });
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("unpin_entry", { entryId: "git-stash" });
+    });
+  });
+
+  it("> recents opens the empty view (clears input, refetches recents)", async () => {
+    const recents = [{ query: "git stash", last_used_at: 1, use_count: 1 }];
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve(recents);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> recents" } });
+    await waitFor(() => {
+      expect((input as HTMLInputElement).value).toBe("");
+    });
+    await waitFor(() => {
+      expect(screen.getByText("git stash")).toBeInTheDocument();
+    });
+  });
+
+  it("> settings toasts the T8 stub message", async () => {
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> settings" } });
+    await waitFor(() => {
+      expect(screen.getByText(/Settings coming soon/i)).toBeInTheDocument();
+    });
+  });
+
+  it("> help shows the keyboard-shortcut toast", async () => {
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> help" } });
+    await waitFor(() => {
+      expect(screen.getByText(/palette/i)).toBeInTheDocument();
+    });
+  });
+
+  it("> recents clear calls clear_recents IPC", async () => {
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> recents clear" } });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("clear_recents");
+    });
+  });
+
+  it("> unknown command falls through to search (strips `>`)", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") {
+        const q = (args as { query?: string } | undefined)?.query;
+        return Promise.resolve(q ? [mockHit] : []);
+      }
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> dctr" } });
+    await waitFor(() => {
+      expect((input as HTMLInputElement).value).toBe("dctr");
+    });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("search", { query: "dctr" });
+    });
+  });
+
+  it("backspace past `>` resumes normal fuzzy search", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") {
+        const q = (args as { query?: string } | undefined)?.query;
+        return Promise.resolve(q ? [mockHit] : []);
+      }
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> dctr" } });
+    await waitFor(() => {
+      expect((input as HTMLInputElement).value).toBe("dctr");
+    });
+    await fireEvent.input(input, { target: { value: "dctr" } });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("search", { query: "dctr" });
     });
   });
 });

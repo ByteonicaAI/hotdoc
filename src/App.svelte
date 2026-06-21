@@ -17,6 +17,7 @@
       unlisten = u;
     });
     void launcher.loadEmptyView();
+    void launcher.initPalette();
     return () => unlisten?.();
   });
 </script>

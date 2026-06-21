@@ -3,6 +3,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tracing::{error, info, instrument};
 
 use hotdoc_core::index::SearchHit;
+use hotdoc_core::store::packs;
 use hotdoc_core::store::pinned::{self, PinnedHit};
 use hotdoc_core::store::recents::{self, Recent};
 
@@ -119,4 +120,15 @@ pub fn unpin_entry(entry_id: String, state: State<'_, AppState>) -> Result<(), S
 pub fn get_pinned(state: State<'_, AppState>) -> Result<Vec<PinnedHit>, String> {
     let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
     pinned::list(&conn).map_err(|e| format!("get_pinned: {e:#}"))
+}
+
+// Packs (T6 command palette: `> <pack_id>` filter validation).
+// The `packs` table is unpopulated in M3, so this returns [] until v1.1's
+// persistent-index-reuse work lands. The frontend treats [] as "no pack
+// filter valid" and falls through to normal search.
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn list_packs(state: State<'_, AppState>) -> Result<Vec<String>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    packs::list_ids(&conn).map_err(|e| format!("list_packs: {e:#}"))
 }

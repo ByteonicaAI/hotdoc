@@ -59,3 +59,7 @@ export async function unpinEntry(entryId: string): Promise<void> {
 export async function getPinned(): Promise<SearchHit[]> {
   return invoke<SearchHit[]>("get_pinned");
 }
+
+export async function listPacks(): Promise<string[]> {
+  return invoke<string[]>("list_packs");
+}
