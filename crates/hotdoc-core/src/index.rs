@@ -28,7 +28,7 @@ pub struct SearchHit {
 pub struct HotdocIndex {
     _index: Index,
     reader: IndexReader,
-    schema: Schema,
+    fields: SchemaFields,
     entry_meta: std::collections::HashMap<String, (String, Option<String>, Option<String>)>,
 }
 
@@ -39,7 +39,7 @@ impl HotdocIndex {
         }
         std::fs::create_dir_all(path).context("creating index dir")?;
         let (schema, fields) = build_schema();
-        let index = Index::create_in_dir(path, schema.clone())?;
+        let index = Index::create_in_dir(path, schema)?;
         let mut writer: IndexWriter = index.writer(50_000_000)?;
         for pack in packs {
             for entry in &pack.entries {
@@ -68,14 +68,14 @@ impl HotdocIndex {
         Ok(Self {
             _index: index,
             reader,
-            schema,
+            fields,
             entry_meta,
         })
     }
 
     pub fn open(path: &Path) -> Result<Self> {
         let index = Index::open_in_dir(path).context("opening index dir")?;
-        let schema = index.schema();
+        let fields = resolve_fields(&index.schema()).context("resolving schema fields")?;
         let reader = index
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
@@ -83,7 +83,7 @@ impl HotdocIndex {
         Ok(Self {
             _index: index,
             reader,
-            schema,
+            fields,
             entry_meta: std::collections::HashMap::new(),
         })
     }
@@ -92,16 +92,12 @@ impl HotdocIndex {
         let searcher: Searcher = self.reader.searcher();
         let query = self.build_query(raw_query);
         let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
-        let id_field = self.schema.get_field("id").unwrap();
-        let pack_id_field = self.schema.get_field("pack_id").unwrap();
-        let title_field = self.schema.get_field("title").unwrap();
-        let syntax_field = self.schema.get_field("syntax").unwrap();
-        let source_field = self.schema.get_field("source").unwrap();
+        let fields = self.fields;
 
         let mut hits = Vec::with_capacity(top_docs.len());
         for (score, addr) in top_docs {
             let doc: tantivy::TantivyDocument = searcher.doc(addr)?;
-            let id = get_text(&doc, id_field);
+            let id = get_text(&doc, fields.id);
             let (description, source_url, example_code) = self
                 .entry_meta
                 .get(&id)
@@ -109,11 +105,11 @@ impl HotdocIndex {
                 .unwrap_or_else(|| (String::new(), None, None));
             hits.push(SearchHit {
                 id,
-                pack_id: get_text(&doc, pack_id_field),
-                title: get_text(&doc, title_field),
-                syntax: get_text(&doc, syntax_field),
+                pack_id: get_text(&doc, fields.pack_id),
+                title: get_text(&doc, fields.title),
+                syntax: get_text(&doc, fields.syntax),
                 description,
-                source: get_text(&doc, source_field),
+                source: get_text(&doc, fields.source),
                 source_url,
                 example_code,
                 score,
@@ -127,7 +123,7 @@ impl HotdocIndex {
         if q.is_empty() {
             return Box::new(BooleanQuery::new(vec![]));
         }
-        let fields = self.schema_fields();
+        let fields = self.fields;
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
         for token in q.split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.')) {
             if token.is_empty() {
@@ -233,22 +229,9 @@ impl HotdocIndex {
         }
         Box::new(BooleanQuery::new(clauses))
     }
-
-    fn schema_fields(&self) -> SchemaFields {
-        SchemaFields {
-            id: self.schema.get_field("id").unwrap(),
-            pack_id: self.schema.get_field("pack_id").unwrap(),
-            title: self.schema.get_field("title").unwrap(),
-            syntax: self.schema.get_field("syntax").unwrap(),
-            description: self.schema.get_field("description").unwrap(),
-            tags: self.schema.get_field("tags").unwrap(),
-            example_codes: self.schema.get_field("example_codes").unwrap(),
-            source: self.schema.get_field("source").unwrap(),
-        }
-    }
 }
 
-#[allow(dead_code)]
+#[derive(Clone, Copy)]
 struct SchemaFields {
     id: Field,
     pack_id: Field,
@@ -260,15 +243,22 @@ struct SchemaFields {
     source: Field,
 }
 
-struct BuiltFields {
-    id: Field,
-    pack_id: Field,
-    title: Field,
-    syntax: Field,
-    description: Field,
-    tags: Field,
-    example_codes: Field,
-    source: Field,
+fn resolve_fields(schema: &Schema) -> Result<SchemaFields> {
+    fn get(schema: &Schema, name: &str) -> Result<Field> {
+        schema
+            .get_field(name)
+            .with_context(|| format!("schema field '{name}' missing — index was built with an incompatible schema version"))
+    }
+    Ok(SchemaFields {
+        id: get(schema, "id")?,
+        pack_id: get(schema, "pack_id")?,
+        title: get(schema, "title")?,
+        syntax: get(schema, "syntax")?,
+        description: get(schema, "description")?,
+        tags: get(schema, "tags")?,
+        example_codes: get(schema, "example_codes")?,
+        source: get(schema, "source")?,
+    })
 }
 
 fn regex_sanitize(token: &str) -> String {
@@ -284,7 +274,7 @@ fn regex_sanitize(token: &str) -> String {
     out
 }
 
-fn build_schema() -> (Schema, BuiltFields) {
+fn build_schema() -> (Schema, SchemaFields) {
     let mut schema_builder = Schema::builder();
     let id = schema_builder.add_text_field("id", STORED | FAST);
     let pack_id = schema_builder.add_text_field("pack_id", STORED | FAST);
@@ -331,7 +321,7 @@ fn build_schema() -> (Schema, BuiltFields) {
     let schema = schema_builder.build();
     (
         schema,
-        BuiltFields {
+        SchemaFields {
             id,
             pack_id,
             title,

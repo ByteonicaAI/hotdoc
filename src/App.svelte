@@ -16,7 +16,6 @@
     placeholder="hotdoc: type to search…"
     oninput={(e) => launcher.onInput(e.currentTarget.value)}
     onkeydown={(e) => launcher.onKey(e)}
-    bind:value={launcher.query}
     autocomplete="off"
     autocorrect="off"
     spellcheck="false"

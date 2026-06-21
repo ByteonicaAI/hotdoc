@@ -24,7 +24,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:rust": "cd src-tauri && cargo test",
-    "verify:all": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run && (cd src-tauri && cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace)",
+    "verify:all": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run && (cd src-tauri && cargo fmt --all --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace)",
     "prepare": "husky"
   },
   "license": "MIT",

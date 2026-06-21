@@ -9,6 +9,9 @@ dist
 /target
 /src-tauri/target
 
+# Stale per-crate lock (workspace root owns the lockfile).
+src-tauri/Cargo.lock
+
 # Environment Files
 .env
 .env.*

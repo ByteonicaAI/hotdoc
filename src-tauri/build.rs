@@ -20,7 +20,10 @@ fn main() {
             if !p.is_file() || p.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
-            let dest = dest_dir.join(p.file_name().unwrap());
+            let Some(name) = p.file_name() else {
+                continue;
+            };
+            let dest = dest_dir.join(name);
             fs::copy(&p, &dest).expect("copy pack JSON");
             count += 1;
         }

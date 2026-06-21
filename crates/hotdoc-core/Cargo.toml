@@ -22,3 +22,6 @@ dirs = "5"
 arboard = "3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[lints]
+workspace = true
