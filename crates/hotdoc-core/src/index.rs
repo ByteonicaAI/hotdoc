@@ -103,18 +103,25 @@ impl HotdocIndex {
                 .get(&id)
                 .cloned()
                 .unwrap_or_else(|| (String::new(), None, None));
+            let source = get_text(&doc, fields.source);
+            let adjusted_score = apply_source_priority(score, &source);
             hits.push(SearchHit {
                 id,
                 pack_id: get_text(&doc, fields.pack_id),
                 title: get_text(&doc, fields.title),
                 syntax: get_text(&doc, fields.syntax),
                 description,
-                source: get_text(&doc, fields.source),
+                source,
                 source_url,
                 example_code,
-                score,
+                score: adjusted_score,
             });
         }
+        hits.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         Ok(hits)
     }
 
@@ -137,9 +144,12 @@ impl HotdocIndex {
             if edit_distance == 0 {
                 clauses.push((
                     Occur::Should,
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.syntax, token),
-                        IndexRecordOption::Basic,
+                    Box::new(BoostQuery::new(
+                        Box::new(TermQuery::new(
+                            Term::from_field_text(fields.syntax, token),
+                            IndexRecordOption::Basic,
+                        )),
+                        5.0,
                     )),
                 ));
                 clauses.push((
@@ -269,6 +279,19 @@ fn regex_sanitize(token: &str) -> String {
         }
     }
     out
+}
+
+// Source priority multiplier applied as a post-rerank step on top of BM25.
+// Higher multiplier = the source is more authoritative. Ordering matches the
+// plan: official > cheat-sheet > curated. Personal is rejected by pack
+// validation, so it never reaches here.
+fn apply_source_priority(score: f32, source: &str) -> f32 {
+    let multiplier: f32 = match source {
+        "official" => 2.0,
+        "cheat-sheet" => 1.5,
+        _ => 1.0,
+    };
+    score * multiplier
 }
 
 fn build_schema() -> (Schema, SchemaFields) {
@@ -448,6 +471,29 @@ mod tests {
             hits.iter().take(3).any(|h| h.id == "git-reset-soft-head-1"),
             "SimpleTokenizer should split 'git-reset-soft-head-1' so 'reset soft head' hits it; got {:?}",
             hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn exact_match_boost_lifts_docker_logs_over_logs_tail() {
+        let idx = fresh_index();
+        let hits = idx.search("docker logs", 8).expect("search");
+        assert!(
+            hits.first().map(|h| h.id.as_str()) == Some("docker-logs"),
+            "exact-match boost should lift docker-logs above docker-logs-tail; got {:?}",
+            hits.iter().take(3).map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn source_priority_lifts_official_over_curated_sibling() {
+        let idx = fresh_index();
+        let hits = idx.search("kubectl get pods", 8).expect("search");
+        assert_eq!(
+            hits.first().map(|h| h.id.as_str()),
+            Some("kubectl-get-pods-official"),
+            "source-priority boost should put the official card above its curated sibling; got {:?}",
+            hits.iter().take(3).map(|h| &h.id).collect::<Vec<_>>()
         );
     }
 }

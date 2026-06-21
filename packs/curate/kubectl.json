@@ -23,6 +23,18 @@
       "source_url": null
     },
     {
+      "id": "kubectl-get-pods-official",
+      "title": "List pods (official Kubernetes reference)",
+      "syntax": "kubectl get pods",
+      "description": "Reference form from the Kubernetes docs — exactly matches `kubectl get pods` with default output. Mirrors the official kubectl-reference for canonical behavior.",
+      "examples": [
+        { "description": "List pods in the current namespace", "code": "kubectl get pods" }
+      ],
+      "tags": ["get", "pods", "list", "reference", "official"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get"
+    },
+    {
       "id": "kubectl-get-deployments",
       "title": "List deployments",
       "syntax": "kubectl get deployments",

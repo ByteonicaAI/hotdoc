@@ -85,8 +85,12 @@
     },
     {
       "query": "kubectl get pods",
-      "expected_first": "kubectl-get-pods",
-      "acceptable_top3": ["kubectl-get-pods", "kubectl-get-services", "kubectl-get-deployments"]
+      "expected_first": "kubectl-get-pods-official",
+      "acceptable_top3": [
+        "kubectl-get-pods-official",
+        "kubectl-get-pods",
+        "kubectl-get-deployments"
+      ]
     },
     {
       "query": "kubectl logs",
