@@ -3,7 +3,7 @@ use serde::Serialize;
 use std::path::Path;
 use tantivy::{
     collector::TopDocs,
-    query::{BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, TermQuery},
+    query::{BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, RegexQuery, TermQuery},
     schema::{
         Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, Value, FAST, STORED,
     },
@@ -180,6 +180,26 @@ impl HotdocIndex {
                     )),
                 ));
             }
+            // ponytail: prefix clause per spec §7.1 — "git stas" must find
+            // "git-stash" even with no typo. Tantivy 0.22 has no PrefixQuery,
+            // RegexQuery anchored to ^ is the canonical replacement. Skipped
+            // for tokens <=3 (too noisy) and inside the fuzzy branch (typos
+            // already covered by FuzzyTermQuery).
+            if edit_distance == 0 && token.len() > 3 {
+                let pattern = format!("^{}.*", regex_sanitize(token));
+                for (field, boost) in [
+                    (fields.syntax, 2.5),
+                    (fields.title, 3.0),
+                    (fields.tags, 1.5),
+                ] {
+                    if let Ok(rq) = RegexQuery::from_pattern(&pattern, field) {
+                        clauses.push((
+                            Occur::Should,
+                            Box::new(BoostQuery::new(Box::new(rq), boost)),
+                        ));
+                    }
+                }
+            }
             clauses.push((
                 Occur::Should,
                 Box::new(BoostQuery::new(
@@ -249,6 +269,19 @@ struct BuiltFields {
     tags: Field,
     example_codes: Field,
     source: Field,
+}
+
+fn regex_sanitize(token: &str) -> String {
+    let mut out = String::with_capacity(token.len() + 2);
+    for c in token.chars() {
+        if c.is_ascii_alphanumeric() {
+            out.push(c);
+        } else {
+            out.push('\\');
+            out.push(c);
+        }
+    }
+    out
 }
 
 fn build_schema() -> (Schema, BuiltFields) {
@@ -394,6 +427,26 @@ mod tests {
         let idx = fresh_index();
         let hits = idx.search("asdfqwer", 8).expect("search");
         assert!(hits.is_empty(), "gibberish should yield zero results");
+    }
+
+    #[test]
+    fn prefix_match_finds_target() {
+        let idx = fresh_index();
+        let hits = idx.search("git stas", 8).expect("search");
+        assert!(
+            hits.iter().any(|h| h.id == "git-stash"),
+            "prefix 'stas' should resolve to git-stash; got {:?}",
+            hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn short_token_skips_prefix_clause() {
+        let idx = fresh_index();
+        let hits = idx.search("git st", 8).expect("search");
+        for h in &hits {
+            assert_ne!(h.id, "git-st", "no card has id 'git-st'");
+        }
     }
 
     #[test]

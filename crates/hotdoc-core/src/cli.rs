@@ -55,6 +55,26 @@ pub fn default_index_dir() -> PathBuf {
         .join("index")
 }
 
+pub const TOGGLE_PORT: u16 = 47474;
+
+pub fn cmd_toggle() -> Result<()> {
+    use std::net::UdpSocket;
+    use std::time::Duration;
+    let sock = UdpSocket::bind("127.0.0.1:0").context("binding UDP socket")?;
+    sock.set_read_timeout(Some(Duration::from_millis(500))).ok();
+    sock.connect(("127.0.0.1", TOGGLE_PORT))
+        .context("connecting to hotdoc server")?;
+    sock.send(b"\n").context("sending toggle")?;
+    let mut buf = [0u8; 4];
+    match sock.recv(&mut buf) {
+        Ok(_) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::TimedOut => Err(anyhow::anyhow!(
+            "hotdoc server did not respond (is it running?)"
+        )),
+        Err(e) => Err(anyhow::anyhow!("waiting for ack: {e}")),
+    }
+}
+
 pub fn default_packs_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")

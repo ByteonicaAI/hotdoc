@@ -86,6 +86,15 @@ fn main() -> ExitCode {
                 exit_code = 1;
             }
         }
+        Some("toggle") => {
+            if let Err(e) = cli::cmd_toggle() {
+                eprintln!(
+                    "toggle: {e:#}\n\
+                     hint: is the hotdoc server running? Launch the app first, then bind your DE shortcut to `hotdoc-cli toggle`."
+                );
+                exit_code = 1;
+            }
+        }
         _ => usage(),
     }
     ExitCode::from(exit_code)
@@ -93,10 +102,11 @@ fn main() -> ExitCode {
 
 fn usage() {
     eprintln!(
-        "hotdoc-cli: index | query <text> | copy <text> | bench\n  \
-         index [--packs PATH] [--out PATH]\n  \
-         query <text> [--limit N] [--index PATH]\n  \
-         copy  <text> [--index PATH]\n  \
-         bench [--queries PATH] [--index PATH]"
+        "hotdoc-cli: index | query <text> | copy <text> | bench | toggle\n  \
+         index  [--packs PATH] [--out PATH]\n  \
+         query  <text> [--limit N] [--index PATH]\n  \
+         copy   <text> [--index PATH]\n  \
+         bench  [--queries PATH] [--index PATH]\n  \
+         toggle  send a show/hide signal to the running hotdoc app (bind to your DE shortcut)"
     );
 }

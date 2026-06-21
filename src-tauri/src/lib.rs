@@ -4,6 +4,7 @@ use tauri::{Manager, State};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
+use hotdoc_core::cli::TOGGLE_PORT;
 use hotdoc_core::index::{HotdocIndex, SearchHit};
 use hotdoc_core::pack;
 
@@ -67,6 +68,37 @@ fn should_hide_on_focus_loss(event: &tauri::WindowEvent) -> bool {
     matches!(event, tauri::WindowEvent::Focused(false))
 }
 
+fn spawn_toggle_listener<R: tauri::Runtime>(app: tauri::AppHandle<R>) {
+    std::thread::spawn(move || {
+        let sock = match std::net::UdpSocket::bind(("127.0.0.1", TOGGLE_PORT)) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!(
+                    "hotdoc: toggle listener bind failed on udp:{TOGGLE_PORT}: {e}. \
+                     `hotdoc-cli toggle` will not work; Ctrl+Shift+Space still does."
+                );
+                return;
+            }
+        };
+        let mut buf = [0u8; 4];
+        loop {
+            let (len, peer) = match sock.recv_from(&mut buf) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("hotdoc: toggle listener recv error: {e}");
+                    continue;
+                }
+            };
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.show();
+                let _ = w.set_focus();
+                let _ = w.unminimize();
+            }
+            let _ = sock.send_to(&buf[..len], peer);
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let index = match load_or_build_index() {
@@ -104,6 +136,7 @@ pub fn run() {
                     let _ = w.set_position(tauri::PhysicalPosition::new(x, 60));
                 }
             }
+            spawn_toggle_listener(app.handle().clone());
             let shortcut = "Ctrl+Shift+Space";
             app.global_shortcut().on_shortcut(shortcut, |app, _scut, event| {
                 if event.state == ShortcutState::Pressed {
