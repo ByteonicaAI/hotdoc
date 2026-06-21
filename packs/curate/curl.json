@@ -1,0 +1,224 @@
+{
+  "id": "curl",
+  "name": "curl",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (curl >=7.80 syntax)",
+  "license": "MIT",
+  "homepage": "https://curl.se/docs/manpage.html",
+  "entries": [
+    {
+      "id": "curl-get",
+      "title": "Fetch a URL",
+      "syntax": "curl <url>",
+      "description": "Perform an HTTP GET and print the response body to stdout.",
+      "examples": [{ "description": "Fetch example.com", "code": "curl https://example.com" }],
+      "tags": ["get", "fetch", "request"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-headers-only",
+      "title": "Show response headers only",
+      "syntax": "curl -I <url>",
+      "description": "Send a HEAD request and print only the response headers. Equivalent to -X HEAD -D -.",
+      "examples": [
+        {
+          "description": "Inspect headers returned by example.com",
+          "code": "curl -I https://example.com"
+        }
+      ],
+      "tags": ["head", "headers", "response"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-save-output",
+      "title": "Save response to a file",
+      "syntax": "curl -o <file> <url>",
+      "description": "Write the response body to <file> instead of stdout. Use -O to keep the remote filename.",
+      "examples": [
+        {
+          "description": "Download and save as index.html",
+          "code": "curl -o index.html https://example.com"
+        }
+      ],
+      "tags": ["output", "save", "download", "file"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-follow-redirects",
+      "title": "Follow HTTP redirects",
+      "syntax": "curl -L <url>",
+      "description": "Follow 3xx redirects until the final response. Combine with --max-redirs to cap.",
+      "examples": [
+        {
+          "description": "Follow redirects from a short URL",
+          "code": "curl -L https://bit.ly/example"
+        }
+      ],
+      "tags": ["follow", "redirect", "location"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-insecure",
+      "title": "Allow insecure TLS (skip verification)",
+      "syntax": "curl -k <url>",
+      "description": "Skip TLS certificate verification. Use only for local debugging — never in production.",
+      "examples": [
+        { "description": "Curl a self-signed dev server", "code": "curl -k https://localhost:8443" }
+      ],
+      "tags": ["insecure", "tls", "ssl", "self-signed"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-method-post",
+      "title": "Send a POST request",
+      "syntax": "curl -X POST <url>",
+      "description": "Force the HTTP method to POST. Usually you also need -d or --data-raw.",
+      "examples": [
+        {
+          "description": "POST with a JSON body",
+          "code": "curl -X POST https://api.example.com/items -H 'Content-Type: application/json' -d '{\"name\":\"widget\"}'"
+        }
+      ],
+      "tags": ["post", "method", "create"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-data",
+      "title": "Send form data with a POST",
+      "syntax": "curl -d <data> <url>",
+      "description": "Send a request body. Default content-type is application/x-www-form-urlencoded.",
+      "examples": [
+        {
+          "description": "POST form fields",
+          "code": "curl -d 'user=me&pass=secret' https://api.example.com/login"
+        }
+      ],
+      "tags": ["data", "post", "form"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-header",
+      "title": "Send a custom header",
+      "syntax": "curl -H <header> <url>",
+      "description": "Add a request header. Repeatable for multiple headers.",
+      "examples": [
+        {
+          "description": "Send a bearer token",
+          "code": "curl -H 'Authorization: Bearer ***' https://api.example.com/me"
+        }
+      ],
+      "tags": ["header", "auth", "bearer", "token"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-user",
+      "title": "Send HTTP basic auth credentials",
+      "syntax": "curl -u <user>:<pass> <url>",
+      "description": "Send Basic auth. Omit the password to be prompted.",
+      "examples": [
+        {
+          "description": "Authenticated GET",
+          "code": "curl -u me:secret https://api.example.com/me"
+        }
+      ],
+      "tags": ["auth", "basic", "user", "credentials"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-cookie",
+      "title": "Send a cookie",
+      "syntax": "curl -b <cookie> <url>",
+      "description": "Pass a cookie string. Use -c to also save cookies from the response. Use -b <file> to load cookies from a jar.",
+      "examples": [
+        {
+          "description": "Send session cookie",
+          "code": "curl -b 'session=abc123' https://api.example.com/me"
+        }
+      ],
+      "tags": ["cookie", "session", "jar"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-verbose",
+      "title": "Show request/response details",
+      "syntax": "curl -v <url>",
+      "description": "Verbose mode prints the request line, headers, TLS handshake, and response status. Use --trace for a full hex dump.",
+      "examples": [
+        { "description": "Debug a failing request", "code": "curl -v https://api.example.com/me" }
+      ],
+      "tags": ["verbose", "debug", "trace"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-silent",
+      "title": "Suppress progress and errors",
+      "syntax": "curl -s <url>",
+      "description": "Silent mode hides the progress meter and error messages. Combine with -S to still show errors.",
+      "examples": [
+        {
+          "description": "Pipe JSON to jq without progress noise",
+          "code": "curl -s https://api.example.com/items | jq"
+        }
+      ],
+      "tags": ["silent", "quiet", "script"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-show-error",
+      "title": "Show errors even when silent",
+      "syntax": "curl -sS <url>",
+      "description": "Silent mode plus show-error. Common combo for scripting.",
+      "examples": [
+        {
+          "description": "Quiet fetch but report failures",
+          "code": "curl -sS https://api.example.com/me"
+        }
+      ],
+      "tags": ["silent", "error", "script"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-timeout",
+      "title": "Set a maximum request time",
+      "syntax": "curl --max-time <seconds> <url>",
+      "description": "Abort the request after N seconds. Without this, curl uses the system's default (often very long).",
+      "examples": [
+        {
+          "description": "5-second timeout for a flaky health check",
+          "code": "curl --max-time 5 https://api.example.com/health"
+        }
+      ],
+      "tags": ["timeout", "max-time", "limit"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-resolve",
+      "title": "Force a custom DNS resolution for a host",
+      "syntax": "curl --resolve <host:port:address> <url>",
+      "description": "Override the DNS lookup for a host. Useful for hitting a local service via its production hostname during testing.",
+      "examples": [
+        {
+          "description": "Hit example.com on 127.0.0.1:8080 for testing",
+          "code": "curl --resolve example.com:443:127.0.0.1 https://example.com"
+        }
+      ],
+      "tags": ["resolve", "dns", "override", "host"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

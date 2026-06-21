@@ -1,0 +1,150 @@
+{
+  "id": "gh",
+  "name": "GitHub CLI",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (gh >=2.40 syntax)",
+  "license": "MIT",
+  "homepage": "https://cli.github.com/manual/",
+  "entries": [
+    {
+      "id": "gh-pr-create",
+      "title": "Create a pull request",
+      "syntax": "gh pr create",
+      "description": "Open an interactive PR creation. Add --fill to use the commit message as title/body, --base to set the target branch.",
+      "examples": [
+        {
+          "description": "Create a PR from the current branch using the latest commit as title and body",
+          "code": "gh pr create --fill"
+        }
+      ],
+      "tags": ["pr", "create", "open"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-pr-list",
+      "title": "List pull requests",
+      "syntax": "gh pr list",
+      "description": "List PRs in the current repo. Add --state open|closed|merged, --author <user>, --label <label>.",
+      "examples": [{ "description": "List open PRs", "code": "gh pr list --state open" }],
+      "tags": ["pr", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-pr-view",
+      "title": "View a pull request",
+      "syntax": "gh pr view <number>",
+      "description": "Show details of a PR. Add --web to open it in the browser.",
+      "examples": [{ "description": "View PR 123 in the browser", "code": "gh pr view 123 --web" }],
+      "tags": ["pr", "view", "show"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-pr-checkout",
+      "title": "Check out a pull request locally",
+      "syntax": "gh pr checkout <number>",
+      "description": "Fetch the PR's branch into a local branch and check it out.",
+      "examples": [{ "description": "Check out PR 123 locally", "code": "gh pr checkout 123" }],
+      "tags": ["pr", "checkout", "local"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-pr-merge",
+      "title": "Merge a pull request",
+      "syntax": "gh pr merge <number>",
+      "description": "Merge the PR locally. Use --squash, --rebase, or --merge to pick the merge strategy; --auto to enable auto-merge.",
+      "examples": [{ "description": "Squash-merge PR 123", "code": "gh pr merge 123 --squash" }],
+      "tags": ["pr", "merge"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-issue-create",
+      "title": "Create an issue",
+      "syntax": "gh issue create",
+      "description": "Open an interactive issue creation. Add --title and --body to skip the prompt.",
+      "examples": [
+        {
+          "description": "Create an issue non-interactively",
+          "code": "gh issue create --title \"bug: login broken\" --body \"steps to reproduce...\""
+        }
+      ],
+      "tags": ["issue", "create", "open"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-issue-list",
+      "title": "List issues",
+      "syntax": "gh issue list",
+      "description": "List issues in the current repo. Add --state open|closed, --assignee <user>, --label <label>.",
+      "examples": [
+        {
+          "description": "List open issues assigned to me",
+          "code": "gh issue list --state open --assignee @me"
+        }
+      ],
+      "tags": ["issue", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-repo-clone",
+      "title": "Clone a repository",
+      "syntax": "gh repo clone <repo>",
+      "description": "Clone a GitHub repository. Accepts owner/repo, the full URL, or the bare name (if you have one of that name in your config).",
+      "examples": [{ "description": "Clone cli/cli", "code": "gh repo clone cli/cli" }],
+      "tags": ["repo", "clone"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-repo-view",
+      "title": "View a repository",
+      "syntax": "gh repo view [<repo>]",
+      "description": "Show repository info. Add --web to open in the browser.",
+      "examples": [{ "description": "View current repo in browser", "code": "gh repo view --web" }],
+      "tags": ["repo", "view"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-run-list",
+      "title": "List workflow runs",
+      "syntax": "gh run list",
+      "description": "List GitHub Actions workflow runs for the current repo.",
+      "examples": [{ "description": "List recent workflow runs", "code": "gh run list" }],
+      "tags": ["run", "workflow", "actions", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-run-watch",
+      "title": "Watch a workflow run until it finishes",
+      "syntax": "gh run watch <run-id>",
+      "description": "Stream the live logs of a run and exit when it completes. Add --exit-status to fail the gh process if the workflow fails.",
+      "examples": [
+        {
+          "description": "Watch run 12345 with exit status propagation",
+          "code": "gh run watch 12345 --exit-status"
+        }
+      ],
+      "tags": ["run", "watch", "logs"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-auth-status",
+      "title": "Show authentication status",
+      "syntax": "gh auth status",
+      "description": "Print which account is logged in and the protocol used.",
+      "examples": [{ "description": "Show auth status", "code": "gh auth status" }],
+      "tags": ["auth", "status", "login"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

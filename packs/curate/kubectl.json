@@ -1,0 +1,235 @@
+{
+  "id": "kubectl",
+  "name": "kubectl",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (common ops only; kubectl >=1.27 syntax)",
+  "license": "MIT",
+  "homepage": "https://kubernetes.io/docs/reference/kubectl/",
+  "entries": [
+    {
+      "id": "kubectl-get-pods",
+      "title": "List pods",
+      "syntax": "kubectl get pods",
+      "description": "List pods in the current namespace. Add -A for all namespaces, -n <ns> for a specific one, -o wide for extra columns.",
+      "examples": [
+        { "description": "List pods in the current namespace", "code": "kubectl get pods" },
+        {
+          "description": "List pods across all namespaces with node info",
+          "code": "kubectl get pods -A -o wide"
+        }
+      ],
+      "tags": ["get", "pods", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-get-deployments",
+      "title": "List deployments",
+      "syntax": "kubectl get deployments",
+      "description": "List deployments in the current namespace.",
+      "examples": [{ "description": "List deployments", "code": "kubectl get deployments" }],
+      "tags": ["get", "deployments", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-get-services",
+      "title": "List services",
+      "syntax": "kubectl get services",
+      "description": "List services in the current namespace.",
+      "examples": [{ "description": "List services", "code": "kubectl get services" }],
+      "tags": ["get", "services", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-describe-pod",
+      "title": "Describe a pod",
+      "syntax": "kubectl describe pod <pod>",
+      "description": "Show detailed info about a pod including events (useful when a pod is stuck Pending or CrashLooping).",
+      "examples": [
+        { "description": "Describe pod web-abc123", "code": "kubectl describe pod web-abc123" }
+      ],
+      "tags": ["describe", "pod", "debug"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-logs",
+      "title": "Show pod logs",
+      "syntax": "kubectl logs <pod>",
+      "description": "Print container logs. Add -f to follow, --tail N for last N lines, -c <container> for multi-container pods.",
+      "examples": [{ "description": "Follow logs of pod web", "code": "kubectl logs -f web" }],
+      "tags": ["logs", "tail", "follow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-exec",
+      "title": "Run a command in a pod",
+      "syntax": "kubectl exec -it <pod> -- <command>",
+      "description": "Execute a command inside a pod's container. Use `bash` or `sh` for an interactive shell.",
+      "examples": [
+        { "description": "Open a shell in pod web", "code": "kubectl exec -it web -- bash" }
+      ],
+      "tags": ["exec", "shell", "interactive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-apply",
+      "title": "Apply a manifest",
+      "syntax": "kubectl apply -f <file>",
+      "description": "Create or update resources from a YAML/JSON manifest. Idempotent — safe to re-run.",
+      "examples": [
+        { "description": "Apply manifest.yaml", "code": "kubectl apply -f manifest.yaml" }
+      ],
+      "tags": ["apply", "manifest", "yaml"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-apply-kustomize",
+      "title": "Apply a kustomize directory",
+      "syntax": "kubectl apply -k <dir>",
+      "description": "Build and apply from a kustomization.yaml directory.",
+      "examples": [
+        {
+          "description": "Apply the overlays/prod kustomize",
+          "code": "kubectl apply -k overlays/prod"
+        }
+      ],
+      "tags": ["apply", "kustomize", "manifest"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-delete-pod",
+      "title": "Delete a pod",
+      "syntax": "kubectl delete pod <pod>",
+      "description": "Delete a pod by name. Pods managed by a Deployment are recreated.",
+      "examples": [
+        { "description": "Delete pod web-abc123", "code": "kubectl delete pod web-abc123" }
+      ],
+      "tags": ["delete", "pod"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-delete-deployment",
+      "title": "Delete a deployment",
+      "syntax": "kubectl delete deployment <name>",
+      "description": "Delete a deployment and its managed ReplicaSets and Pods.",
+      "examples": [
+        { "description": "Delete deployment web", "code": "kubectl delete deployment web" }
+      ],
+      "tags": ["delete", "deployment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-scale",
+      "title": "Scale a deployment",
+      "syntax": "kubectl scale deployment/<name> --replicas=<n>",
+      "description": "Set the replica count for a deployment.",
+      "examples": [
+        {
+          "description": "Scale deployment web to 5 replicas",
+          "code": "kubectl scale deployment/web --replicas=5"
+        }
+      ],
+      "tags": ["scale", "deployment", "replicas"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-rollout-restart",
+      "title": "Restart a deployment",
+      "syntax": "kubectl rollout restart deployment/<name>",
+      "description": "Trigger a rolling restart of all pods in a deployment (recreates them one by one).",
+      "examples": [
+        {
+          "description": "Restart deployment web",
+          "code": "kubectl rollout restart deployment/web"
+        }
+      ],
+      "tags": ["rollout", "restart", "deployment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-rollout-status",
+      "title": "Watch a rollout progress",
+      "syntax": "kubectl rollout status deployment/<name>",
+      "description": "Block until the current rollout completes or fails.",
+      "examples": [
+        {
+          "description": "Wait for rollout of web",
+          "code": "kubectl rollout status deployment/web"
+        }
+      ],
+      "tags": ["rollout", "status", "deployment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-config-current-context",
+      "title": "Show the current kubeconfig context",
+      "syntax": "kubectl config current-context",
+      "description": "Print the name of the kubeconfig context kubectl is currently using.",
+      "examples": [
+        { "description": "Show current context", "code": "kubectl config current-context" }
+      ],
+      "tags": ["config", "context", "kubeconfig"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-config-use-context",
+      "title": "Switch to a different kubeconfig context",
+      "syntax": "kubectl config use-context <context>",
+      "description": "Set the active context. Affects every subsequent kubectl call.",
+      "examples": [
+        { "description": "Switch to the prod context", "code": "kubectl config use-context prod" }
+      ],
+      "tags": ["config", "context", "switch"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-contexts",
+      "title": "List kubeconfig contexts",
+      "syntax": "kubectl config get-contexts",
+      "description": "List all contexts in kubeconfig with the current one marked.",
+      "examples": [{ "description": "List contexts", "code": "kubectl config get-contexts" }],
+      "tags": ["config", "contexts", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-port-forward",
+      "title": "Forward a local port to a pod",
+      "syntax": "kubectl port-forward <pod> <local-port>:<pod-port>",
+      "description": "Forward localhost:local-port to a port inside the pod. Useful for debugging services that are not exposed.",
+      "examples": [
+        {
+          "description": "Forward localhost:8080 to pod web's 80",
+          "code": "kubectl port-forward web 8080:80"
+        }
+      ],
+      "tags": ["port-forward", "debug", "local"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-top-pods",
+      "title": "Show pod CPU/memory usage",
+      "syntax": "kubectl top pods",
+      "description": "Show CPU and memory consumption per pod. Requires metrics-server.",
+      "examples": [{ "description": "Show pod usage", "code": "kubectl top pods" }],
+      "tags": ["top", "metrics", "cpu", "memory"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}

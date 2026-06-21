@@ -1,0 +1,213 @@
+{
+  "id": "docker",
+  "name": "Docker",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (common ops only, no Compose-Plugin or BuildKit-only commands)",
+  "license": "MIT",
+  "homepage": "https://docs.docker.com/engine/reference/run/",
+  "entries": [
+    {
+      "id": "docker-ps",
+      "title": "List running containers",
+      "syntax": "docker ps",
+      "description": "List currently running containers. Add -a to include stopped ones.",
+      "examples": [{ "description": "Show running containers", "code": "docker ps" }],
+      "tags": ["ps", "list", "running"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-ps-all",
+      "title": "List all containers",
+      "syntax": "docker ps -a",
+      "description": "List all containers including stopped ones.",
+      "examples": [
+        { "description": "Show every container regardless of state", "code": "docker ps -a" }
+      ],
+      "tags": ["ps", "list", "all", "stopped"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-images",
+      "title": "List local images",
+      "syntax": "docker images",
+      "description": "List images cached locally.",
+      "examples": [{ "description": "Show local images", "code": "docker images" }],
+      "tags": ["images", "list", "local"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-run",
+      "title": "Run a container from an image",
+      "syntax": "docker run <image>",
+      "description": "Create and start a new container from an image. Common flags: -d (detached), -p host:container (port), --name <name>, -it (interactive tty).",
+      "examples": [
+        {
+          "description": "Run nginx in the background on port 8080",
+          "code": "docker run -d -p 8080:80 --name web nginx"
+        }
+      ],
+      "tags": ["run", "create", "start"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-run-rm",
+      "title": "Run a one-shot container and remove it on exit",
+      "syntax": "docker run --rm <image>",
+      "description": "Run a container that is automatically removed when it stops. Use for short-lived commands.",
+      "examples": [
+        {
+          "description": "Print the host's kernel version and exit",
+          "code": "docker run --rm alpine uname -a"
+        }
+      ],
+      "tags": ["run", "rm", "ephemeral", "one-shot"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-exec",
+      "title": "Run a command inside a running container",
+      "syntax": "docker exec -it <container> <command>",
+      "description": "Execute a command in a running container. Use `bash` or `sh` for an interactive shell.",
+      "examples": [
+        { "description": "Open a shell in container web", "code": "docker exec -it web bash" }
+      ],
+      "tags": ["exec", "shell", "interactive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-logs",
+      "title": "Show container logs",
+      "syntax": "docker logs <container>",
+      "description": "Fetch logs from a container. Add -f to follow, --tail N for last N lines.",
+      "examples": [{ "description": "Follow logs of container web", "code": "docker logs -f web" }],
+      "tags": ["logs", "tail", "follow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-logs-tail",
+      "title": "Show last N lines of container logs",
+      "syntax": "docker logs --tail <n> <container>",
+      "description": "Print the last N log lines without following.",
+      "examples": [
+        { "description": "Last 100 lines of web's logs", "code": "docker logs --tail 100 web" }
+      ],
+      "tags": ["logs", "tail", "history"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-stop",
+      "title": "Stop a running container",
+      "syntax": "docker stop <container>",
+      "description": "Send SIGTERM then SIGKILL after a grace period. Use docker kill to skip the grace period.",
+      "examples": [{ "description": "Stop container web", "code": "docker stop web" }],
+      "tags": ["stop", "shutdown"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-start",
+      "title": "Start an existing stopped container",
+      "syntax": "docker start <container>",
+      "description": "Start a previously created or stopped container.",
+      "examples": [{ "description": "Start container web", "code": "docker start web" }],
+      "tags": ["start", "resume"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-rm",
+      "title": "Remove a stopped container",
+      "syntax": "docker rm <container>",
+      "description": "Remove a stopped container. Use -f to force-remove a running one.",
+      "examples": [{ "description": "Remove container web", "code": "docker rm web" }],
+      "tags": ["rm", "remove", "cleanup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-rmi",
+      "title": "Remove a local image",
+      "syntax": "docker rmi <image>",
+      "description": "Remove an image from local cache. Use -f to force.",
+      "examples": [{ "description": "Remove the nginx image", "code": "docker rmi nginx" }],
+      "tags": ["rmi", "remove", "image", "cleanup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-pull",
+      "title": "Pull an image from a registry",
+      "syntax": "docker pull <image>",
+      "description": "Download an image from a registry (Docker Hub by default).",
+      "examples": [{ "description": "Pull the latest alpine image", "code": "docker pull alpine" }],
+      "tags": ["pull", "download", "registry"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-build",
+      "title": "Build an image from a Dockerfile",
+      "syntax": "docker build -t <tag> <path>",
+      "description": "Build an image from a Dockerfile in <path> and tag it. <path> is usually `.`.",
+      "examples": [
+        {
+          "description": "Build and tag as myapp:latest from the current directory",
+          "code": "docker build -t myapp:latest ."
+        }
+      ],
+      "tags": ["build", "dockerfile", "image"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-system-prune",
+      "title": "Remove unused containers, networks, images, and build cache",
+      "syntax": "docker system prune",
+      "description": "Free disk by removing all unused Docker objects. Add --volumes to also remove unused volumes.",
+      "examples": [
+        { "description": "Prune everything unused", "code": "docker system prune -a --volumes" }
+      ],
+      "tags": ["prune", "cleanup", "disk"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-inspect",
+      "title": "Show low-level info on a container or image",
+      "syntax": "docker inspect <object>",
+      "description": "Return JSON with full configuration and runtime state of a container, image, or volume.",
+      "examples": [{ "description": "Inspect container web", "code": "docker inspect web" }],
+      "tags": ["inspect", "debug", "json"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-network-ls",
+      "title": "List Docker networks",
+      "syntax": "docker network ls",
+      "description": "List all networks visible to the Docker daemon.",
+      "examples": [{ "description": "List networks", "code": "docker network ls" }],
+      "tags": ["network", "list"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-volume-ls",
+      "title": "List Docker volumes",
+      "syntax": "docker volume ls",
+      "description": "List all named volumes.",
+      "examples": [{ "description": "List volumes", "code": "docker volume ls" }],
+      "tags": ["volume", "list"],
+      "source": "curated",
+      "source_url": null
+    }
+  ]
+}
