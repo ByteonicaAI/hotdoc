@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::Arc;
 
 use anyhow::{Context, Result};
 
@@ -7,7 +7,12 @@ use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::pack;
 
 pub struct AppState {
-    pub index: Mutex<HotdocIndex>,
+    // ponytail: tantivy's IndexReader wraps an Arc and is cheap to clone.
+    // Wrapping the whole HotdocIndex in a Mutex serialised every search
+    // against itself, which became a real bottleneck once M2 adds the
+    // recents-write hot path. HotdocIndex::search takes &self and is
+    // already thread-safe via the inner reader.
+    pub index: Arc<HotdocIndex>,
 }
 
 pub fn bundled_packs_dir() -> PathBuf {
@@ -28,7 +33,7 @@ pub fn persistent_index_dir() -> Option<PathBuf> {
     hotdoc_core::cli::default_index_dir_option()
 }
 
-pub fn load_or_build_index() -> Result<HotdocIndex> {
+pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
     let candidates = [bundled_packs_dir(), dev_packs_dir()];
     for dir in &candidates {
         if dir.is_dir() {
@@ -39,12 +44,12 @@ pub fn load_or_build_index() -> Result<HotdocIndex> {
                         if p.is_dir() {
                             if let Ok(idx) = HotdocIndex::open(&p) {
                                 eprintln!("hotdoc: reusing index at {}", p.display());
-                                return Ok(idx);
+                                return Ok(Arc::new(idx));
                             }
                         }
                         std::fs::create_dir_all(&p).ok();
                         match HotdocIndex::build(&packs, &p) {
-                            Ok(idx) => return Ok(idx),
+                            Ok(idx) => return Ok(Arc::new(idx)),
                             Err(e) => eprintln!(
                                 "hotdoc: persistent build failed ({e:#}), falling back to tmp"
                             ),
@@ -58,7 +63,9 @@ pub fn load_or_build_index() -> Result<HotdocIndex> {
                             .map(|d| d.as_nanos())
                             .unwrap_or(0)
                     ));
-                    return HotdocIndex::build(&packs, &tmp).context("building runtime index");
+                    return HotdocIndex::build(&packs, &tmp)
+                        .map(Arc::new)
+                        .context("building runtime index");
                 }
                 Ok(_) => continue,
                 Err(e) => eprintln!("hotdoc: failed to load {}: {e:#}", dir.display()),

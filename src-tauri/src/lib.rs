@@ -16,7 +16,7 @@ pub fn run() {
     };
 
     tauri::Builder::default()
-        .manage(index_state::AppState { index: std::sync::Mutex::new(index) })
+        .manage(index_state::AppState { index })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 let _ = w.show();
