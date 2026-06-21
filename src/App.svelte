@@ -43,8 +43,8 @@
         pinnedOffset={launcher.recentList.length}
       />
     {:else}
-      {#each launcher.results as r (r.id)}
-        <ResultItem hit={r} active={false} />
+      {#each launcher.results as r, i (r.id)}
+        <ResultItem hit={r} active={i === launcher.selectedIndex} />
       {/each}
       {#if launcher.zeroResult}
         <li class="empty" aria-hidden="true">No matches for "{launcher.query.trim()}"</li>

@@ -29,6 +29,7 @@ export class Launcher {
   toast = $state<string | null>(null);
   recentList = $state<Recent[]>([]);
   pinnedList = $state<SearchHit[]>([]);
+  selectedIndex = $state<number>(-1);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
   emptyQuery = $derived(this.query.trim() === "");
@@ -93,12 +94,15 @@ export class Launcher {
     const q = this.query.trim();
     if (!q) {
       this.results = [];
+      this.selectedIndex = -1;
       return;
     }
     try {
       this.results = await searchPacks(q);
+      this.selectedIndex = this.results.length > 0 ? 0 : -1;
     } catch (e) {
       this.results = [];
+      this.selectedIndex = -1;
       log.error("search failed", { query: q, error: String(e) });
       this.#showToast(`Search failed: ${String(e)}`);
     }
@@ -121,7 +125,8 @@ export class Launcher {
   }
 
   async activate(shift: boolean, ctrl: boolean) {
-    const top = this.results[0];
+    const idx = this.selectedIndex >= 0 ? this.selectedIndex : 0;
+    const top = this.results[idx];
     if (!top) return;
     if (ctrl && top.source_url) {
       // ponytail: SEC-3 / FR-C3 — pack content can carry any string in
@@ -148,7 +153,18 @@ export class Launcher {
       void this.doHide();
       return;
     }
-    if (e.key === "Enter" && this.results[0]) {
+    if (e.key === "ArrowDown" && this.results.length > 0) {
+      e.preventDefault();
+      this.selectedIndex = (this.selectedIndex + 1) % this.results.length;
+      return;
+    }
+    if (e.key === "ArrowUp" && this.results.length > 0) {
+      e.preventDefault();
+      this.selectedIndex =
+        this.selectedIndex <= 0 ? this.results.length - 1 : this.selectedIndex - 1;
+      return;
+    }
+    if (e.key === "Enter" && this.results.length > 0) {
       e.preventDefault();
       void this.activate(e.shiftKey, e.ctrlKey || e.metaKey);
       return;

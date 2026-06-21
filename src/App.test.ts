@@ -233,4 +233,117 @@ describe("App launcher", () => {
       expect(invoke).toHaveBeenCalledWith("search", { query: "git stash" });
     });
   });
+
+  it("ArrowDown moves selection through results and wraps", async () => {
+    const hits = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+      { ...mockHit, id: "c", syntax: "gamma" },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? hits : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    const initial = screen.getByText("alpha").closest("li")!;
+    expect(initial.className).toContain("active");
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    const beta = screen.getByText("beta").closest("li")!;
+    expect(beta.className).toContain("active");
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    const gamma = screen.getByText("gamma").closest("li")!;
+    expect(gamma.className).toContain("active");
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    const wrapped = screen.getByText("alpha").closest("li")!;
+    expect(wrapped.className).toContain("active");
+  });
+
+  it("ArrowUp wraps to last result when at top", async () => {
+    const hits = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? hits : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "ArrowUp" });
+    const beta = screen.getByText("beta").closest("li")!;
+    expect(beta.className).toContain("active");
+  });
+
+  it("Enter on highlighted row activates that row, not the top", async () => {
+    const hits = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? hits : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    await fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => {
+      expect(writeText).toHaveBeenCalledWith("beta");
+    });
+  });
+
+  it("new search resets selection to 0", async () => {
+    const hits1 = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+    ];
+    const hits2 = [{ ...mockHit, id: "x", syntax: "xray" }];
+    let calls = 0;
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") {
+        calls += 1;
+        return Promise.resolve(q ? (calls === 1 ? hits1 : hits2) : []);
+      }
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    await fireEvent.input(input, { target: { value: "docker" } });
+    await waitFor(() => expect(screen.getByText("xray")).toBeInTheDocument());
+    const active = screen.getByText("xray").closest("li")!;
+    expect(active.className).toContain("active");
+  });
+
+  it("arrow keys are inert when results are empty", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "zzzzz" } });
+    await waitFor(() => expect(screen.getByText(/no matches for/i)).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    await fireEvent.keyDown(input, { key: "ArrowUp" });
+    // No error means the keys were inert; no top-level exception thrown.
+  });
 });
