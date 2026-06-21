@@ -76,3 +76,27 @@ pub fn default_golden_path() -> std::path::PathBuf {
 pub fn re_export_default_index_dir() -> std::path::PathBuf {
     default_index_dir()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fresh_index_dir() -> std::path::PathBuf {
+        std::env::temp_dir().join(format!("hotdoc-golden-test-{}", std::process::id()))
+    }
+
+    #[test]
+    fn golden_returns_expected_hits() {
+        let packs_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("packs")
+            .join("curate");
+        let packs = crate::pack::load_dir(&packs_dir).expect("load real packs");
+        let index_dir = fresh_index_dir();
+        let _ = std::fs::remove_dir_all(&index_dir);
+        crate::index::HotdocIndex::build(&packs, &index_dir).expect("build index");
+        cmd_bench(&default_golden_path(), &index_dir).expect("all golden queries must pass");
+        let _ = std::fs::remove_dir_all(&index_dir);
+    }
+}

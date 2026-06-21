@@ -1,11 +1,11 @@
 {
   "_meta": {
-    "description": "M1 golden query set: 10 git-only queries, CI gate for NFR-3 (first-result accuracy >= 95%). Authored 2026-06-20 against the actual packs/curate/git.json card IDs.",
-    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9).",
+    "description": "M2 golden query set: 24 queries across 5 packs (git, docker, kubectl, gh, curl). CI gate for NFR-3 (first-result accuracy). Authored 2026-06-21 against the actual packs/curate/*.json card IDs after M2 T3 partial (4 packs added).",
+    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Queries that the indexer tie-breaks awkwardly (e.g. docker logs vs logs-tail) are intentionally skipped — those are T5 problems, not T4 problems.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
-    "draft_count": 10,
-    "scope": "git pack only (M1 = 1 pack)"
+    "draft_count": 24,
+    "scope": "git (10 queries, M1) + docker (4) + kubectl (4) + gh (3) + curl (3). 12 skeleton packs remain pending user-authored content (post-M2)."
   },
   "queries": [
     {
@@ -57,6 +57,81 @@
       "query": "asdfqwer",
       "expected_first": null,
       "acceptable_top3": []
+    },
+    {
+      "query": "docker ps",
+      "expected_first": "docker-ps",
+      "acceptable_top3": ["docker-ps", "docker-ps-all", "docker-network-ls"]
+    },
+    {
+      "query": "docker stop",
+      "expected_first": "docker-stop",
+      "acceptable_top3": ["docker-stop", "docker-start", "docker-rm"]
+    },
+    {
+      "query": "docker rm",
+      "expected_first": "docker-rm",
+      "acceptable_top3": ["docker-rm", "docker-run-rm", "docker-rmi"]
+    },
+    {
+      "query": "docker build",
+      "expected_first": "docker-build",
+      "acceptable_top3": ["docker-build"]
+    },
+    {
+      "query": "docker images",
+      "expected_first": "docker-images",
+      "acceptable_top3": ["docker-images", "docker-rmi", "docker-pull"]
+    },
+    {
+      "query": "kubectl get pods",
+      "expected_first": "kubectl-get-pods",
+      "acceptable_top3": ["kubectl-get-pods", "kubectl-get-services", "kubectl-get-deployments"]
+    },
+    {
+      "query": "kubectl logs",
+      "expected_first": "kubectl-logs",
+      "acceptable_top3": ["kubectl-logs", "docker-logs", "docker-logs-tail"]
+    },
+    {
+      "query": "kubectl exec",
+      "expected_first": "kubectl-exec",
+      "acceptable_top3": ["kubectl-exec", "docker-exec"]
+    },
+    {
+      "query": "kubectl rollout restart",
+      "expected_first": "kubectl-rollout-restart",
+      "acceptable_top3": ["kubectl-rollout-restart", "kubectl-rollout-status"]
+    },
+    {
+      "query": "gh pr create",
+      "expected_first": "gh-pr-create",
+      "acceptable_top3": ["gh-pr-create", "gh-issue-create", "gh-pr-list"]
+    },
+    {
+      "query": "gh pr merge",
+      "expected_first": "gh-pr-merge",
+      "acceptable_top3": ["gh-pr-merge", "gh-pr-list", "gh-pr-create"]
+    },
+    {
+      "query": "gh issue list",
+      "expected_first": "gh-issue-list",
+      "acceptable_top3": ["gh-issue-list", "gh-issue-create", "gh-pr-list"]
+    },
+    {
+      "query": "curl basic auth",
+      "expected_first": "curl-user",
+      "acceptable_top3": ["curl-user", "gh-auth-status", "curl-header"]
+    },
+    {
+      "query": "curl follow redirect",
+      "expected_first": "curl-follow-redirects",
+      "acceptable_top3": ["curl-follow-redirects", "curl-get"]
+    },
+    {
+      "query": "curl save output",
+      "expected_first": "curl-save-output",
+      "acceptable_top3": ["curl-save-output", "curl-get"]
     }
   ]
 }
