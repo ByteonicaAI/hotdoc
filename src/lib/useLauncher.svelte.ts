@@ -3,6 +3,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { hideWindow, searchPacks } from "./tauri";
 import type { SearchHit } from "./types";
 import { log } from "./logger";
+import * as recents from "./launcher/recents";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -112,6 +113,7 @@ export class Launcher {
     const text = shift ? (top.example_code ?? top.syntax) : top.syntax;
     await this.#copyAndToast(text);
     this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+    void recents.onActivation(this.query);
   }
 
   onKey(e: KeyboardEvent) {

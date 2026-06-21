@@ -144,4 +144,34 @@ describe("App launcher", () => {
       expect(screen.getByText(/no matches for "asdfqwer"/i)).toBeInTheDocument();
     });
   });
+
+  it("Enter triggers record_recent with the trimmed query", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) =>
+      Promise.resolve(cmd === "search" ? [mockHit] : undefined),
+    );
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("record_recent", { query: "git stash" });
+    });
+  });
+
+  it("Escape does NOT trigger record_recent", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) =>
+      Promise.resolve(cmd === "search" ? [mockHit] : undefined),
+    );
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Escape" });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("hide_window");
+    });
+    const calls = vi.mocked(invoke).mock.calls.map((c) => c[0]);
+    expect(calls).not.toContain("record_recent");
+  });
 });

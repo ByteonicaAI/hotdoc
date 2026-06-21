@@ -3,13 +3,25 @@ mod hotkey;
 mod index_state;
 mod toggle;
 
+use std::sync::{Arc, Mutex};
+
 use tauri::Manager;
+use tracing::info;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if let Err(e) = hotdoc_core::logging::init() {
         eprintln!("hotdoc: logging init failed: {e:#}");
     }
+    let db_path = hotdoc_core::store::default_db_path().expect("default db path");
+    let conn = hotdoc_core::store::open(&db_path)
+        .and_then(|c| {
+            hotdoc_core::store::migrate(&c)?;
+            Ok(c)
+        })
+        .expect("open store");
+    let db = Arc::new(Mutex::new(conn));
+    info!(path = %db_path.display(), "store opened");
 
     let index = match index_state::load_or_build_index() {
         Ok(i) => i,
@@ -20,7 +32,7 @@ pub fn run() {
     };
 
     tauri::Builder::default()
-        .manage(index_state::AppState { index })
+        .manage(index_state::AppState { index, db })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 let _ = w.show();
@@ -34,7 +46,10 @@ pub fn run() {
             commands::search,
             commands::copy_syntax,
             commands::hide_window,
-            commands::log_error
+            commands::log_error,
+            commands::record_recent,
+            commands::get_recents,
+            commands::clear_recents
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {

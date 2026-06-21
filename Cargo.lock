@@ -1693,6 +1693,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "hotdoc-core",
+ "rusqlite",
  "serde",
  "serde_json",
  "tauri",

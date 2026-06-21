@@ -5,6 +5,7 @@
 //! `settings`, `packs`) land with their respective tasks (T2/T5/T8/T6).
 
 pub mod meta;
+pub mod recents;
 
 use std::path::Path;
 
@@ -20,6 +21,8 @@ pub enum StoreError {
     Db(#[from] rusqlite::Error),
     #[error("io: {0}")]
     Io(#[from] std::io::Error),
+    #[error("platform data directory not available")]
+    MissingDataDir,
 }
 
 pub type Result<T> = std::result::Result<T, StoreError>;
@@ -69,6 +72,14 @@ pub fn migrate(conn: &Connection) -> Result<()> {
 
 /// Pre-rendered `SCHEMA_VERSION` so `migrate()` doesn't format on every call.
 const SCHEMA_VERSION_STR: &str = "1";
+
+/// Default on-disk database path: `dirs::data_local_dir() / "hotdoc" / "hotdoc.sqlite"`.
+/// Same directory the persistent Tantivy index lives in.
+#[instrument]
+pub fn default_db_path() -> Result<std::path::PathBuf> {
+    let dir = dirs::data_local_dir().ok_or(StoreError::MissingDataDir)?;
+    Ok(dir.join("hotdoc").join("hotdoc.sqlite"))
+}
 
 /// The full schema as one batch. Mirrors spec §9.2 verbatim.
 const SCHEMA_SQL: &str = "

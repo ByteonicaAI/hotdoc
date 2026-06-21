@@ -33,3 +33,21 @@ export async function logToBackend(
     context: context ? JSON.stringify(context) : null,
   });
 }
+
+export type Recent = {
+  query: string;
+  last_used_at: number;
+  use_count: number;
+};
+
+export async function recordRecent(query: string): Promise<void> {
+  await invoke("record_recent", { query });
+}
+
+export async function getRecents(n: number): Promise<Recent[]> {
+  return invoke<Recent[]>("get_recents", { n });
+}
+
+export async function clearRecents(): Promise<void> {
+  await invoke("clear_recents");
+}

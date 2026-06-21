@@ -1,7 +1,8 @@
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
+use rusqlite::Connection;
 use tracing::{info, instrument, warn};
 
 use hotdoc_core::index::HotdocIndex;
@@ -14,6 +15,12 @@ pub struct AppState {
     // recents-write hot path. HotdocIndex::search takes &self and is
     // already thread-safe via the inner reader.
     pub index: Arc<HotdocIndex>,
+    // rusqlite::Connection is not Sync in 0.31 (RefCell-based internals);
+    // the plan's "Send + Sync since 0.27" claim is wrong for 0.31. A Mutex
+    // serialises commands, which is fine: each command is a single
+    // short-lived transaction and the hot path is one `record()` per
+    // activation, not per keystroke.
+    pub db: Arc<Mutex<Connection>>,
 }
 
 pub fn bundled_packs_dir() -> PathBuf {

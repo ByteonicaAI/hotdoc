@@ -3,6 +3,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tracing::{error, info, instrument};
 
 use hotdoc_core::index::SearchHit;
+use hotdoc_core::store::recents::{self, Recent};
 
 use crate::index_state::AppState;
 
@@ -65,5 +66,30 @@ pub fn log_error(level: String, msg: String, context: Option<String>) -> Result<
         }
         _ => return Err(format!("unknown log level: {level}")),
     }
+    Ok(())
+}
+
+// Recents (spec FR-R1–R4). Thin IPC surface over hotdoc_core::store::recents.
+// Frontend never sees rusqlite errors directly — map to a generic string so
+// P1-3 logs the failure without surfacing internals.
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn record_recent(query: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    recents::record(&conn, &query).map_err(|e| format!("record_recent: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn get_recents(n: usize, state: State<'_, AppState>) -> Result<Vec<Recent>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    recents::top_n(&conn, n).map_err(|e| format!("get_recents: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn clear_recents(state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    recents::clear(&conn).map_err(|e| format!("clear_recents: {e:#}"))?;
     Ok(())
 }
