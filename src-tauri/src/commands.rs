@@ -1,5 +1,6 @@
 use tauri::State;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tracing::{error, info, instrument};
 
 use hotdoc_core::index::SearchHit;
 
@@ -10,11 +11,15 @@ use crate::index_state::AppState;
 // per-call lock is needed. Errors are still returned as Result<T, String>
 // so the UI can toast (P1-3 from the prior review).
 #[tauri::command]
+#[instrument(skip(state))]
 pub fn search(query: String, state: State<'_, AppState>) -> Result<Vec<SearchHit>, String> {
-    state.index.search(&query, 8).map_err(|e| format!("search failed: {e:#}"))
+    let hits = state.index.search(&query, 8).map_err(|e| format!("search failed: {e:#}"))?;
+    info!(query = %query, hits = hits.len(), "search");
+    Ok(hits)
 }
 
 #[tauri::command]
+#[instrument(skip(state, app))]
 pub fn copy_syntax(
     query: String,
     state: State<'_, AppState>,
@@ -30,10 +35,35 @@ pub fn copy_syntax(
     app.clipboard()
         .write_text(hit.syntax.clone())
         .map_err(|e| format!("clipboard write failed: {e}"))?;
+    info!(query = %query, id = %hit.id, "copy_syntax");
     Ok(Some(hit.syntax))
 }
 
 #[tauri::command]
+#[instrument(skip(window))]
 pub fn hide_window(window: tauri::WebviewWindow) -> Result<(), String> {
     window.hide().map_err(|e| format!("hide failed: {e}"))
+}
+
+// ponytail: spec FR-G1 + audit §4.2. Frontend forwards warn+/error entries
+// here so they hit the rolling file log. The Tauri capability system grants
+// custom commands in this crate's scope by default; no capabilities
+// change needed. Best-effort by design — frontend never crashes if
+// logging fails.
+#[tauri::command]
+#[instrument(skip_all, fields(level = %level))]
+pub fn log_error(level: String, msg: String, context: Option<String>) -> Result<(), String> {
+    match level.as_str() {
+        "error" => {
+            error!(target: "frontend", context = context.as_deref().unwrap_or(""), "{}", msg)
+        }
+        "warn" => {
+            tracing::warn!(target: "frontend", context = context.as_deref().unwrap_or(""), "{}", msg)
+        }
+        "info" => {
+            tracing::info!(target: "frontend", context = context.as_deref().unwrap_or(""), "{}", msg)
+        }
+        _ => return Err(format!("unknown log level: {level}")),
+    }
+    Ok(())
 }

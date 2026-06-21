@@ -33,7 +33,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::search,
             commands::copy_syntax,
-            commands::hide_window
+            commands::hide_window,
+            commands::log_error
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {
