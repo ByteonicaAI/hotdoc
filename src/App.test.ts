@@ -101,6 +101,22 @@ describe("App launcher", () => {
     });
   });
 
+  it("Ctrl+Enter rejects non-https source_url (SEC-3)", async () => {
+    const hostile = { ...mockHit, source_url: "javascript:alert(1)" };
+    vi.mocked(invoke).mockImplementation((cmd: string) =>
+      Promise.resolve(cmd === "search" ? [hostile] : undefined),
+    );
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
+    await waitFor(() => {
+      expect(openUrl).not.toHaveBeenCalled();
+      expect(screen.getByText(/only https: URLs allowed/i)).toBeInTheDocument();
+    });
+  });
+
   it("Escape hides the window", async () => {
     render(App);
     const input = screen.getByPlaceholderText(/hotdoc: type to search/i);

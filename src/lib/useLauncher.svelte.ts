@@ -3,6 +3,14 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { hideWindow, searchPacks } from "./tauri";
 import type { SearchHit } from "./types";
 
+function isHttpsUrl(u: string): boolean {
+  try {
+    return new URL(u).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // ponytail: Svelte 5 hooks live in `.svelte.ts` files. The runes `$state` and
 // `$derived` only track reactively when fields are read directly off `this`.
 // In the template, every handler is wrapped as `(e) => launcher.onFoo(e)` so
@@ -86,8 +94,16 @@ export class Launcher {
     const top = this.results[0];
     if (!top) return;
     if (ctrl && top.source_url) {
-      await openUrl(top.source_url);
-      await this.doHide();
+      // ponytail: SEC-3 / FR-C3 — pack content can carry any string in
+      // source_url. openUrl() under the granted `opener:allow-open-url`
+      // capability would open javascript:, file:, or any scheme the OS
+      // supports. Allow https: only; reject and toast everything else.
+      if (isHttpsUrl(top.source_url)) {
+        await openUrl(top.source_url);
+        await this.doHide();
+      } else {
+        this.#showToast(`Open rejected: only https: URLs allowed`);
+      }
       return;
     }
     const text = shift ? (top.example_code ?? top.syntax) : top.syntax;
