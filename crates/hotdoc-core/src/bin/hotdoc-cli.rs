@@ -45,7 +45,16 @@ fn main() -> ExitCode {
                     return ExitCode::from(2);
                 }
             };
-            let limit: usize = kv.get("limit").and_then(|s| s.parse().ok()).unwrap_or(8);
+            let limit: usize = match kv.get("limit") {
+                Some(s) => match s.parse() {
+                    Ok(n) => n,
+                    Err(e) => {
+                        eprintln!("query: --limit {:?} is not a number: {e}", s);
+                        return ExitCode::from(2);
+                    }
+                },
+                None => 8,
+            };
             let index = kv
                 .get("index")
                 .map(PathBuf::from)
