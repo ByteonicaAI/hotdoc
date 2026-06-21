@@ -3,6 +3,7 @@ mod hotkey;
 mod index_state;
 mod settings;
 mod toggle;
+mod tray;
 
 use std::sync::{Arc, Mutex};
 
@@ -84,6 +85,7 @@ pub fn run() {
             }
             toggle::spawn(app.handle().clone());
             hotkey::register(app.handle(), hotkey::default_combo())?;
+            tray::build(app.handle())?;
             Ok(())
         })
         .run(tauri::generate_context!())
