@@ -1,13 +1,16 @@
 <script lang="ts">
   import { sourceLabel, type SearchHit } from "./types";
 
-  type Props = { hit: SearchHit; active: boolean };
-  const { hit, active }: Props = $props();
+  type Props = { hit: SearchHit; active: boolean; pinned?: boolean };
+  const { hit, active, pinned = false }: Props = $props();
 </script>
 
 <li class:active role="option" aria-selected={active}>
   <div class="row syntax-row">
     <span class="syntax">{hit.syntax}</span>
+    {#if pinned}
+      <span class="pin-mark" aria-label="pinned">📌</span>
+    {/if}
     <span class="source {hit.source}">{sourceLabel(hit.source)}</span>
   </div>
   <div class="row meta-row">
@@ -19,3 +22,9 @@
     <div class="example"><code>{hit.example_code}</code></div>
   {/if}
 </li>
+
+<style>
+  .pin-mark {
+    font-size: 11px;
+  }
+</style>

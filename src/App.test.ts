@@ -346,4 +346,41 @@ describe("App launcher", () => {
     await fireEvent.keyDown(input, { key: "ArrowUp" });
     // No error means the keys were inert; no top-level exception thrown.
   });
+
+  it("Ctrl+P pins the highlighted row, fires pin_entry IPC", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "p", ctrlKey: true });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("pin_entry", { entryId: "git-stash" });
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/Pinned:/)).toBeInTheDocument();
+    });
+  });
+
+  it("Ctrl+P again unpins (calls unpin_entry)", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([mockHit]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "p", ctrlKey: true });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("unpin_entry", { entryId: "git-stash" });
+    });
+  });
 });

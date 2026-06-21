@@ -3,6 +3,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 use tracing::{error, info, instrument};
 
 use hotdoc_core::index::SearchHit;
+use hotdoc_core::store::pinned::{self, PinnedHit};
 use hotdoc_core::store::recents::{self, Recent};
 
 use crate::index_state::AppState;
@@ -92,4 +93,30 @@ pub fn clear_recents(state: State<'_, AppState>) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
     recents::clear(&conn).map_err(|e| format!("clear_recents: {e:#}"))?;
     Ok(())
+}
+
+// Pinned (spec FR-P1–P3). The entries table is unpopulated in M3 (v1.1's
+// persistent-index-reuse work will fill it), so `get_pinned` returns []
+// until then. The pin/unpin IPC still works — it just won't surface in
+// the empty view.
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn pin_entry(entry_id: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    pinned::add(&conn, &entry_id).map_err(|e| format!("pin_entry: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn unpin_entry(entry_id: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    pinned::remove(&conn, &entry_id).map_err(|e| format!("unpin_entry: {e:#}"))?;
+    Ok(())
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn get_pinned(state: State<'_, AppState>) -> Result<Vec<PinnedHit>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    pinned::list(&conn).map_err(|e| format!("get_pinned: {e:#}"))
 }

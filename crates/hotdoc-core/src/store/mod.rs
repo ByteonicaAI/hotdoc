@@ -5,6 +5,7 @@
 //! `settings`, `packs`) land with their respective tasks (T2/T5/T8/T6).
 
 pub mod meta;
+pub mod pinned;
 pub mod recents;
 
 use std::path::Path;

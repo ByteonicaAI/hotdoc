@@ -10,8 +10,14 @@
     pinnedOffset: number;
   };
 
-  const { recents, pinned, onSelectRecent, onSelectPinned, selectedIndex, pinnedOffset }: Props =
-    $props();
+  const {
+    recents = [],
+    pinned = [],
+    onSelectRecent,
+    onSelectPinned,
+    selectedIndex,
+    pinnedOffset,
+  }: Props = $props();
 
   function recentClick(e: MouseEvent, query: string) {
     e.preventDefault();

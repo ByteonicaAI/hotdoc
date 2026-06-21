@@ -44,7 +44,11 @@
       />
     {:else}
       {#each launcher.results as r, i (r.id)}
-        <ResultItem hit={r} active={i === launcher.selectedIndex} />
+        <ResultItem
+          hit={r}
+          active={i === launcher.selectedIndex}
+          pinned={launcher.pinnedIds.has(r.id)}
+        />
       {/each}
       {#if launcher.zeroResult}
         <li class="empty" aria-hidden="true">No matches for "{launcher.query.trim()}"</li>

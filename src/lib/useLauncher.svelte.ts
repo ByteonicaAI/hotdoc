@@ -4,6 +4,7 @@ import { getRecents, hideWindow, searchPacks } from "./tauri";
 import type { Recent, SearchHit } from "./types";
 import { log } from "./logger";
 import * as recents from "./launcher/recents";
+import * as pinned from "./launcher/pinned";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -29,6 +30,7 @@ export class Launcher {
   toast = $state<string | null>(null);
   recentList = $state<Recent[]>([]);
   pinnedList = $state<SearchHit[]>([]);
+  pinnedIds = $state<Set<string>>(new Set());
   selectedIndex = $state<number>(-1);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
@@ -64,12 +66,10 @@ export class Launcher {
 
   async loadEmptyView() {
     try {
-      const [r, p] = await Promise.all([
-        getRecents(5),
-        Promise.resolve([] as SearchHit[]), // pinned lands in T5
-      ]);
+      const [r, p] = await Promise.all([getRecents(5), pinned.fetchPinned()]);
       this.recentList = r;
       this.pinnedList = p;
+      this.pinnedIds = new Set(p.map((h) => h.id));
     } catch (e) {
       log.warn("load empty view failed", { error: String(e) });
     }
@@ -78,6 +78,23 @@ export class Launcher {
   selectRecent(query: string) {
     this.query = query;
     void this.runSearch();
+  }
+
+  async togglePin() {
+    const idx = this.selectedIndex >= 0 ? this.selectedIndex : 0;
+    const hit = this.results[idx];
+    if (!hit) return;
+    const next = await pinned.toggle(hit.id, this.pinnedIds.has(hit.id));
+    const updated = new Set(this.pinnedIds);
+    if (next) {
+      updated.add(hit.id);
+      this.#showToast(`Pinned: ${hit.title}`);
+    } else {
+      updated.delete(hit.id);
+      this.#showToast(`Unpinned: ${hit.title}`);
+    }
+    this.pinnedIds = updated;
+    void this.loadEmptyView();
   }
 
   selectPinned(hit: SearchHit) {
@@ -167,6 +184,11 @@ export class Launcher {
     if (e.key === "Enter" && this.results.length > 0) {
       e.preventDefault();
       void this.activate(e.shiftKey, e.ctrlKey || e.metaKey);
+      return;
+    }
+    if ((e.key === "p" || e.key === "P") && (e.ctrlKey || e.metaKey) && this.results.length > 0) {
+      e.preventDefault();
+      void this.togglePin();
       return;
     }
     if (e.key === "c" && (e.ctrlKey || e.metaKey) && this.query === "") {

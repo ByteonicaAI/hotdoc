@@ -47,3 +47,15 @@ export async function getRecents(n: number): Promise<Recent[]> {
 export async function clearRecents(): Promise<void> {
   await invoke("clear_recents");
 }
+
+export async function pinEntry(entryId: string): Promise<void> {
+  await invoke("pin_entry", { entryId });
+}
+
+export async function unpinEntry(entryId: string): Promise<void> {
+  await invoke("unpin_entry", { entryId });
+}
+
+export async function getPinned(): Promise<SearchHit[]> {
+  return invoke<SearchHit[]>("get_pinned");
+}

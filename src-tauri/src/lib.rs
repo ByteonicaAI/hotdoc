@@ -49,7 +49,10 @@ pub fn run() {
             commands::log_error,
             commands::record_recent,
             commands::get_recents,
-            commands::clear_recents
+            commands::clear_recents,
+            commands::pin_entry,
+            commands::unpin_entry,
+            commands::get_pinned
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {
