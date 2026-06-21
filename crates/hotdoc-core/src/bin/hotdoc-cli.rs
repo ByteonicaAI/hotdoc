@@ -6,6 +6,8 @@ use hotdoc_core::cli;
 use hotdoc_core::golden;
 
 fn main() -> ExitCode {
+    let _ = hotdoc_core::logging::init();
+
     let args: Vec<String> = std::env::args().collect();
     let mut kv: HashMap<String, String> = HashMap::new();
     let positional: Vec<String> = args

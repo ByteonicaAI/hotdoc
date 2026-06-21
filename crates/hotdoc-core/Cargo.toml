@@ -19,7 +19,8 @@ anyhow = "1"
 dirs = "5"
 arboard = "3"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
 
 [lints]
 workspace = true

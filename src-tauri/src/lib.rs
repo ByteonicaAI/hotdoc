@@ -7,6 +7,10 @@ use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if let Err(e) = hotdoc_core::logging::init() {
+        eprintln!("hotdoc: logging init failed: {e:#}");
+    }
+
     let index = match index_state::load_or_build_index() {
         Ok(i) => i,
         Err(e) => {
