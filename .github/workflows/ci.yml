@@ -89,3 +89,15 @@ jobs:
       - name: Test
         working-directory: src-tauri
         run: cargo test
+
+      - name: Build golden-query index
+        working-directory: src-tauri
+        run: cargo run -p hotdoc-core -- index --out target/bench-index
+
+      - name: Golden query bench (NFR-3)
+        working-directory: src-tauri
+        run: cargo run -p hotdoc-core -- bench --index target/bench-index
+
+      - name: Open-time bench (NFR-1 index-build portion)
+        working-directory: src-tauri
+        run: cargo run -p hotdoc-core --bin bench-open
