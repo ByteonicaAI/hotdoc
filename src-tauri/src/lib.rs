@@ -1,6 +1,7 @@
 mod commands;
 mod hotkey;
 mod index_state;
+mod settings;
 mod toggle;
 
 use std::sync::{Arc, Mutex};
@@ -42,6 +43,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec!["--autostart"]),
+        ))
         .invoke_handler(tauri::generate_handler![
             commands::search,
             commands::copy_syntax,
@@ -53,7 +58,12 @@ pub fn run() {
             commands::pin_entry,
             commands::unpin_entry,
             commands::get_pinned,
-            commands::list_packs
+            commands::list_packs,
+            commands::set_setting,
+            commands::get_setting,
+            commands::get_all_settings,
+            commands::set_hotkey,
+            commands::set_autostart
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {
@@ -73,7 +83,7 @@ pub fn run() {
                 }
             }
             toggle::spawn(app.handle().clone());
-            hotkey::register(app.handle())?;
+            hotkey::register(app.handle(), hotkey::default_combo())?;
             Ok(())
         })
         .run(tauri::generate_context!())

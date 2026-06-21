@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use tauri::State;
+use tauri_plugin_autostart::ManagerExt as AutostartExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tracing::{error, info, instrument};
 
@@ -6,8 +9,10 @@ use hotdoc_core::index::SearchHit;
 use hotdoc_core::store::packs;
 use hotdoc_core::store::pinned::{self, PinnedHit};
 use hotdoc_core::store::recents::{self, Recent};
+use hotdoc_core::store::settings;
 
 use crate::index_state::AppState;
+use crate::settings as hotkey_settings;
 
 // ponytail: P1-3. The AppState now holds Arc<HotdocIndex>; HotdocIndex::search
 // takes &self and is thread-safe via the inner tantivy::IndexReader, so no
@@ -131,4 +136,46 @@ pub fn get_pinned(state: State<'_, AppState>) -> Result<Vec<PinnedHit>, String> 
 pub fn list_packs(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
     packs::list_ids(&conn).map_err(|e| format!("list_packs: {e:#}"))
+}
+
+// Settings (spec FR-X1–X4). `set_setting` writes to the `settings` table;
+// `set_hotkey` validates against the app-level deny-list (T9) and asks the
+// global-shortcut plugin to re-register. OS-refused registrations return a
+// distinct error message so the UI can show a different badge per spec P1-7.
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn set_setting(key: String, value: String, state: State<'_, AppState>) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    settings::set(&conn, &key, &value).map_err(|e| format!("set_setting: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn get_setting(key: String, state: State<'_, AppState>) -> Result<Option<String>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    settings::get(&conn, &key).map_err(|e| format!("get_setting: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn get_all_settings(state: State<'_, AppState>) -> Result<HashMap<String, String>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    settings::all(&conn).map_err(|e| format!("get_all_settings: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(app))]
+pub fn set_hotkey(combo: String, app: tauri::AppHandle) -> Result<(), String> {
+    hotkey_settings::rebind(&app, &combo)
+}
+
+#[tauri::command]
+#[instrument(skip(app))]
+pub fn set_autostart(enabled: bool, app: tauri::AppHandle) -> Result<(), String> {
+    let mgr = app.autolaunch();
+    if enabled {
+        mgr.enable().map_err(|e| format!("autostart enable: {e}"))
+    } else {
+        mgr.disable().map_err(|e| format!("autostart disable: {e}"))
+    }
 }

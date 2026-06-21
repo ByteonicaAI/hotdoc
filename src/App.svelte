@@ -3,6 +3,7 @@
   import { listen } from "@tauri-apps/api/event";
   import ResultItem from "./lib/ResultItem.svelte";
   import EmptyView from "./lib/EmptyView.svelte";
+  import SettingsPanel from "./lib/SettingsPanel.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
   import type { SearchHit } from "./lib/types";
 
@@ -15,6 +16,9 @@
       void launcher.loadEmptyView();
     }).then((u) => {
       unlisten = u;
+    });
+    void listen("hotdoc://open-settings", () => {
+      launcher.openSettings();
     });
     void launcher.loadEmptyView();
     void launcher.initPalette();
@@ -58,5 +62,8 @@
   </ul>
   {#if launcher.toast}
     <div class="toast" role="status">{launcher.toast}</div>
+  {/if}
+  {#if launcher.settingsOpen}
+    <SettingsPanel onClose={() => launcher.closeSettings()} />
   {/if}
 </main>

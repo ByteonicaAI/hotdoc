@@ -405,12 +405,12 @@ describe("App launcher", () => {
     });
   });
 
-  it("> settings toasts the T8 stub message", async () => {
+  it("> settings opens the settings panel", async () => {
     render(App);
     const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => {
-      expect(screen.getByText(/Settings coming soon/i)).toBeInTheDocument();
+      expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
     });
   });
 
@@ -474,6 +474,83 @@ describe("App launcher", () => {
     await fireEvent.input(input, { target: { value: "dctr" } });
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("search", { query: "dctr" });
+    });
+  });
+
+  it("settings panel saves hotkey, calls set_hotkey and set_setting", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({});
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> settings" } });
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
+    });
+    const hotkeyInput = screen.getByTestId("hotkey-input");
+    await fireEvent.input(hotkeyInput, { target: { value: "Ctrl+Shift+K" } });
+    await fireEvent.click(screen.getByTestId("hotkey-save"));
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("set_hotkey", { combo: "Ctrl+Shift+K" });
+    });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("set_setting", {
+        key: "hotkey",
+        value: "Ctrl+Shift+K",
+      });
+    });
+    expect(screen.getByTestId("settings-status").textContent).toContain("Saved");
+  });
+
+  it("settings panel blocks reserved hotkey combo (Ctrl+C)", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({});
+      if (cmd === "set_hotkey") {
+        return Promise.reject(
+          new Error("Ctrl+C is reserved — rebind it via your desktop environment instead"),
+        );
+      }
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> settings" } });
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
+    });
+    const hotkeyInput = screen.getByTestId("hotkey-input");
+    await fireEvent.input(hotkeyInput, { target: { value: "Ctrl+C" } });
+    await fireEvent.click(screen.getByTestId("hotkey-save"));
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-status").className).toContain("err");
+    });
+    expect(screen.getByTestId("settings-status").textContent).toContain("reserved");
+  });
+
+  it("settings panel toggles autostart via set_autostart IPC", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({});
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> settings" } });
+    await waitFor(() => {
+      expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
+    });
+    await fireEvent.click(screen.getByTestId("autostart-toggle"));
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("set_autostart", { enabled: true });
     });
   });
 });

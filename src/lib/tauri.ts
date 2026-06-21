@@ -63,3 +63,25 @@ export async function getPinned(): Promise<SearchHit[]> {
 export async function listPacks(): Promise<string[]> {
   return invoke<string[]>("list_packs");
 }
+
+export type SettingsMap = Record<string, string>;
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  await invoke("set_setting", { key, value });
+}
+
+export async function getSetting(key: string): Promise<string | null> {
+  return invoke<string | null>("get_setting", { key });
+}
+
+export async function getAllSettings(): Promise<SettingsMap> {
+  return invoke<SettingsMap>("get_all_settings");
+}
+
+export async function setHotkey(combo: string): Promise<void> {
+  await invoke("set_hotkey", { combo });
+}
+
+export async function setAutostart(enabled: boolean): Promise<void> {
+  await invoke("set_autostart", { enabled });
+}

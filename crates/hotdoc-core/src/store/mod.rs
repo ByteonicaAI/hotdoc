@@ -8,6 +8,7 @@ pub mod meta;
 pub mod packs;
 pub mod pinned;
 pub mod recents;
+pub mod settings;
 
 use std::path::Path;
 

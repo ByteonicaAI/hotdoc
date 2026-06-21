@@ -35,6 +35,7 @@ export class Launcher {
   selectedIndex = $state<number>(-1);
   validPackIds = $state<Set<string>>(new Set());
   packFilter = $state<string | null>(null);
+  settingsOpen = $state<boolean>(false);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
   emptyQuery = $derived(this.query.trim() === "");
@@ -106,10 +107,11 @@ export class Launcher {
   }
 
   openSettings() {
-    // ponytail: T8 replaces this stub with the real SettingsPanel route.
-    // Until then, a toast is the smallest useful surface (FR-X4 says the
-    // route must exist; the panel itself is T8's deliverable).
-    this.#showToast("Settings coming soon");
+    this.settingsOpen = true;
+  }
+
+  closeSettings() {
+    this.settingsOpen = false;
   }
 
   openHelp() {
