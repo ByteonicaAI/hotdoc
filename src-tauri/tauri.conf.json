@@ -12,9 +12,14 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "hotdoc",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "visible": true,
+        "decorations": true,
+        "resizable": true,
+        "center": true
       }
     ],
     "security": {

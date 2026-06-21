@@ -1650,21 +1650,15 @@ name = "hotdoc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "arboard",
- "dirs 5.0.1",
- "once_cell",
+ "hotdoc-core",
  "serde",
  "serde_json",
- "tantivy",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-opener",
  "tauri-plugin-single-instance",
- "tracing",
- "tracing-subscriber",
- "walkdir",
 ]
 
 [[package]]

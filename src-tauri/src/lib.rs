@@ -1,9 +1,80 @@
-use tauri::Manager;
+use std::path::PathBuf;
+use std::sync::Mutex;
+use tauri::{Manager, State};
+use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
+
+use hotdoc_core::index::{HotdocIndex, SearchHit};
+use hotdoc_core::pack;
+
+struct AppState {
+    index: Mutex<HotdocIndex>,
+}
+
+fn bundled_packs_dir() -> PathBuf {
+    PathBuf::from(env!("OUT_DIR")).join("bundled-packs")
+}
+
+fn dev_packs_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("packs").join("curate")
+}
+
+fn load_or_build_index() -> anyhow::Result<HotdocIndex> {
+    let candidates = [bundled_packs_dir(), dev_packs_dir()];
+    for dir in &candidates {
+        if dir.is_dir() {
+            match pack::load_dir(dir) {
+                Ok(packs) if !packs.is_empty() => {
+                    eprintln!("hotdoc: loaded {} packs from {}", packs.len(), dir.display());
+                    let tmp = std::env::temp_dir().join(format!(
+                        "hotdoc-runtime-{}-{}",
+                        std::process::id(),
+                        std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .map(|d| d.as_nanos())
+                            .unwrap_or(0)
+                    ));
+                    return HotdocIndex::build(&packs, &tmp);
+                }
+                Ok(_) => continue,
+                Err(e) => eprintln!("hotdoc: failed to load {}: {e:#}", dir.display()),
+            }
+        }
+    }
+    anyhow::bail!("no packs found in bundled-packs or dev packs/curate")
+}
+
+#[tauri::command]
+fn search(query: String, state: State<'_, AppState>) -> Vec<SearchHit> {
+    let idx = state.index.lock().expect("index lock");
+    idx.search(&query, 8).unwrap_or_default()
+}
+
+#[tauri::command]
+fn copy_syntax(query: String, state: State<'_, AppState>, app: tauri::AppHandle) -> Option<String> {
+    let idx = state.index.lock().expect("index lock");
+    let hit = idx.search(&query, 1).ok()?.first().cloned()?;
+    let _ = app.clipboard().write_text(hit.syntax.clone());
+    Some(hit.syntax)
+}
+
+#[tauri::command]
+fn hide_window(window: tauri::WebviewWindow) {
+    let _ = window.hide();
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let index = match load_or_build_index() {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("hotdoc: failed to build index: {e:#}");
+            std::process::exit(1);
+        }
+    };
+
     tauri::Builder::default()
+        .manage(AppState { index: Mutex::new(index) })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 let _ = w.show();
@@ -13,7 +84,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![search, copy_syntax, hide_window])
         .setup(|app| {
             use tauri_plugin_global_shortcut::ShortcutState;
             let shortcut = "Ctrl+Shift+Space";
@@ -32,4 +103,14 @@ pub fn run() {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bundled_packs_or_dev_packs_present() {
+        assert!(
+            bundled_packs_dir().is_dir() || dev_packs_dir().is_dir(),
+            "neither bundled-packs nor packs/curate is present at build/test time"
+        );
+    }
+}
