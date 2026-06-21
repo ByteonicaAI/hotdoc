@@ -5,7 +5,7 @@ mod toggle;
 
 use std::sync::{Arc, Mutex};
 
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use tracing::info;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -54,6 +54,9 @@ pub fn run() {
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {
                 let _ = window.hide();
+            }
+            if matches!(event, tauri::WindowEvent::Focused(true)) {
+                let _ = window.emit("hotdoc://refresh-empty-view", ());
             }
         })
         .setup(|app| {

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { SearchHit } from "./types";
+import type { Recent, SearchHit } from "./types";
 
 // ponytail: thin typed wrappers around Tauri commands. The Rust side
 // returns Result<T, String> for search/copy_syntax; Tauri auto-rejects
@@ -34,11 +34,7 @@ export async function logToBackend(
   });
 }
 
-export type Recent = {
-  query: string;
-  last_used_at: number;
-  use_count: number;
-};
+export type { Recent };
 
 export async function recordRecent(query: string): Promise<void> {
   await invoke("record_recent", { query });

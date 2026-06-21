@@ -1,7 +1,7 @@
 import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { hideWindow, searchPacks } from "./tauri";
-import type { SearchHit } from "./types";
+import { getRecents, hideWindow, searchPacks } from "./tauri";
+import type { Recent, SearchHit } from "./types";
 import { log } from "./logger";
 import * as recents from "./launcher/recents";
 
@@ -27,8 +27,11 @@ export class Launcher {
   query = $state("");
   results = $state<SearchHit[]>([]);
   toast = $state<string | null>(null);
+  recentList = $state<Recent[]>([]);
+  pinnedList = $state<SearchHit[]>([]);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
+  emptyQuery = $derived(this.query.trim() === "");
 
   #toastTimer: ReturnType<typeof setTimeout> | null = null;
   #hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -56,6 +59,29 @@ export class Launcher {
     this.query = "";
     this.results = [];
     this.toast = null;
+  }
+
+  async loadEmptyView() {
+    try {
+      const [r, p] = await Promise.all([
+        getRecents(5),
+        Promise.resolve([] as SearchHit[]), // pinned lands in T5
+      ]);
+      this.recentList = r;
+      this.pinnedList = p;
+    } catch (e) {
+      log.warn("load empty view failed", { error: String(e) });
+    }
+  }
+
+  selectRecent(query: string) {
+    this.query = query;
+    void this.runSearch();
+  }
+
+  selectPinned(hit: SearchHit) {
+    this.query = hit.syntax;
+    void this.runSearch();
   }
 
   async doHide() {

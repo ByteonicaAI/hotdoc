@@ -10,6 +10,12 @@ export type SearchHit = {
   score: number;
 };
 
+export type Recent = {
+  query: string;
+  last_used_at: number;
+  use_count: number;
+};
+
 export const SOURCE_LABEL: Record<string, string> = {
   official: "Official",
   "cheat-sheet": "Cheat Sheet",

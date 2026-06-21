@@ -14,7 +14,12 @@ vi.mock("@tauri-apps/plugin-opener", () => ({
   openUrl: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn().mockResolvedValue(() => {}),
+}));
+
 import { invoke } from "@tauri-apps/api/core";
+import type { InvokeArgs } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
@@ -33,6 +38,10 @@ const mockHit = {
 describe("App launcher", () => {
   beforeEach(() => {
     vi.mocked(invoke).mockReset();
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
     vi.mocked(writeText).mockClear();
     vi.mocked(openUrl).mockClear();
   });
@@ -48,7 +57,8 @@ describe("App launcher", () => {
     render(App);
     const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
-    expect(invoke).not.toHaveBeenCalled();
+    const searchCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "search");
+    expect(searchCalls).toHaveLength(0);
     await waitFor(
       () => {
         expect(invoke).toHaveBeenCalledWith("search", { query: "git stash" });
@@ -173,5 +183,54 @@ describe("App launcher", () => {
     });
     const calls = vi.mocked(invoke).mock.calls.map((c) => c[0]);
     expect(calls).not.toContain("record_recent");
+  });
+
+  it("empty query shows the empty-view hint when no recents", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) =>
+      Promise.resolve(cmd === "get_recents" ? [] : undefined),
+    );
+    render(App);
+    await waitFor(() => {
+      expect(screen.getByText(/Type to search packs\./i)).toBeInTheDocument();
+    });
+  });
+
+  it("empty query shows Recent rows when recents exist", async () => {
+    const recents = [
+      { query: "git stash", last_used_at: 1, use_count: 1 },
+      { query: "docker ps", last_used_at: 2, use_count: 3 },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string) =>
+      Promise.resolve(cmd === "get_recents" ? recents : undefined),
+    );
+    render(App);
+    await waitFor(() => {
+      expect(screen.getByText("git stash")).toBeInTheDocument();
+      expect(screen.getByText("docker ps")).toBeInTheDocument();
+    });
+    expect(invoke).toHaveBeenCalledWith("get_recents", { n: 5 });
+  });
+
+  it("clicking a recent fills input and fires search", async () => {
+    const recents = [{ query: "git stash", last_used_at: 1, use_count: 1 }];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve(recents);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? [mockHit] : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    await waitFor(() => {
+      expect(screen.getByText("git stash")).toBeInTheDocument();
+    });
+    const button = screen.getByRole("button", { name: /Recent query: git stash/i });
+    await fireEvent.click(button);
+    const inputEl = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await waitFor(() => {
+      expect((inputEl as HTMLInputElement).value).toBe("git stash");
+    });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("search", { query: "git stash" });
+    });
   });
 });
