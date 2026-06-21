@@ -14,7 +14,7 @@ pub fn run() {
     let index = match index_state::load_or_build_index() {
         Ok(i) => i,
         Err(e) => {
-            eprintln!("hotdoc: failed to build index: {e:#}");
+            tracing::error!(error = %format!("{e:#}"), "failed to build index");
             std::process::exit(1);
         }
     };

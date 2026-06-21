@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
+use tracing::{info, instrument, warn};
 
 use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::pack;
@@ -33,26 +34,27 @@ pub fn persistent_index_dir() -> Option<PathBuf> {
     hotdoc_core::cli::default_index_dir_option()
 }
 
+#[instrument]
 pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
     let candidates = [bundled_packs_dir(), dev_packs_dir()];
     for dir in &candidates {
         if dir.is_dir() {
             match pack::load_dir(dir) {
                 Ok(packs) if !packs.is_empty() => {
-                    eprintln!("hotdoc: loaded {} packs from {}", packs.len(), dir.display());
+                    info!(packs = packs.len(), path = %dir.display(), "loaded packs");
                     if let Some(p) = persistent_index_dir() {
                         if p.is_dir() {
                             if let Ok(idx) = HotdocIndex::open(&p) {
-                                eprintln!("hotdoc: reusing index at {}", p.display());
+                                info!(path = %p.display(), "reusing index");
                                 return Ok(Arc::new(idx));
                             }
                         }
                         std::fs::create_dir_all(&p).ok();
                         match HotdocIndex::build(&packs, &p) {
                             Ok(idx) => return Ok(Arc::new(idx)),
-                            Err(e) => eprintln!(
-                                "hotdoc: persistent build failed ({e:#}), falling back to tmp"
-                            ),
+                            Err(e) => {
+                                warn!(error = %format!("{e:#}"), "persistent build failed; falling back to tmp")
+                            }
                         }
                     }
                     let tmp = std::env::temp_dir().join(format!(
@@ -68,7 +70,9 @@ pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
                         .context("building runtime index");
                 }
                 Ok(_) => continue,
-                Err(e) => eprintln!("hotdoc: failed to load {}: {e:#}", dir.display()),
+                Err(e) => {
+                    warn!(path = %dir.display(), error = %format!("{e:#}"), "failed to load pack dir")
+                }
             }
         }
     }

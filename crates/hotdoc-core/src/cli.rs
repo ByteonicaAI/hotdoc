@@ -1,20 +1,23 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use tracing::{info, instrument};
 
 use crate::index::HotdocIndex;
 use crate::pack;
 
+#[instrument(skip_all)]
 pub fn cmd_index(packs_dir: &Path, out_dir: &Path) -> Result<()> {
     let packs = pack::load_dir(packs_dir)?;
-    eprintln!("loaded {} packs from {}", packs.len(), packs_dir.display());
+    info!(packs = packs.len(), path = %packs_dir.display(), "loaded packs");
     let idx = HotdocIndex::build(&packs, out_dir)?;
     let total: usize = packs.iter().map(|p| p.entries.len()).sum();
-    eprintln!("indexed {} entries at {}", total, out_dir.display());
+    info!(entries = total, path = %out_dir.display(), "indexed entries");
     let _ = idx;
     Ok(())
 }
 
+#[instrument]
 pub fn cmd_query(raw_query: &str, index_dir: &Path, limit: usize) -> Result<()> {
     let idx = HotdocIndex::open(index_dir)?;
     let hits = idx.search(raw_query, limit)?;
@@ -35,6 +38,7 @@ pub fn cmd_query(raw_query: &str, index_dir: &Path, limit: usize) -> Result<()> 
     Ok(())
 }
 
+#[instrument]
 pub fn cmd_copy(raw_query: &str, index_dir: &Path) -> Result<()> {
     let idx = HotdocIndex::open(index_dir)?;
     let hits = idx.search(raw_query, 1)?;

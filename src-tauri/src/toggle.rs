@@ -1,6 +1,7 @@
 use std::net::UdpSocket;
 
 use tauri::{AppHandle, Manager, Runtime};
+use tracing::{info, warn};
 
 use hotdoc_core::cli::TOGGLE_PORT;
 
@@ -15,19 +16,17 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>) {
         let sock = match UdpSocket::bind(("127.0.0.1", TOGGLE_PORT)) {
             Ok(s) => s,
             Err(e) => {
-                eprintln!(
-                    "hotdoc: toggle listener bind failed on udp:{TOGGLE_PORT}: {e}. \
-                     `hotdoc-cli toggle` will not work; Ctrl+Shift+Space still does."
-                );
+                warn!(port = TOGGLE_PORT, error = %e, "toggle listener bind failed; `hotdoc-cli toggle` will not work");
                 return;
             }
         };
+        info!(port = TOGGLE_PORT, "toggle listener bound");
         let mut buf = [0u8; 4];
         loop {
             let (len, peer) = match sock.recv_from(&mut buf) {
                 Ok(v) => v,
                 Err(e) => {
-                    eprintln!("hotdoc: toggle listener recv error: {e}");
+                    warn!(error = %e, "toggle listener recv error");
                     continue;
                 }
             };
