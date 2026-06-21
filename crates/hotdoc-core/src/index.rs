@@ -29,7 +29,14 @@ pub struct HotdocIndex {
     _index: Index,
     reader: IndexReader,
     fields: SchemaFields,
-    entry_meta: std::collections::HashMap<String, (String, Option<String>, Option<String>)>,
+    entry_meta: std::collections::HashMap<String, EntryMeta>,
+}
+
+#[derive(Clone)]
+pub struct EntryMeta {
+    pub description: String,
+    pub source_url: Option<String>,
+    pub example_code: Option<String>,
 }
 
 impl HotdocIndex {
@@ -98,11 +105,11 @@ impl HotdocIndex {
         for (score, addr) in top_docs {
             let doc: tantivy::TantivyDocument = searcher.doc(addr)?;
             let id = get_text(&doc, fields.id);
-            let (description, source_url, example_code) = self
+            let meta = self
                 .entry_meta
                 .get(&id)
                 .cloned()
-                .unwrap_or_else(|| (String::new(), None, None));
+                .unwrap_or_else(EntryMeta::empty);
             let source = get_text(&doc, fields.source);
             let adjusted_score = apply_source_priority(score, &source);
             hits.push(SearchHit {
@@ -110,10 +117,10 @@ impl HotdocIndex {
                 pack_id: get_text(&doc, fields.pack_id),
                 title: get_text(&doc, fields.title),
                 syntax: get_text(&doc, fields.syntax),
-                description,
+                description: meta.description,
                 source,
-                source_url,
-                example_code,
+                source_url: meta.source_url,
+                example_code: meta.example_code,
                 score: adjusted_score,
             });
         }
@@ -358,20 +365,31 @@ fn get_text(doc: &tantivy::TantivyDocument, field: Field) -> String {
         .to_string()
 }
 
-fn collect_entry_meta(
-    packs: &[Pack],
-) -> std::collections::HashMap<String, (String, Option<String>, Option<String>)> {
+fn collect_entry_meta(packs: &[Pack]) -> std::collections::HashMap<String, EntryMeta> {
     let mut m = std::collections::HashMap::new();
     for p in packs {
         for e in &p.entries {
-            let first_example = e.examples.first().map(|x| x.code.clone());
             m.insert(
                 e.id.clone(),
-                (e.description.clone(), e.source_url.clone(), first_example),
+                EntryMeta {
+                    description: e.description.clone(),
+                    source_url: e.source_url.clone(),
+                    example_code: e.examples.first().map(|x| x.code.clone()),
+                },
             );
         }
     }
     m
+}
+
+impl EntryMeta {
+    fn empty() -> Self {
+        Self {
+            description: String::new(),
+            source_url: None,
+            example_code: None,
+        }
+    }
 }
 
 #[cfg(test)]
