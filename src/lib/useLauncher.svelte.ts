@@ -59,7 +59,12 @@ export class Launcher {
       this.results = [];
       return;
     }
-    this.results = await searchPacks(q);
+    try {
+      this.results = await searchPacks(q);
+    } catch (e) {
+      this.results = [];
+      this.#showToast(`Search failed: ${String(e)}`);
+    }
   }
 
   onInput(value: string) {
@@ -69,8 +74,12 @@ export class Launcher {
   }
 
   async #copyAndToast(text: string) {
-    await clipboardWrite(text);
-    this.#showToast(`Copied: ${text}`);
+    try {
+      await clipboardWrite(text);
+      this.#showToast(`Copied: ${text}`);
+    } catch (e) {
+      this.#showToast(`Copy failed: ${String(e)}`);
+    }
   }
 
   async activate(shift: boolean, ctrl: boolean) {

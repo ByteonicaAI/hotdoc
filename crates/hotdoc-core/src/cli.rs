@@ -55,6 +55,10 @@ pub fn default_index_dir() -> PathBuf {
         .join("index")
 }
 
+pub fn default_index_dir_option() -> Option<PathBuf> {
+    dirs::data_local_dir().map(|d| d.join("hotdoc").join("index"))
+}
+
 pub const TOGGLE_PORT: u16 = 47474;
 
 pub fn cmd_toggle() -> Result<()> {
