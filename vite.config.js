@@ -32,6 +32,8 @@ export default defineConfig(async () => ({
         "**/build/**",
         "**/release/**",
       ],
+      usePolling: true,
+      interval: 500,
     },
   },
 }));
