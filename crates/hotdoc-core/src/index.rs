@@ -125,17 +125,14 @@ impl HotdocIndex {
         }
         let fields = self.fields;
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+        let mut tail_description: Option<String> = None;
         for token in q.split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.')) {
             if token.is_empty() {
                 continue;
             }
-            // ponytail: M1 ceiling — BM25 with field boosts only. No exact-match
-            // bonus, no popularity, no source priority. Upgrade path lives in
-            // this file's build_query().
             let edit_distance: u8 = match token.len() {
                 0..=3 => 0,
-                4..=7 => 1,
-                _ => 2,
+                _ => 1,
             };
             if edit_distance == 0 {
                 clauses.push((
@@ -176,11 +173,6 @@ impl HotdocIndex {
                     )),
                 ));
             }
-            // ponytail: prefix clause per spec §7.1 — "git stas" must find
-            // "git-stash" even with no typo. Tantivy 0.22 has no PrefixQuery,
-            // RegexQuery anchored to ^ is the canonical replacement. Skipped
-            // for tokens <=3 (too noisy) and inside the fuzzy branch (typos
-            // already covered by FuzzyTermQuery).
             if edit_distance == 0 && token.len() > 3 {
                 let pattern = format!("^{}.*", regex_sanitize(token));
                 for (field, boost) in [
@@ -206,13 +198,9 @@ impl HotdocIndex {
                     2.0,
                 )),
             ));
-            clauses.push((
-                Occur::Should,
-                Box::new(TermQuery::new(
-                    Term::from_field_text(fields.description, token),
-                    IndexRecordOption::Basic,
-                )),
-            ));
+            if token.len() >= 5 {
+                tail_description = Some(token.to_string());
+            }
             clauses.push((
                 Occur::Should,
                 Box::new(BoostQuery::new(
@@ -221,6 +209,15 @@ impl HotdocIndex {
                         IndexRecordOption::Basic,
                     )),
                     0.5,
+                )),
+            ));
+        }
+        if let Some(token) = tail_description {
+            clauses.push((
+                Occur::Should,
+                Box::new(TermQuery::new(
+                    Term::from_field_text(fields.description, &token),
+                    IndexRecordOption::Basic,
                 )),
             ));
         }
@@ -278,45 +275,42 @@ fn build_schema() -> (Schema, SchemaFields) {
     let mut schema_builder = Schema::builder();
     let id = schema_builder.add_text_field("id", STORED | FAST);
     let pack_id = schema_builder.add_text_field("pack_id", STORED | FAST);
-    let title_indexing = TextFieldIndexing::default()
-        .set_tokenizer("default")
-        .set_index_option(IndexRecordOption::WithFreqsAndPositions);
+    let code_indexing = || {
+        TextFieldIndexing::default()
+            .set_tokenizer("default")
+            .set_index_option(IndexRecordOption::WithFreqs)
+    };
     let title = schema_builder.add_text_field(
         "title",
         TextOptions::default()
-            .set_indexing_options(title_indexing)
+            .set_indexing_options(code_indexing())
             .set_stored(),
     );
-    let syntax_indexing = TextFieldIndexing::default()
-        .set_tokenizer("default")
-        .set_index_option(IndexRecordOption::WithFreqsAndPositions);
     let syntax = schema_builder.add_text_field(
         "syntax",
         TextOptions::default()
-            .set_indexing_options(syntax_indexing)
+            .set_indexing_options(code_indexing())
             .set_stored(),
     );
     let description = schema_builder.add_text_field(
         "description",
-        TextOptions::default().set_indexing_options(TextFieldIndexing::default()),
+        TextOptions::default().set_indexing_options(code_indexing()),
     );
     let tags = schema_builder.add_text_field(
         "tags",
         TextOptions::default()
-            .set_indexing_options(TextFieldIndexing::default())
+            .set_indexing_options(code_indexing())
             .set_stored(),
     );
     let example_codes = schema_builder.add_text_field(
         "example_codes",
         TextOptions::default()
-            .set_indexing_options(TextFieldIndexing::default())
+            .set_indexing_options(code_indexing())
             .set_stored(),
     );
     let source = schema_builder.add_text_field(
         "source",
-        TextOptions::default()
-            .set_indexing_options(TextFieldIndexing::default())
-            .set_stored(),
+        TextOptions::default().set_indexing_options(code_indexing()),
     );
     let schema = schema_builder.build();
     (
@@ -444,5 +438,16 @@ mod tests {
         let idx = fresh_index();
         let hits = idx.search("   ", 8).expect("search");
         assert!(hits.is_empty(), "empty query should yield zero results");
+    }
+
+    #[test]
+    fn simple_tokenizer_splits_hyphenated_syntax() {
+        let idx = fresh_index();
+        let hits = idx.search("reset soft head", 8).expect("search");
+        assert!(
+            hits.iter().take(3).any(|h| h.id == "git-reset-soft-head-1"),
+            "SimpleTokenizer should split 'git-reset-soft-head-1' so 'reset soft head' hits it; got {:?}",
+            hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
     }
 }
