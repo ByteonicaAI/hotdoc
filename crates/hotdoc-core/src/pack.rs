@@ -162,15 +162,20 @@ mod tests {
     }
 
     #[test]
-    fn load_dir_reads_skeletons() {
-        let packs = load_dir(&fixture_dir().join("_skeletons")).expect("load");
+    fn load_dir_reads_real_packs() {
+        let packs = load_dir(&fixture_dir()).expect("load");
         assert!(
-            packs.len() >= 17,
-            "expected 17 skeleton packs, got {}",
-            packs.len()
+            packs.iter().any(|p| p.id == "git"),
+            "git pack should be present at packs/curate root"
         );
-        assert!(packs.iter().any(|p| p.id == "docker"));
-        assert!(packs.iter().any(|p| p.id == "kubectl"));
+        assert!(
+            packs.iter().any(|p| p.id == "docker"),
+            "docker pack should be present at packs/curate root"
+        );
+        assert!(
+            packs.iter().any(|p| p.id == "kubectl"),
+            "kubectl pack should be present at packs/curate root"
+        );
     }
 
     fn valid_pack() -> Pack {
