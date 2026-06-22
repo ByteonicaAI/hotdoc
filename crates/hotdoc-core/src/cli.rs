@@ -1,17 +1,38 @@
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tracing::{info, instrument};
+use tracing::{info, instrument, warn};
 
 use crate::index::HotdocIndex;
 use crate::pack;
 
 #[instrument(skip_all)]
 pub fn cmd_index(packs_dir: &Path, out_dir: &Path) -> Result<()> {
-    let packs = pack::load_dir(packs_dir)?;
-    info!(packs = packs.len(), path = %packs_dir.display(), "loaded packs");
-    let idx = HotdocIndex::build(&packs, out_dir)?;
-    let total: usize = packs.iter().map(|p| p.entries.len()).sum();
+    // ponytail: FR-I8 — log per-failed-pack at warn, error if all fail.
+    // The cli/bench/launcher callers all share this pattern so the
+    // per-pack diagnostics are consistent. Empty dir or all-failed is
+    // still an error (nothing to index).
+    let report = pack::load_dir(packs_dir)?;
+    for (path, errs) in &report.failed {
+        for e in errs {
+            warn!(file = %path.display(), error = %e, "failed to load pack");
+        }
+    }
+    if report.all_failed() {
+        anyhow::bail!(
+            "no usable packs in {} ({} failed)",
+            packs_dir.display(),
+            report.failed.len()
+        );
+    }
+    info!(
+        packs = report.loaded.len(),
+        failed = report.failed.len(),
+        path = %packs_dir.display(),
+        "loaded packs"
+    );
+    let idx = HotdocIndex::build(&report.loaded, out_dir)?;
+    let total: usize = report.loaded.iter().map(|p| p.entries.len()).sum();
     info!(entries = total, path = %out_dir.display(), "indexed entries");
     let _ = idx;
     Ok(())

@@ -92,7 +92,8 @@ mod tests {
             .join("..")
             .join("packs")
             .join("curate");
-        let packs = crate::pack::load_dir(&packs_dir).expect("load real packs");
+        let report = crate::pack::load_dir(&packs_dir).expect("load real packs");
+        let packs = report.loaded;
         let index_dir = fresh_index_dir();
         let _ = std::fs::remove_dir_all(&index_dir);
         crate::index::HotdocIndex::build(&packs, &index_dir).expect("build index");

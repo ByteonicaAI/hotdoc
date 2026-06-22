@@ -404,7 +404,7 @@ mod tests {
             .join("..")
             .join("packs")
             .join("curate");
-        pack::load_dir(&dir).expect("load packs")
+        pack::load_dir(&dir).expect("load packs").loaded
     }
 
     fn fresh_index() -> HotdocIndex {

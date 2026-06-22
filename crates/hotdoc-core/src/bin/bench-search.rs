@@ -42,10 +42,25 @@ fn main() -> ExitCode {
         .join("packs")
         .join("curate");
     let packs = match pack::load_dir(&packs_dir) {
-        Ok(p) if !p.is_empty() => p,
-        Ok(_) => {
-            eprintln!("no packs found in {}", packs_dir.display());
-            return ExitCode::from(1);
+        Ok(r) => {
+            for (path, errs) in &r.failed {
+                for e in errs {
+                    eprintln!("warn: failed to load {}: {e}", path.display());
+                }
+            }
+            if r.all_failed() {
+                eprintln!(
+                    "all packs failed in {} ({} files)",
+                    packs_dir.display(),
+                    r.failed.len()
+                );
+                return ExitCode::from(1);
+            }
+            if r.loaded.is_empty() {
+                eprintln!("no packs found in {}", packs_dir.display());
+                return ExitCode::from(1);
+            }
+            r.loaded
         }
         Err(e) => {
             eprintln!("loading packs: {e:#}");

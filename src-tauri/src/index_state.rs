@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{Context, Result};
 use rusqlite::Connection;
-use tracing::{info, instrument, warn};
+use tracing::{error, info, instrument, warn};
 
 use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::pack;
@@ -46,9 +46,34 @@ pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
     let candidates = [bundled_packs_dir(), dev_packs_dir()];
     for dir in &candidates {
         if dir.is_dir() {
+            // ponytail: FR-I8 — log per-failed-pack at warn, error if all
+            // fail. A directory that exists but is empty (or all-failed)
+            // is not fatal; we move on to the next candidate. The bail at
+            // the bottom handles the "no packs at all" case.
             match pack::load_dir(dir) {
-                Ok(packs) if !packs.is_empty() => {
-                    info!(packs = packs.len(), path = %dir.display(), "loaded packs");
+                Ok(report) => {
+                    for (path, errs) in &report.failed {
+                        for e in errs {
+                            warn!(
+                                file = %path.display(),
+                                error = %e,
+                                "failed to load pack"
+                            );
+                        }
+                    }
+                    if report.all_failed() {
+                        error!(
+                            path = %dir.display(),
+                            failed = report.failed.len(),
+                            "all packs in dir failed; trying next candidate"
+                        );
+                        continue;
+                    }
+                    if report.loaded.is_empty() {
+                        continue;
+                    }
+                    info!(packs = report.loaded.len(), path = %dir.display(), "loaded packs");
+                    let packs = report.loaded;
                     if let Some(p) = persistent_index_dir() {
                         if p.is_dir() {
                             if let Ok(idx) = HotdocIndex::open(&p) {
@@ -76,7 +101,6 @@ pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
                         .map(Arc::new)
                         .context("building runtime index");
                 }
-                Ok(_) => continue,
                 Err(e) => {
                     warn!(path = %dir.display(), error = %format!("{e:#}"), "failed to load pack dir")
                 }
