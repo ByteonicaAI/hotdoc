@@ -446,7 +446,18 @@ export class Launcher {
     }
     const text = shift ? (top.example_code ?? top.syntax) : top.syntax;
     await this.#copyAndToast(text);
-    this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+    // ponytail: FR-C1/C2 — close after 300ms OR on the next keystroke (M4-T14).
+    const doHide = () => {
+      if (this.#hideTimer) {
+        clearTimeout(this.#hideTimer);
+        this.#hideTimer = null;
+      }
+      window.removeEventListener("keydown", onNextKey, true);
+      void this.doHide();
+    };
+    const onNextKey = () => doHide();
+    window.addEventListener("keydown", onNextKey, { once: true, capture: true });
+    this.#hideTimer = setTimeout(doHide, HIDE_AFTER_COPY_MS);
     void recents.onActivation(this.query, this.recentsEnabled);
     // ponytail: §7.5 / §9.2 — log the activation. first = top-ranked hit,
     // clicked = the row the user actually activated. Gated on the same
