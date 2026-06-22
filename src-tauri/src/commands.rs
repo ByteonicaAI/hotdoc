@@ -237,6 +237,13 @@ pub fn list_packs(state: State<'_, AppState>) -> Result<Vec<String>, String> {
     packs::list_ids(&conn).map_err(|e| format!("list_packs: {e:#}"))
 }
 
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn list_pack_metas(state: State<'_, AppState>) -> Result<Vec<packs::PackMeta>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    packs::list_metas(&conn).map_err(|e| format!("list_pack_metas: {e:#}"))
+}
+
 // Settings (spec FR-X1–X4). `set_setting` writes to the `settings` table;
 // `set_hotkey` validates against the app-level deny-list (T9) and asks the
 // global-shortcut plugin to re-register. OS-refused registrations return a

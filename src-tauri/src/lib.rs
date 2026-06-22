@@ -83,6 +83,7 @@ pub fn run() {
             commands::unpin_entry,
             commands::get_pinned,
             commands::list_packs,
+            commands::list_pack_metas,
             commands::set_setting,
             commands::get_setting,
             commands::get_all_settings,

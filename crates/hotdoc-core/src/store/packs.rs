@@ -5,15 +5,45 @@
 //! filter validation have no real set to check against.
 
 use rusqlite::{params, Connection};
+use serde::Serialize;
 use tracing::instrument;
 
 use crate::pack::Pack;
 use crate::store::Result;
 
+#[derive(Serialize, Debug)]
+pub struct PackMeta {
+    pub id: String,
+    pub name: String,
+    pub license: String,
+    pub homepage: String,
+}
+
 #[instrument(skip(conn))]
 pub fn list_ids(conn: &Connection) -> Result<Vec<String>> {
     let mut stmt = conn.prepare("SELECT id FROM packs ORDER BY id")?;
     let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+    let mut out = Vec::new();
+    for r in rows {
+        out.push(r?);
+    }
+    Ok(out)
+}
+
+#[instrument(skip(conn))]
+pub fn list_metas(conn: &Connection) -> Result<Vec<PackMeta>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, name, COALESCE(license,''), COALESCE(homepage,'') \
+         FROM packs ORDER BY id",
+    )?;
+    let rows = stmt.query_map([], |row| {
+        Ok(PackMeta {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            license: row.get(2)?,
+            homepage: row.get(3)?,
+        })
+    })?;
     let mut out = Vec::new();
     for r in rows {
         out.push(r?);

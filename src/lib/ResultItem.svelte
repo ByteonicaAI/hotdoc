@@ -12,6 +12,7 @@
     onCopyAll?: (hit: SearchHit) => void;
     onTogglePin?: (hit: SearchHit) => void;
     onOpenSource?: (hit: SearchHit) => void;
+    onReport?: (hit: SearchHit) => void;
   };
   const {
     hit,
@@ -22,6 +23,7 @@
     onCopyAll,
     onTogglePin,
     onOpenSource,
+    onReport,
   }: Props = $props();
 
   // ponytail: §7.3 — escape-safe highlight. Each segment's text is
@@ -75,6 +77,7 @@
         >{STRINGS.OPEN_SOURCE_BTN}</button
       >
     {/if}
+    <button type="button" onmousedown={(e) => act(e, onReport)}>{STRINGS.REPORT_CARD_BTN}</button>
   </div>
 </li>
 

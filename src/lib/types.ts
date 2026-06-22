@@ -10,6 +10,13 @@ export type SearchHit = {
   score: number;
 };
 
+export type PackMeta = {
+  id: string;
+  name: string;
+  license: string;
+  homepage: string;
+};
+
 export type Recent = {
   query: string;
   last_used_at: number;

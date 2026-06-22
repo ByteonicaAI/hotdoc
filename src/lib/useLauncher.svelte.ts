@@ -5,13 +5,14 @@ import {
   getPopular,
   getRecents,
   hideWindow,
+  listPackMetas,
   listPacks,
   openUrl,
   rebuildIndex as rebuildIndexRpc,
   recordSearch,
   searchPacks,
 } from "./tauri";
-import type { Recent, SearchHit } from "./types";
+import type { PackMeta, Recent, SearchHit } from "./types";
 import { log } from "./logger";
 import * as recents from "./launcher/recents";
 import * as pinned from "./launcher/pinned";
@@ -56,6 +57,8 @@ export class Launcher {
   validPackIds = $state<Set<string>>(new Set());
   packFilter = $state<string | null>(null);
   settingsOpen = $state<boolean>(false);
+  aboutOpen = $state<boolean>(false);
+  packMetas = $state<PackMeta[]>([]);
   // ponytail: T19 — cached from boot settings + flipped by SettingsPanel.
   // Default true (recents on) so first-launch UX matches the prior behavior;
   // a real `getAllSettings()` call will overwrite this from the DB before
@@ -260,6 +263,14 @@ export class Launcher {
     this.settingsOpen = false;
   }
 
+  openAbout() {
+    this.aboutOpen = true;
+  }
+
+  closeAbout() {
+    this.aboutOpen = false;
+  }
+
   openHelp() {
     this.#showToast(
       "↑/↓ navigate · Enter copy · Shift+Enter example · Ctrl+P pin · Ctrl+Shift+? palette",
@@ -293,8 +304,9 @@ export class Launcher {
     // search. Acceptable — the user sees `> dctr` search instead of
     // pack-filter for ~10ms at app start.
     try {
-      const ids = await listPacks();
+      const [ids, metas] = await Promise.all([listPacks(), listPackMetas()]);
       this.validPackIds = new Set(ids);
+      this.packMetas = metas;
     } catch (e) {
       log.warn("list packs failed", { error: String(e) });
     }
@@ -322,6 +334,9 @@ export class Launcher {
           return;
         case "settings":
           this.openSettings();
+          return;
+        case "about":
+          this.openAbout();
           return;
         case "help":
           this.openHelp();

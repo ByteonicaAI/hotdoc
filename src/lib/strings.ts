@@ -21,6 +21,13 @@ export const STRINGS = {
   UNPIN_BTN: "Unpin",
   OPEN_SOURCE_BTN: "Open source",
   PIN_ARIA: "pinned",
+  // ResultItem report action
+  REPORT_CARD_BTN: "Report",
+  // About panel
+  ABOUT_ARIA: "About hotdoc",
+  ABOUT_TITLE: "About hotdoc",
+  ABOUT_LICENSE: "MIT / Apache-2.0",
+  ABOUT_CONTENT_LICENSE: "Bundled content: CC-BY-4.0",
   // Settings panel
   SETTINGS_ARIA: "Settings",
   SETTINGS_TITLE: "Settings",

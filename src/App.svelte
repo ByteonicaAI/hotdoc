@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { listen } from "@tauri-apps/api/event";
+  import { getVersion } from "@tauri-apps/api/app";
   import ResultItem from "./lib/ResultItem.svelte";
   import EmptyView from "./lib/EmptyView.svelte";
   import SettingsPanel from "./lib/SettingsPanel.svelte";
+  import AboutPanel from "./lib/AboutPanel.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
-  import { getAllSettings, indexStatus } from "./lib/tauri";
+  import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
   import { STRINGS } from "./lib/strings";
 
@@ -15,6 +17,19 @@
   // render; the steady-state count is the honest signal. `null` = not yet
   // loaded → "Indexing…".
   let status = $state<{ entry_count: number; pack_count: number } | null>(null);
+  let appVersion = $state("0.4.0");
+
+  function reportUrl(hit: SearchHit): string {
+    const title = encodeURIComponent(`Card report: ${hit.pack_id}/${hit.id}`);
+    const body = encodeURIComponent(
+      `**Card ID:** ${hit.pack_id}/${hit.id}\n**Syntax:** ${hit.syntax}`,
+    );
+    return `https://github.com/ByteonicaAI/hotdoc/issues/new?template=card-report.md&title=${title}&body=${body}`;
+  }
+
+  async function reportCard(hit: SearchHit) {
+    await openUrl(reportUrl(hit));
+  }
 
   onMount(() => {
     document.getElementById("q")?.focus();
@@ -64,6 +79,9 @@
       });
     void launcher.loadEmptyView();
     void launcher.initPalette();
+    void getVersion()
+      .then((v) => (appVersion = v))
+      .catch(() => {});
     return () => unlisten?.();
   });
 </script>
@@ -103,6 +121,7 @@
           onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
           onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
           onOpenSource={(h: SearchHit) => launcher.openSource(h)}
+          onReport={(h: SearchHit) => reportCard(h)}
         />
       {/each}
       {#if launcher.zeroResult}
@@ -134,6 +153,13 @@
   {/if}
   {#if launcher.settingsOpen}
     <SettingsPanel onClose={() => launcher.closeSettings()} {launcher} />
+  {/if}
+  {#if launcher.aboutOpen}
+    <AboutPanel
+      version={appVersion}
+      packs={launcher.packMetas}
+      onClose={() => launcher.closeAbout()}
+    />
   {/if}
   <footer class="status" aria-live="polite">
     {#if status}

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Recent, SearchHit } from "./types";
+import type { PackMeta, Recent, SearchHit } from "./types";
 
 // ponytail: thin typed wrappers around Tauri commands. The Rust side
 // returns Result<T, String> for search/copy_syntax; Tauri auto-rejects
@@ -62,6 +62,10 @@ export async function getPinned(): Promise<SearchHit[]> {
 
 export async function listPacks(): Promise<string[]> {
   return invoke<string[]>("list_packs");
+}
+
+export async function listPackMetas(): Promise<PackMeta[]> {
+  return invoke<PackMeta[]>("list_pack_metas");
 }
 
 export type SettingsMap = Record<string, string>;
