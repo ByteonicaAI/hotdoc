@@ -225,7 +225,7 @@ describe("App launcher", () => {
     await waitFor(() => {
       expect(screen.getByText("git stash")).toBeInTheDocument();
     });
-    const button = screen.getByRole("button", { name: /Recent query: git stash/i });
+    const button = screen.getByRole("option", { name: /Recent query: git stash/i });
     await fireEvent.click(button);
     const inputEl = screen.getByPlaceholderText(/hotdoc: type to search/i);
     await waitFor(() => {

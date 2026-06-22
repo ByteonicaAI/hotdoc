@@ -58,8 +58,11 @@
   {#if hit.example_code}
     <div class="example"><code>{hit.example_code}</code></div>
   {/if}
-  <!-- ponytail: FR-C5 secondary actions; revealed on hover/focus-within. -->
-  <div class="actions" aria-label={STRINGS.CARD_ACTIONS_ARIA}>
+  <!-- ponytail: FR-C5 secondary actions; revealed on hover/focus-within.
+       aria-hidden: primary keyboard flows use the input's key handler (Enter/Shift+Enter/
+       Ctrl+P/Ctrl+Enter). These hover buttons are visual shortcuts; AT users activate
+       via keyboard shortcuts instead (NFR-9). -->
+  <div class="actions" aria-label={STRINGS.CARD_ACTIONS_ARIA} aria-hidden="true">
     <button type="button" onmousedown={(e) => act(e, onCopyExample)}
       >{STRINGS.COPY_EXAMPLE_BTN}</button
     >

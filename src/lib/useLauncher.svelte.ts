@@ -67,6 +67,11 @@ export class Launcher {
   // ponytail: §7.6 — closest packs to the failed query; only computed
   // when there are zero results. ≤3 chips; Enter/click re-scopes.
   suggestions = $derived(this.zeroResult ? suggestPacks(this.query, this.validPackIds, 3) : []);
+  // ponytail: T11 NFR-9 — total empty-view row count for arrow-nav bounds.
+  // Recents, then Pinned, then Popular — same ordering as EmptyView renders.
+  emptyItemCount = $derived(
+    this.recentList.length + this.pinnedList.length + this.popularList.length,
+  );
 
   #toastTimer: ReturnType<typeof setTimeout> | null = null;
   #hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -215,6 +220,36 @@ export class Launcher {
   selectPinned(hit: SearchHit) {
     this.query = hit.syntax;
     void this.runSearch();
+  }
+
+  // ponytail: T11 — Enter on empty-view activates the keyboard-selected row.
+  // Maps selectedIndex into the recents/pinned/popular split that EmptyView renders.
+  activateEmpty() {
+    const i = this.selectedIndex;
+    if (i < 0) return;
+    const rLen = this.recentList.length;
+    const pLen = this.pinnedList.length;
+    if (i < rLen) {
+      const r = this.recentList[i];
+      if (r) this.selectRecent(r.query);
+    } else if (i < rLen + pLen) {
+      const p = this.pinnedList[i - rLen];
+      if (p) this.selectPinned(p);
+    } else {
+      const pop = this.popularList[i - rLen - pLen];
+      if (pop) this.selectPinned(pop);
+    }
+  }
+
+  // ponytail: T11 — Ctrl+P on empty-view pins/unpins the selected pinned or popular row.
+  async togglePinEmpty() {
+    const i = this.selectedIndex;
+    if (i < 0) return;
+    const rLen = this.recentList.length;
+    const pLen = this.pinnedList.length;
+    if (i < rLen) return; // recents: no pin action
+    const hit = i < rLen + pLen ? this.pinnedList[i - rLen] : this.popularList[i - rLen - pLen];
+    if (hit) await this.togglePinHit(hit);
   }
 
   openSettings() {
@@ -401,6 +436,31 @@ export class Launcher {
       e.preventDefault();
       void this.doHide();
       return;
+    }
+    // ponytail: T11 NFR-9 — empty-state (no query) arrow nav over Recents/Pinned/Popular.
+    if (this.emptyQuery && this.emptyItemCount > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.selectedIndex =
+          this.selectedIndex < 0 ? 0 : (this.selectedIndex + 1) % this.emptyItemCount;
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.selectedIndex =
+          this.selectedIndex <= 0 ? this.emptyItemCount - 1 : this.selectedIndex - 1;
+        return;
+      }
+      if (e.key === "Enter" && this.selectedIndex >= 0) {
+        e.preventDefault();
+        this.activateEmpty();
+        return;
+      }
+      if ((e.key === "p" || e.key === "P") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        void this.togglePinEmpty();
+        return;
+      }
     }
     if (e.key === "ArrowDown" && this.results.length > 0) {
       e.preventDefault();

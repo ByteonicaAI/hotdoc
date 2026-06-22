@@ -11,6 +11,7 @@
     onSelectPopular?: (hit: SearchHit) => void;
     selectedIndex: number;
     pinnedOffset: number;
+    popularOffset?: number;
   };
 
   const {
@@ -22,6 +23,7 @@
     onSelectPopular,
     selectedIndex,
     pinnedOffset,
+    popularOffset = pinnedOffset + pinned.length,
   }: Props = $props();
 
   function recentClick(e: MouseEvent, query: string) {
@@ -45,6 +47,13 @@
     e.preventDefault();
     onSelectPopular?.(hit);
   }
+
+  function popularKey(e: KeyboardEvent, hit: SearchHit) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelectPopular?.(hit);
+    }
+  }
 </script>
 
 {#if recents.length === 0 && pinned.length === 0 && popular.length === 0}
@@ -52,9 +61,11 @@
 {:else}
   {#if recents.length > 0}
     {#each recents as r, i (r.query)}
-      <li class:active={i === selectedIndex} role="option" aria-selected={i === selectedIndex}>
+      <li class:active={i === selectedIndex} role="presentation">
         <button
           type="button"
+          role="option"
+          aria-selected={i === selectedIndex}
           class="recent-row"
           onclick={(e) => recentClick(e, r.query)}
           aria-label="Recent query: {r.query}"
@@ -67,13 +78,11 @@
   {/if}
   {#if pinned.length > 0}
     {#each pinned as p, i (p.id)}
-      <li
-        class:active={pinnedOffset + i === selectedIndex}
-        role="option"
-        aria-selected={pinnedOffset + i === selectedIndex}
-      >
+      <li class:active={pinnedOffset + i === selectedIndex} role="presentation">
         <button
           type="button"
+          role="option"
+          aria-selected={pinnedOffset + i === selectedIndex}
           class="pinned-row"
           onclick={(e) => pinnedClick(e, p)}
           onkeydown={(e) => pinnedKey(e, p)}
@@ -88,12 +97,15 @@
   {/if}
   {#if popular.length > 0}
     <li class="section-label" aria-hidden="true">{STRINGS.POPULAR_LABEL}</li>
-    {#each popular as p (p.id)}
-      <li role="option" aria-selected={false}>
+    {#each popular as p, i (p.id)}
+      <li class:active={popularOffset + i === selectedIndex} role="presentation">
         <button
           type="button"
+          role="option"
+          aria-selected={popularOffset + i === selectedIndex}
           class="pinned-row"
           onclick={(e) => popularClick(e, p)}
+          onkeydown={(e) => popularKey(e, p)}
           aria-label="Popular: {p.title}"
         >
           <span class="popular-title">{p.title}</span>

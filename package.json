@@ -43,6 +43,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
     "@vitest/coverage-v8": "^4.1.9",
+    "axe-core": "^4.12.1",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.19.0",
@@ -58,6 +59,7 @@
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.61.1",
     "vite": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "vitest-axe": "^0.1.0"
   }
 }

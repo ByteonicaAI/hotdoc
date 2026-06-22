@@ -230,6 +230,13 @@ ul[role="listbox"] li.active {
   font-style: italic;
 }
 
+/* NFR-9 (T11): visible focus ring on every interactive element — keyboard-only UX. */
+*:focus-visible {
+  outline: 2px solid var(--accent, #4a9eff);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .toast {
   position: fixed;
   bottom: 12px;

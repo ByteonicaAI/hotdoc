@@ -88,8 +88,9 @@
         onSelectRecent={(q: string) => launcher.selectRecent(q)}
         onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
         onSelectPopular={(h: SearchHit) => launcher.selectPinned(h)}
-        selectedIndex={-1}
+        selectedIndex={launcher.selectedIndex}
         pinnedOffset={launcher.recentList.length}
+        popularOffset={launcher.recentList.length + launcher.pinnedList.length}
       />
     {:else}
       {#each launcher.results as r, i (r.id)}
