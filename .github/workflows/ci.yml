@@ -47,6 +47,9 @@ jobs:
       - name: Test
         run: pnpm test --run
 
+      - name: Dependency audit (SEC-6)
+        run: pnpm audit --audit-level=high
+
   rust:
     name: Rust (fmt, clippy, test)
     runs-on: ubuntu-latest
@@ -85,6 +88,11 @@ jobs:
       - name: Clippy
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
+
+      - name: Dependency audit (SEC-6)
+        run: |
+          cargo install cargo-audit --locked --quiet
+          cargo audit
 
       - name: Test
         run: cargo test --workspace

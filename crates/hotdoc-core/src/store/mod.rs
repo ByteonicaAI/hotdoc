@@ -40,19 +40,44 @@ pub type Result<T> = std::result::Result<T, StoreError>;
 /// Open (or create) the SQLite database at `db_path`. Enables WAL mode and
 /// foreign keys; sets a 5s busy timeout. Caller invokes [`migrate`] to
 /// ensure the schema is current before use.
+///
+/// SEC-8: sets data dir to 0700 and DB file to 0600 on Unix (idempotent).
 #[instrument(skip_all, fields(db_path = %db_path.display()))]
 pub fn open(db_path: &Path) -> Result<Connection> {
     if let Some(parent) = db_path.parent() {
         std::fs::create_dir_all(parent)?;
+        #[cfg(unix)]
+        apply_dir_perms(parent)?;
     }
     let conn = Connection::open_with_flags(
         db_path,
         OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
     )?;
+    #[cfg(unix)]
+    apply_file_perms(db_path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     conn.pragma_update(None, "busy_timeout", 5_000i64)?;
     Ok(conn)
+}
+
+/// SEC-8: restrict the data directory to owner-only (0700).
+#[cfg(unix)]
+fn apply_dir_perms(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o700))?;
+    Ok(())
+}
+
+/// SEC-8: restrict the SQLite file to owner-only read/write (0600).
+/// Called after SQLite creates the file; idempotent on subsequent opens.
+#[cfg(unix)]
+fn apply_file_perms(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    if path.exists() {
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+    }
+    Ok(())
 }
 
 /// Forward-stepping schema migration (PRD §10, FR-I5).
@@ -205,5 +230,66 @@ mod tests {
             )
             .expect("schema_version row");
         assert_eq!(v, super::meta::SCHEMA_VERSION.to_string());
+    }
+
+    // SEC-8: data dir must be 0700, DB file must be 0600 on Linux.
+    #[test]
+    #[cfg(unix)]
+    fn data_dir_0700_and_file_0600() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("subdir").join("hotdoc.sqlite");
+        let conn = open(&db_path).expect("open");
+        migrate(&conn).expect("migrate");
+        drop(conn);
+
+        let dir_mode = std::fs::metadata(db_path.parent().expect("parent"))
+            .expect("dir meta")
+            .permissions()
+            .mode();
+        assert_eq!(
+            dir_mode & 0o777,
+            0o700,
+            "data dir must be 0700, got {dir_mode:#o}"
+        );
+
+        let file_mode = std::fs::metadata(&db_path)
+            .expect("file meta")
+            .permissions()
+            .mode();
+        assert_eq!(
+            file_mode & 0o777,
+            0o600,
+            "DB file must be 0600, got {file_mode:#o}"
+        );
+    }
+
+    // SEC-8: open on an existing DB re-asserts perms (idempotent).
+    #[test]
+    #[cfg(unix)]
+    fn data_perms_idempotent_on_reopen() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        {
+            let conn = open(&db_path).expect("first open");
+            migrate(&conn).expect("migrate");
+        }
+        // Loosen perms manually to simulate external change.
+        std::fs::set_permissions(&db_path, std::fs::Permissions::from_mode(0o644))
+            .expect("set 644");
+        std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o755))
+            .expect("set 755");
+        // Reopen must tighten them back.
+        let _ = open(&db_path).expect("reopen");
+        let file_mode = std::fs::metadata(&db_path)
+            .expect("meta")
+            .permissions()
+            .mode();
+        assert_eq!(
+            file_mode & 0o777,
+            0o600,
+            "file perms must be 0600 after reopen"
+        );
     }
 }
