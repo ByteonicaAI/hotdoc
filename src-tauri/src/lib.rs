@@ -94,7 +94,8 @@ pub fn run() {
             commands::record_search,
             commands::get_popular,
             commands::index_status,
-            commands::copy_diagnostics
+            commands::copy_diagnostics,
+            commands::set_window_height
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {

@@ -134,3 +134,9 @@ export async function indexStatus(): Promise<IndexStatus> {
 export async function copyDiagnostics(): Promise<string> {
   return invoke<string>("copy_diagnostics");
 }
+
+// ponytail: FR-C6 — resize the launcher window for the Tab details pane.
+// 420 = collapsed, 620 = expanded (spec §8.2).
+export async function setWindowHeight(height: number): Promise<void> {
+  await invoke("set_window_height", { height });
+}

@@ -6,6 +6,7 @@
   import EmptyView from "./lib/EmptyView.svelte";
   import SettingsPanel from "./lib/SettingsPanel.svelte";
   import AboutPanel from "./lib/AboutPanel.svelte";
+  import DetailsPane from "./lib/DetailsPane.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
   import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
@@ -160,6 +161,9 @@
       packs={launcher.packMetas}
       onClose={() => launcher.closeAbout()}
     />
+  {/if}
+  {#if launcher.detailsHit}
+    <DetailsPane hit={launcher.detailsHit} onClose={() => launcher.closeDetails()} />
   {/if}
   <footer class="status" aria-live="polite">
     {#if status}

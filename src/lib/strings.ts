@@ -28,6 +28,10 @@ export const STRINGS = {
   ABOUT_TITLE: "About hotdoc",
   ABOUT_LICENSE: "MIT / Apache-2.0",
   ABOUT_CONTENT_LICENSE: "Bundled content: CC-BY-4.0",
+  // Details pane (FR-C6)
+  DETAILS_ARIA: "Card details",
+  DETAILS_TITLE: "Details",
+  DETAILS_SOURCE_LABEL: "Source",
   // Settings panel
   SETTINGS_ARIA: "Settings",
   SETTINGS_TITLE: "Settings",

@@ -11,6 +11,7 @@ import {
   rebuildIndex as rebuildIndexRpc,
   recordSearch,
   searchPacks,
+  setWindowHeight,
 } from "./tauri";
 import type { PackMeta, Recent, SearchHit } from "./types";
 import { log } from "./logger";
@@ -58,6 +59,7 @@ export class Launcher {
   packFilter = $state<string | null>(null);
   settingsOpen = $state<boolean>(false);
   aboutOpen = $state<boolean>(false);
+  detailsHit = $state<SearchHit | null>(null);
   packMetas = $state<PackMeta[]>([]);
   // ponytail: T19 — cached from boot settings + flipped by SettingsPanel.
   // Default true (recents on) so first-launch UX matches the prior behavior;
@@ -271,6 +273,16 @@ export class Launcher {
     this.aboutOpen = false;
   }
 
+  openDetails(hit: SearchHit) {
+    this.detailsHit = hit;
+    void setWindowHeight(620).catch(() => {});
+  }
+
+  closeDetails() {
+    this.detailsHit = null;
+    void setWindowHeight(420).catch(() => {});
+  }
+
   openHelp() {
     this.#showToast(
       "↑/↓ navigate · Enter copy · Shift+Enter example · Ctrl+P pin · Ctrl+Shift+? palette",
@@ -319,6 +331,7 @@ export class Launcher {
 
   async runSearch() {
     const q = this.query.trim();
+    if (this.detailsHit) this.closeDetails();
     if (!q) {
       this.results = [];
       this.selectedIndex = -1;
@@ -448,8 +461,24 @@ export class Launcher {
 
   onKey(e: KeyboardEvent) {
     if (e.key === "Escape") {
+      if (this.detailsHit) {
+        e.preventDefault();
+        this.closeDetails();
+        return;
+      }
       e.preventDefault();
       void this.doHide();
+      return;
+    }
+    // ponytail: FR-C6 — Tab toggles the details pane for the selected result.
+    if (e.key === "Tab" && this.results.length > 0 && this.selectedIndex >= 0) {
+      e.preventDefault();
+      if (this.detailsHit) {
+        this.closeDetails();
+      } else {
+        const hit = this.results[this.selectedIndex];
+        if (hit) this.openDetails(hit);
+      }
       return;
     }
     // ponytail: T11 NFR-9 — empty-state (no query) arrow nav over Recents/Pinned/Popular.
