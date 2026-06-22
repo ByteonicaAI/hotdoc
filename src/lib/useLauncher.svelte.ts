@@ -1,11 +1,14 @@
 import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
 import {
   clearRecents,
+  copyDiagnostics,
+  getPopular,
   getRecents,
   hideWindow,
   listPacks,
   openUrl,
   rebuildIndex as rebuildIndexRpc,
+  recordSearch,
   searchPacks,
 } from "./tauri";
 import type { Recent, SearchHit } from "./types";
@@ -13,6 +16,7 @@ import { log } from "./logger";
 import * as recents from "./launcher/recents";
 import * as pinned from "./launcher/pinned";
 import { parseCommand } from "./launcher/commandMode";
+import { suggestPacks } from "./launcher/suggest";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -46,6 +50,7 @@ export class Launcher {
   toast = $state<string | null>(null);
   recentList = $state<Recent[]>([]);
   pinnedList = $state<SearchHit[]>([]);
+  popularList = $state<SearchHit[]>([]);
   pinnedIds = $state<Set<string>>(new Set());
   selectedIndex = $state<number>(-1);
   validPackIds = $state<Set<string>>(new Set());
@@ -59,6 +64,9 @@ export class Launcher {
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
   emptyQuery = $derived(this.query.trim() === "");
+  // ponytail: §7.6 — closest packs to the failed query; only computed
+  // when there are zero results. ≤3 chips; Enter/click re-scopes.
+  suggestions = $derived(this.zeroResult ? suggestPacks(this.query, this.validPackIds, 3) : []);
 
   #toastTimer: ReturnType<typeof setTimeout> | null = null;
   #hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -108,12 +116,31 @@ export class Launcher {
 
   async loadEmptyView() {
     try {
-      const [r, p] = await Promise.all([getRecents(5), pinned.fetchPinned()]);
+      const [r, p, pop] = await Promise.all([
+        getRecents(5),
+        pinned.fetchPinned(),
+        getPopular(8).catch(() => [] as SearchHit[]),
+      ]);
       this.recentList = r;
       this.pinnedList = p;
       this.pinnedIds = new Set(p.map((h) => h.id));
+      // ponytail: §7.5 — Popular section is deduped against Pinned (a card
+      // already shown under Pinned is not repeated).
+      this.popularList = pop.filter((h) => !this.pinnedIds.has(h.id));
     } catch (e) {
       log.warn("load empty view failed", { error: String(e) });
+    }
+  }
+
+  // ponytail: FR-G2 — tray/settings "Copy diagnostics". Bundle is built +
+  // redacted in Rust; we just toast the result (or the error).
+  async copyDiagnostics() {
+    try {
+      await copyDiagnostics();
+      this.#showToast("Copied diagnostics to clipboard");
+    } catch (e) {
+      log.error("copy diagnostics failed", { error: String(e) });
+      this.#showToast(`Diagnostics failed: ${String(e)}`);
     }
   }
 
@@ -122,9 +149,23 @@ export class Launcher {
     void this.runSearch();
   }
 
+  // ponytail: §7.6 — re-run the failed query scoped to a suggested pack
+  // (`> <pack>` mode). Used by the zero-result suggestion chips and by
+  // Enter-on-zero-result (activates the first suggestion).
+  applySuggestion(packId: string) {
+    this.query = `> ${packId}`;
+    void this.runSearch();
+  }
+
   async togglePin() {
     const idx = this.selectedIndex >= 0 ? this.selectedIndex : 0;
     const hit = this.results[idx];
+    await this.togglePinHit(hit);
+  }
+
+  // ponytail: FR-C5 — hover/secondary actions operate on a specific hit
+  // (the hovered card) rather than the keyboard-selected one.
+  async togglePinHit(hit: SearchHit | undefined) {
     if (!hit) return;
     const next = await pinned.toggle(hit.id, this.pinnedIds.has(hit.id));
     const updated = new Set(this.pinnedIds);
@@ -137,6 +178,38 @@ export class Launcher {
     }
     this.pinnedIds = updated;
     void this.loadEmptyView();
+  }
+
+  // ponytail: FR-C5 — "Copy example" copies examples[0].code, falling back
+  // to syntax (same rule as Shift+Enter, FR-C2).
+  async copyExample(hit: SearchHit) {
+    await this.#copyAndToast(hit.example_code ?? hit.syntax);
+  }
+
+  // ponytail: FR-C5 — "Copy all" = syntax + description + first example,
+  // newline-joined, skipping absent parts.
+  async copyAll(hit: SearchHit) {
+    const text = [hit.syntax, hit.description, hit.example_code]
+      .filter((s): s is string => !!s && s.length > 0)
+      .join("\n");
+    await this.#copyAndToast(text);
+  }
+
+  // ponytail: FR-C5 / SEC-3 — "Open source" routes through the https-gated
+  // Rust open_url IPC (same path as Ctrl+Enter). No-op without a URL.
+  async openSource(hit: SearchHit) {
+    if (!hit.source_url) return;
+    if (!isHttpsUrl(hit.source_url)) {
+      this.#showToast(`Open rejected: only https: URLs allowed`);
+      return;
+    }
+    try {
+      await openUrl(hit.source_url);
+      await this.doHide();
+    } catch (e) {
+      log.error("open_url failed", { url: hit.source_url, error: String(e) });
+      this.#showToast(`Open failed: ${String(e)}`);
+    }
   }
 
   selectPinned(hit: SearchHit) {
@@ -229,12 +302,21 @@ export class Launcher {
           return;
         case "pack-filter":
           this.packFilter = cmd.pack_id;
-          // ponytail: post-filter the existing results rather than adding
-          // pack_id to the Rust search signature — top-8 results filtered
-          // client-side is fine for the 5-pack dev set; revisit if v1.1
-          // telemetry shows users refining within a pack.
-          this.results = this.results.filter((h) => h.pack_id === cmd.pack_id);
-          this.selectedIndex = this.results.length > 0 ? 0 : -1;
+          // ponytail: §4.2.1 / §7.6 — run a real backend search for the
+          // pack id, then keep only that pack's cards. This makes a bare
+          // `> docker` (and the zero-result suggestion chips that re-scope
+          // to `> <pack>`) actually surface the pack's entries, instead of
+          // post-filtering a possibly-empty result set. Top-8 of the pack
+          // is fine for the v1 dev set; revisit per-pack refine in v1.1.
+          try {
+            const hits = await searchPacks(cmd.pack_id);
+            this.results = hits.filter((h) => h.pack_id === cmd.pack_id);
+            this.selectedIndex = this.results.length > 0 ? 0 : -1;
+          } catch (e) {
+            this.results = [];
+            this.selectedIndex = -1;
+            log.error("pack filter search failed", { pack: cmd.pack_id, error: String(e) });
+          }
           return;
         case "fallthrough":
           this.query = cmd.query;
@@ -303,6 +385,15 @@ export class Launcher {
     await this.#copyAndToast(text);
     this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
     void recents.onActivation(this.query, this.recentsEnabled);
+    // ponytail: §7.5 / §9.2 — log the activation. first = top-ranked hit,
+    // clicked = the row the user actually activated. Gated on the same
+    // recents toggle (FR-R4); backend re-checks too.
+    if (this.recentsEnabled) {
+      const first = this.results[0];
+      void recordSearch(this.query.trim(), first ? first.id : null, top.id).catch((e) =>
+        log.warn("record search failed", { error: String(e) }),
+      );
+    }
   }
 
   onKey(e: KeyboardEvent) {
@@ -325,6 +416,14 @@ export class Launcher {
     if (e.key === "Enter" && this.results.length > 0) {
       e.preventDefault();
       void this.activate(e.shiftKey, e.ctrlKey || e.metaKey);
+      return;
+    }
+    // ponytail: §7.6 — Enter on the zero-result state activates the first
+    // suggestion (re-scopes to `> <pack>`); inert if there are none. Does
+    // not close the launcher.
+    if (e.key === "Enter" && this.zeroResult && this.suggestions[0]) {
+      e.preventDefault();
+      this.applySuggestion(this.suggestions[0]);
       return;
     }
     if ((e.key === "p" || e.key === "P") && (e.ctrlKey || e.metaKey) && this.results.length > 0) {

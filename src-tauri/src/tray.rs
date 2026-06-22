@@ -21,6 +21,7 @@ use tracing::info;
 pub const ID_PREFS: &str = "prefs";
 pub const ID_RELOAD: &str = "reload";
 pub const ID_OPEN_FOLDER: &str = "open_folder";
+pub const ID_DIAGNOSTICS: &str = "diagnostics";
 pub const ID_QUIT: &str = "quit";
 
 const TOOLTIP: &str = "Hotdoc — Ctrl+Shift+Space";
@@ -36,11 +37,13 @@ pub fn build(app: &AppHandle<Wry>) -> Result<()> {
     let prefs = MenuItemBuilder::with_id(ID_PREFS, "Preferences").build(app)?;
     let reload = MenuItemBuilder::with_id(ID_RELOAD, "Reload index").build(app)?;
     let open_folder = MenuItemBuilder::with_id(ID_OPEN_FOLDER, "Open data folder").build(app)?;
+    let diagnostics = MenuItemBuilder::with_id(ID_DIAGNOSTICS, "Copy diagnostics").build(app)?;
     let quit = MenuItemBuilder::with_id(ID_QUIT, "Quit").build(app)?;
     let sep = PredefinedMenuItem::separator(app)?;
 
-    let menu: Menu<Wry> =
-        MenuBuilder::new(app).items(&[&prefs, &reload, &open_folder, &sep, &quit]).build()?;
+    let menu: Menu<Wry> = MenuBuilder::new(app)
+        .items(&[&prefs, &reload, &open_folder, &diagnostics, &sep, &quit])
+        .build()?;
 
     let icon = Image::from_bytes(ICON_BYTES)?;
 
@@ -73,6 +76,13 @@ pub fn build(app: &AppHandle<Wry>) -> Result<()> {
                             app.opener().open_path(dir.to_string_lossy().to_string(), None::<&str>);
                     }
                 }
+                ID_DIAGNOSTICS => {
+                    // ponytail: FR-G2 — frontend listens, calls the
+                    // `copy_diagnostics` IPC (redacted bundle → clipboard)
+                    // and toasts. Kept off the tray thread because the
+                    // command needs AppState (the db handle).
+                    let _ = app.emit("hotdoc://copy-diagnostics", ());
+                }
                 ID_QUIT => {
                     app.exit(0);
                 }
@@ -95,5 +105,6 @@ mod tests {
         assert_eq!(ID_PREFS, "prefs");
         assert_eq!(ID_RELOAD, "reload");
         assert_eq!(ID_OPEN_FOLDER, "open_folder");
+        assert_eq!(ID_DIAGNOSTICS, "diagnostics");
     }
 }

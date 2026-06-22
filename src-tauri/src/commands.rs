@@ -10,6 +10,7 @@ use hotdoc_core::index::SearchHit;
 use hotdoc_core::store::packs;
 use hotdoc_core::store::pinned::{self, PinnedHit};
 use hotdoc_core::store::recents::{self, Recent};
+use hotdoc_core::store::search_log::{self, PopularHit};
 use hotdoc_core::store::settings;
 
 use crate::index_state;
@@ -101,6 +102,99 @@ pub fn clear_recents(state: State<'_, AppState>) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
     recents::clear(&conn).map_err(|e| format!("clear_recents: {e:#}"))?;
     Ok(())
+}
+
+// Search log (spec §7.5 Popular, §9.2). Records one row per result
+// activation. Honors the recents-enabled toggle (FR-R4) — the search log
+// is the same flavor of local activity data as recents, so disabling
+// recents disables it too. `first_id`/`clicked_id` may be null for a
+// zero-result activation (the query is still logged).
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn record_search(
+    query: String,
+    first_id: Option<String>,
+    clicked_id: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    if !recents::is_enabled(&conn).map_err(|e| format!("record_search: {e:#}"))? {
+        return Ok(());
+    }
+    search_log::record(&conn, &query, first_id.as_deref(), clicked_id.as_deref())
+        .map_err(|e| format!("record_search: {e:#}"))
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn get_popular(n: usize, state: State<'_, AppState>) -> Result<Vec<PopularHit>, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    search_log::popular(&conn, n).map_err(|e| format!("get_popular: {e:#}"))
+}
+
+// Index status (spec FR-I4). Counts feed the launcher footer. Read from
+// the SQLite mirror (populated by the index pipeline, T16) so this needs
+// no index internals.
+#[derive(serde::Serialize)]
+pub struct IndexStatus {
+    pub entry_count: i64,
+    pub pack_count: i64,
+}
+
+#[tauri::command]
+#[instrument(skip(state))]
+pub fn index_status(state: State<'_, AppState>) -> Result<IndexStatus, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    let entry_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0))
+        .map_err(|e| format!("index_status entries: {e}"))?;
+    let pack_count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM packs", [], |r| r.get(0))
+        .map_err(|e| format!("index_status packs: {e}"))?;
+    Ok(IndexStatus { entry_count, pack_count })
+}
+
+// Copy diagnostics (spec FR-G2). Builds a REDACTED bundle and writes it
+// to the clipboard. Contents: app version, OS/arch, schema version, index
+// counts. Deliberately excludes all query/recents/search_log text — the
+// bundle is built from static environment + counts only, so no user query
+// can leak. Returns the bundle for the toast.
+#[tauri::command]
+#[instrument(skip(state, app))]
+pub fn copy_diagnostics(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<String, String> {
+    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+    let entry_count: i64 =
+        conn.query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0)).unwrap_or(-1);
+    let pack_count: i64 =
+        conn.query_row("SELECT COUNT(*) FROM packs", [], |r| r.get(0)).unwrap_or(-1);
+    let schema_version: String = conn
+        .query_row("SELECT value FROM meta WHERE key = 'schema_version'", [], |r| r.get(0))
+        .unwrap_or_else(|_| "unknown".to_string());
+    drop(conn);
+
+    let bundle = format!(
+        "Hotdoc diagnostics\n\
+         app_version: {}\n\
+         os: {} {}\n\
+         schema_version: {}\n\
+         packs_indexed: {}\n\
+         entries_indexed: {}\n\
+         (redacted: no query, recents, or search-log contents)\n",
+        env!("CARGO_PKG_VERSION"),
+        std::env::consts::OS,
+        std::env::consts::ARCH,
+        schema_version,
+        pack_count,
+        entry_count,
+    );
+    app.clipboard()
+        .write_text(bundle.clone())
+        .map_err(|e| format!("copy_diagnostics clipboard: {e}"))?;
+    info!("copied diagnostics bundle");
+    Ok(bundle)
 }
 
 // Pinned (spec FR-P1–P3). The entries table is unpopulated in M3 (v1.1's

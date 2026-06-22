@@ -71,7 +71,11 @@ pub fn run() {
             commands::set_hotkey,
             commands::set_autostart,
             commands::rebuild_index,
-            commands::open_url
+            commands::open_url,
+            commands::record_search,
+            commands::get_popular,
+            commands::index_status,
+            commands::copy_diagnostics
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {
@@ -84,10 +88,18 @@ pub fn run() {
         .setup(|app| {
             if let Some(w) = app.get_webview_window("main") {
                 if let Ok(Some(monitor)) = app.primary_monitor() {
-                    let mon_w = monitor.size().width as i32;
-                    let win_w = 720i32;
-                    let x = (mon_w - win_w) / 2;
-                    let _ = w.set_position(tauri::PhysicalPosition::new(x, 60));
+                    // ponytail: FR-L2 / §8.2 — center-top, 60px logical from
+                    // the top. monitor.size() is physical; the 720px window
+                    // width and 60px margin are logical, so scale them by
+                    // the monitor's factor before the physical-pixel math,
+                    // else the window is off-center on fractional-scale
+                    // displays.
+                    let scale = monitor.scale_factor();
+                    let mon_w = monitor.size().width as f64;
+                    let win_w = 720.0 * scale;
+                    let x = ((mon_w - win_w) / 2.0).max(0.0) as i32;
+                    let y = (60.0 * scale) as i32;
+                    let _ = w.set_position(tauri::PhysicalPosition::new(x, y));
                 }
             }
             toggle::spawn(app.handle().clone());

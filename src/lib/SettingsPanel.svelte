@@ -164,6 +164,19 @@
     </label>
   </section>
 
+  <section>
+    <span>Diagnostics</span>
+    <div class="row">
+      <button
+        type="button"
+        onclick={() => (externalLauncher ?? launcher).copyDiagnostics()}
+        data-testid="copy-diagnostics"
+      >
+        Copy diagnostics
+      </button>
+    </div>
+  </section>
+
   {#if status}
     <div
       class="status"

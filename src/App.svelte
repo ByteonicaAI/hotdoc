@@ -5,14 +5,24 @@
   import EmptyView from "./lib/EmptyView.svelte";
   import SettingsPanel from "./lib/SettingsPanel.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
-  import { getAllSettings } from "./lib/tauri";
+  import { getAllSettings, indexStatus } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
 
   const launcher = new Launcher();
+  // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
+  // Rust before this window paints, so a streaming N/N counter would never
+  // render; the steady-state count is the honest signal. `null` = not yet
+  // loaded → "Indexing…".
+  let status = $state<{ entry_count: number; pack_count: number } | null>(null);
 
   onMount(() => {
     document.getElementById("q")?.focus();
     let unlisten: (() => void) | undefined;
+    void indexStatus()
+      .then((s) => (status = s))
+      .catch(() => {
+        /* leave as Indexing… */
+      });
     void listen("hotdoc://refresh-empty-view", () => {
       void launcher.loadEmptyView();
     }).then((u) => {
@@ -26,6 +36,14 @@
       // reloadIndex() in the launcher toasts the count and refreshes
       // the empty view. Errors propagate to the toast pipeline.
       void launcher.reloadIndex();
+      void indexStatus()
+        .then((s) => (status = s))
+        .catch(() => {});
+    });
+    void listen("hotdoc://copy-diagnostics", () => {
+      // ponytail: FR-G2 — tray "Copy diagnostics" → redacted bundle to
+      // clipboard, toast confirms.
+      void launcher.copyDiagnostics();
     });
     // ponytail: read the persisted theme synchronously after focus but
     // before the first paint of user-driven content. applyTheme is a
@@ -65,8 +83,10 @@
       <EmptyView
         recents={launcher.recentList}
         pinned={launcher.pinnedList}
+        popular={launcher.popularList}
         onSelectRecent={(q: string) => launcher.selectRecent(q)}
         onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
+        onSelectPopular={(h: SearchHit) => launcher.selectPinned(h)}
         selectedIndex={-1}
         pinnedOffset={launcher.recentList.length}
       />
@@ -76,10 +96,34 @@
           hit={r}
           active={i === launcher.selectedIndex}
           pinned={launcher.pinnedIds.has(r.id)}
+          query={launcher.query}
+          onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
+          onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
+          onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
+          onOpenSource={(h: SearchHit) => launcher.openSource(h)}
         />
       {/each}
       {#if launcher.zeroResult}
-        <li class="empty" aria-hidden="true">No matches for "{launcher.query.trim()}"</li>
+        <li class="empty zero" role="status">
+          No matches for "{launcher.query.trim()}"
+          {#if launcher.suggestions.length > 0}
+            <span class="suggest-label">Did you mean:</span>
+            <span class="suggest-chips">
+              {#each launcher.suggestions as pack (pack)}
+                <button
+                  type="button"
+                  class="suggest-chip"
+                  onmousedown={(e) => {
+                    e.preventDefault();
+                    launcher.applySuggestion(pack);
+                  }}
+                >
+                  {pack}
+                </button>
+              {/each}
+            </span>
+          {/if}
+        </li>
       {/if}
     {/if}
   </ul>
@@ -89,4 +133,47 @@
   {#if launcher.settingsOpen}
     <SettingsPanel onClose={() => launcher.closeSettings()} {launcher} />
   {/if}
+  <footer class="status" aria-live="polite">
+    {#if status}
+      {status.entry_count} commands · {status.pack_count} packs
+    {:else}
+      Indexing…
+    {/if}
+  </footer>
 </main>
+
+<style>
+  .status {
+    padding: 6px 16px;
+    border-top: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.08));
+    color: var(--muted, #888);
+    font-size: 11px;
+  }
+  .zero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .suggest-label {
+    color: var(--muted, #888);
+    font-size: 12px;
+  }
+  .suggest-chips {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .suggest-chip {
+    font: inherit;
+    font-size: 12px;
+    padding: 2px 10px;
+    border: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.15));
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .suggest-chip:hover {
+    background: var(--row-active-bg, rgba(255, 255, 255, 0.08));
+  }
+</style>

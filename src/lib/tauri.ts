@@ -101,3 +101,32 @@ export async function rebuildIndex(): Promise<number> {
 export async function openUrl(url: string): Promise<void> {
   await invoke("open_url", { url });
 }
+
+// ponytail: §7.5 / §9.2 — record one activation in the search log. ids may
+// be null for a zero-result activation. Backend honors the recents-enabled
+// toggle (FR-R4).
+export async function recordSearch(
+  query: string,
+  firstId: string | null,
+  clickedId: string | null,
+): Promise<void> {
+  await invoke("record_search", { query, firstId, clickedId });
+}
+
+// ponytail: §7.5 — most-activated cards for the empty-view Popular section.
+export async function getPopular(n: number): Promise<SearchHit[]> {
+  return invoke<SearchHit[]>("get_popular", { n });
+}
+
+export type IndexStatus = { entry_count: number; pack_count: number };
+
+// ponytail: FR-I4 — index counts for the launcher footer.
+export async function indexStatus(): Promise<IndexStatus> {
+  return invoke<IndexStatus>("index_status");
+}
+
+// ponytail: FR-G2 — copy the redacted diagnostics bundle; returns it for
+// the toast.
+export async function copyDiagnostics(): Promise<string> {
+  return invoke<string>("copy_diagnostics");
+}

@@ -682,4 +682,85 @@ describe("XSS regression (SEC-1)", () => {
     // Sanity: window.__pwned was never set by the render.
     expect((window as unknown as { __pwned?: boolean }).__pwned).toBeUndefined();
   });
+
+  it("highlights matched query tokens in the description (G2)", async () => {
+    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
+    const { container } = render(ResultItem, {
+      hit: mockHit,
+      active: false,
+      pinned: false,
+      query: "stash",
+    });
+    const marks = container.querySelectorAll("mark");
+    expect(marks.length).toBeGreaterThan(0);
+    expect([...marks].some((m) => /stash/i.test(m.textContent ?? ""))).toBe(true);
+  });
+
+  it("renders hover actions and Copy example copies the example code (G3)", async () => {
+    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
+    const onCopyExample = vi.fn();
+    render(ResultItem, {
+      hit: mockHit,
+      active: false,
+      pinned: false,
+      query: "",
+      onCopyExample,
+    });
+    const btn = screen.getByText("Copy example");
+    expect(btn).toBeInTheDocument();
+    await fireEvent.mouseDown(btn);
+    expect(onCopyExample).toHaveBeenCalledWith(mockHit);
+  });
+
+  it('hides "Open source" when the card has no source_url (G3)', async () => {
+    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
+    render(ResultItem, { hit: mockHit, active: false, pinned: false });
+    expect(screen.queryByText("Open source")).toBeNull();
+  });
+});
+
+describe("zero-result suggestions + popular (G4/G5)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(writeText).mockClear();
+  });
+
+  it("renders pack suggestions on zero result and re-scopes on click (G4)", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "list_packs") return Promise.resolve(["docker", "git", "kubectl"]);
+      if (cmd === "get_recents" || cmd === "get_pinned" || cmd === "get_popular")
+        return Promise.resolve([]);
+      // A normal search returns nothing → zero-result state. A pack-scoped
+      // search (query == "docker") returns the docker card.
+      if (cmd === "search") {
+        const q = (args as { query: string }).query;
+        return Promise.resolve(q === "docker" ? [{ ...mockHit, pack_id: "docker" }] : []);
+      }
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "dcoker" } });
+    const chip = await screen.findByRole("button", { name: "docker" });
+    expect(chip).toBeInTheDocument();
+    await fireEvent.mouseDown(chip);
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("search", { query: "docker" });
+    });
+  });
+
+  it("renders the Popular section from search_log (G5)", async () => {
+    const popularHit = { ...mockHit, id: "git-pull", title: "Pull changes", syntax: "git pull" };
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_popular") return Promise.resolve([popularHit]);
+      if (cmd === "get_recents" || cmd === "get_pinned" || cmd === "list_packs")
+        return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    await waitFor(() => {
+      expect(screen.getByText("Popular")).toBeInTheDocument();
+      expect(screen.getByText("Pull changes")).toBeInTheDocument();
+    });
+  });
 });
