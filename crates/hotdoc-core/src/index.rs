@@ -136,7 +136,12 @@ impl HotdocIndex {
         })
     }
 
-    pub fn search(&self, raw_query: &str, limit: usize) -> Result<Vec<SearchHit>> {
+    pub fn search(
+        &self,
+        raw_query: &str,
+        limit: usize,
+        popularity: &std::collections::HashMap<String, f32>,
+    ) -> Result<Vec<SearchHit>> {
         let searcher: Searcher = self.reader.searcher();
         let query = self.build_query(raw_query);
         let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
@@ -177,7 +182,8 @@ impl HotdocIndex {
                 &self.entry_meta_tags(&id),
             );
             let src = apply_source_priority(score, &source);
-            let adjusted_score = score + exact + src;
+            let pop = popularity.get(&id).copied().unwrap_or(0.0);
+            let adjusted_score = score + exact + src + pop;
             hits.push(SearchHit {
                 id,
                 pack_id: get_text(&doc, fields.pack_id),
@@ -638,7 +644,9 @@ mod tests {
     #[test]
     fn git_stash_returns_git_stash() {
         let idx = fresh_index();
-        let hits = idx.search("git stash", 8).expect("search");
+        let hits = idx
+            .search("git stash", 8, &Default::default())
+            .expect("search");
         assert!(!hits.is_empty(), "expected hits for 'git stash'");
         assert_eq!(hits[0].id, "git-stash", "top hit should be git-stash");
     }
@@ -646,7 +654,9 @@ mod tests {
     #[test]
     fn git_stash_pop_top_hit() {
         let idx = fresh_index();
-        let hits = idx.search("git stash pop", 8).expect("search");
+        let hits = idx
+            .search("git stash pop", 8, &Default::default())
+            .expect("search");
         assert!(!hits.is_empty());
         assert_eq!(hits[0].id, "git-stash-pop");
     }
@@ -654,7 +664,9 @@ mod tests {
     #[test]
     fn fuzzy_typo_finds_target() {
         let idx = fresh_index();
-        let hits = idx.search("git stsh pop", 8).expect("search");
+        let hits = idx
+            .search("git stsh pop", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.iter().any(|h| h.id == "git-stash-pop"),
             "typo 'stsh' should still resolve to git-stash-pop; got {:?}",
@@ -665,14 +677,18 @@ mod tests {
     #[test]
     fn gibberish_returns_empty() {
         let idx = fresh_index();
-        let hits = idx.search("asdfqwer", 8).expect("search");
+        let hits = idx
+            .search("asdfqwer", 8, &Default::default())
+            .expect("search");
         assert!(hits.is_empty(), "gibberish should yield zero results");
     }
 
     #[test]
     fn prefix_match_finds_target() {
         let idx = fresh_index();
-        let hits = idx.search("git stas", 8).expect("search");
+        let hits = idx
+            .search("git stas", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.iter().any(|h| h.id == "git-stash"),
             "prefix 'stas' should resolve to git-stash; got {:?}",
@@ -683,7 +699,9 @@ mod tests {
     #[test]
     fn short_token_skips_prefix_clause() {
         let idx = fresh_index();
-        let hits = idx.search("git st", 8).expect("search");
+        let hits = idx
+            .search("git st", 8, &Default::default())
+            .expect("search");
         for h in &hits {
             assert_ne!(h.id, "git-st", "no card has id 'git-st'");
         }
@@ -692,14 +710,16 @@ mod tests {
     #[test]
     fn empty_query_returns_empty() {
         let idx = fresh_index();
-        let hits = idx.search("   ", 8).expect("search");
+        let hits = idx.search("   ", 8, &Default::default()).expect("search");
         assert!(hits.is_empty(), "empty query should yield zero results");
     }
 
     #[test]
     fn simple_tokenizer_splits_hyphenated_syntax() {
         let idx = fresh_index();
-        let hits = idx.search("reset soft head", 8).expect("search");
+        let hits = idx
+            .search("reset soft head", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.iter().take(3).any(|h| h.id == "git-reset-soft-head-1"),
             "SimpleTokenizer should split 'git-reset-soft-head-1' so 'reset soft head' hits it; got {:?}",
@@ -710,7 +730,9 @@ mod tests {
     #[test]
     fn exact_match_boost_lifts_docker_logs_over_logs_tail() {
         let idx = fresh_index();
-        let hits = idx.search("docker logs", 8).expect("search");
+        let hits = idx
+            .search("docker logs", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.first().map(|h| h.id.as_str()) == Some("docker-logs"),
             "exact-match boost should lift docker-logs above docker-logs-tail; got {:?}",
@@ -721,7 +743,9 @@ mod tests {
     #[test]
     fn source_priority_lifts_official_over_curated_sibling() {
         let idx = fresh_index();
-        let hits = idx.search("kubectl get pods", 8).expect("search");
+        let hits = idx
+            .search("kubectl get pods", 8, &Default::default())
+            .expect("search");
         assert_eq!(
             hits.first().map(|h| h.id.as_str()),
             Some("kubectl-get-pods-official"),
@@ -832,7 +856,9 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_a, pack_b]);
-        let hits = idx.search("git stash", 8).expect("search");
+        let hits = idx
+            .search("git stash", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.len() >= 2,
             "need 2 hits, got {}: {:?}",
@@ -882,7 +908,9 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_full, pack_partial]);
-        let hits = idx.search("git undo", 8).expect("search");
+        let hits = idx
+            .search("git undo", 8, &Default::default())
+            .expect("search");
         let f = hits.iter().find(|h| h.id == "full").expect("hit full");
         let p = hits
             .iter()
@@ -915,7 +943,9 @@ mod tests {
         );
         let idx = t17_build(&[pack]);
         // "kubernates" is 10 chars, 2 edits from "kubernetes"
-        let hits = idx.search("kubernates", 8).expect("search");
+        let hits = idx
+            .search("kubernates", 8, &Default::default())
+            .expect("search");
         assert!(
             hits.iter().any(|h| h.id == "k8s"),
             "2-edit typo of an 8+ token should still hit; got: {:?}",
@@ -948,7 +978,9 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_official, pack_curated]);
-        let hits = idx.search("kubectl get pods", 8).expect("search");
+        let hits = idx
+            .search("kubectl get pods", 8, &Default::default())
+            .expect("search");
         let o = hits.iter().find(|h| h.id == "official").expect("hit o");
         let c = hits.iter().find(|h| h.id == "curated").expect("hit c");
         let delta = o.score - c.score;
@@ -987,7 +1019,7 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_a, pack_b]);
-        let hits = idx.search("x", 8).expect("search");
+        let hits = idx.search("x", 8, &Default::default()).expect("search");
         assert!(hits.len() >= 2);
         // With identical BM25, pack_id "aaa" should sort before "zzz"
         let first_pack = &hits[0].pack_id;
@@ -995,6 +1027,51 @@ mod tests {
         assert!(
             first_pack < second_pack,
             "deterministic tie-break failed: first={first_pack} second={second_pack}"
+        );
+    }
+
+    // Golden-lock: popular entry outranks an equal-BM25 unpopular sibling.
+    // Spec §7.2: popularity = ln(1 + raw) * 0.1 as additive post-rerank bonus.
+    // Two cards with identical syntax/title/description/source → same BM25.
+    // The popular card has a pre-built popularity map entry; the unpopular one
+    // does not. The popular card must rank first.
+    #[test]
+    fn popularity_bonus_lifts_popular_over_unpopular_sibling() {
+        let (pack_popular, _) = make_entry_with(
+            "popular-card",
+            "alpha",
+            "git push origin main",
+            "Push to origin",
+            "push to remote",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let (pack_unpopular, _) = make_entry_with(
+            "unpopular-card",
+            "alpha",
+            "git push origin main",
+            "Push to origin",
+            "push to remote",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let idx = t17_build(&[pack_popular, pack_unpopular]);
+
+        // Build a popularity map with one fresh activation for the popular card.
+        let mut pop_map = std::collections::HashMap::new();
+        let raw = 1.0f32; // one fresh activation → weight = 1.0
+        let term = (1.0f32 + raw).ln() * 0.1;
+        pop_map.insert("popular-card".to_string(), term);
+
+        let hits = idx
+            .search("git push origin main", 8, &pop_map)
+            .expect("search");
+        assert!(hits.len() >= 2, "expected at least 2 hits");
+        assert_eq!(
+            hits[0].id,
+            "popular-card",
+            "popular-card must outrank unpopular-card; got {:?}",
+            hits.iter().map(|h| &h.id).collect::<Vec<_>>()
         );
     }
 }

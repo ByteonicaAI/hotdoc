@@ -8,6 +8,7 @@ pub mod entries;
 pub mod meta;
 pub mod packs;
 pub mod pinned;
+pub mod popularity;
 pub mod recents;
 pub mod search_log;
 pub mod settings;

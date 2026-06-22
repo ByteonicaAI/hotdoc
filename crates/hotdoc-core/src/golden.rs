@@ -27,7 +27,7 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path) -> Result<()> {
     let mut durations_ms: Vec<u128> = Vec::with_capacity(gf.queries.len());
     for q in &gf.queries {
         let start = Instant::now();
-        let hits: Vec<SearchHit> = idx.search(&q.query, 8)?;
+        let hits: Vec<SearchHit> = idx.search(&q.query, 8, &Default::default())?;
         let elapsed = start.elapsed().as_millis();
         durations_ms.push(elapsed);
         let first = hits.first().map(|h| h.id.clone());

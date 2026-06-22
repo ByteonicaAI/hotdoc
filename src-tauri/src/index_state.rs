@@ -21,6 +21,9 @@ pub struct AppState {
     // short-lived transaction and the hot path is one `record()` per
     // activation, not per keystroke.
     pub db: Arc<Mutex<Connection>>,
+    // §7.2 popularity map built once on launcher open (not per keystroke).
+    // Arc<HashMap> is cheaply cloneable and immutable — no lock needed.
+    pub popularity_map: Arc<std::collections::HashMap<String, f32>>,
 }
 
 /// ponytail: T14. The body used to be ~80 LOC of mixed "where to look

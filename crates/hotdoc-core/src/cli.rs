@@ -41,7 +41,7 @@ pub fn cmd_index(packs_dir: &Path, out_dir: &Path) -> Result<()> {
 #[instrument]
 pub fn cmd_query(raw_query: &str, index_dir: &Path, limit: usize) -> Result<()> {
     let idx = HotdocIndex::open(index_dir)?;
-    let hits = idx.search(raw_query, limit)?;
+    let hits = idx.search(raw_query, limit, &Default::default())?;
     if hits.is_empty() {
         println!("(no results)");
         return Ok(());
@@ -62,7 +62,7 @@ pub fn cmd_query(raw_query: &str, index_dir: &Path, limit: usize) -> Result<()> 
 #[instrument]
 pub fn cmd_copy(raw_query: &str, index_dir: &Path) -> Result<()> {
     let idx = HotdocIndex::open(index_dir)?;
-    let hits = idx.search(raw_query, 1)?;
+    let hits = idx.search(raw_query, 1, &Default::default())?;
     let hit = hits.first().context("no results for query")?;
     let syntax = hit.syntax.clone();
     let mut clipboard = arboard::Clipboard::new().context("opening clipboard (no display?)")?;
