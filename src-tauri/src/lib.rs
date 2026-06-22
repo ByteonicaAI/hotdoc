@@ -16,12 +16,25 @@ pub fn run() {
         eprintln!("hotdoc: logging init failed: {e:#}");
     }
     let db_path = hotdoc_core::store::default_db_path().expect("default db path");
-    let conn = hotdoc_core::store::open(&db_path)
-        .and_then(|c| {
+    // FR-I5: migration failure → delete the corrupt DB and start fresh.
+    let conn = {
+        let try_open = || -> hotdoc_core::store::Result<rusqlite::Connection> {
+            let c = hotdoc_core::store::open(&db_path)?;
             hotdoc_core::store::migrate(&c)?;
             Ok(c)
-        })
-        .expect("open store");
+        };
+        match try_open() {
+            Ok(c) => c,
+            Err(hotdoc_core::store::StoreError::MigrationFailed { step, ref message }) => {
+                tracing::error!(step, message, "migration failed — deleting DB and rebuilding");
+                let _ = std::fs::remove_file(&db_path);
+                let c = hotdoc_core::store::open(&db_path).expect("open fresh DB");
+                hotdoc_core::store::migrate(&c).expect("migrate fresh DB");
+                c
+            }
+            Err(e) => panic!("open store: {e:#}"),
+        }
+    };
     info!(path = %db_path.display(), "store opened");
 
     // ponytail: build the index first (T16 — populates packs/entries

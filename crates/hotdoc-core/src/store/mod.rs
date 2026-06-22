@@ -6,6 +6,7 @@
 
 pub mod entries;
 pub mod meta;
+pub mod migrations;
 pub mod packs;
 pub mod pinned;
 pub mod popularity;
@@ -30,6 +31,8 @@ pub enum StoreError {
     Io(#[from] std::io::Error),
     #[error("platform data directory not available")]
     MissingDataDir,
+    #[error("migration v{step} failed: {message}")]
+    MigrationFailed { step: u32, message: String },
 }
 
 pub type Result<T> = std::result::Result<T, StoreError>;
@@ -52,35 +55,16 @@ pub fn open(db_path: &Path) -> Result<Connection> {
     Ok(conn)
 }
 
-/// Idempotent schema migration. Creates the seven spec §9.2 tables and their
-/// indices if missing; bumps `meta.schema_version` on a successful migration
-/// (no-op when the row already records the current version).
+/// Forward-stepping schema migration (PRD §10, FR-I5).
+///
+/// Reads `meta.schema_version`, applies every pending step from `migrations`
+/// in order, each in its own transaction. On step failure returns
+/// `StoreError::MigrationFailed` — callers map this to the FR-I5 rebuild
+/// path (delete DB + rebuild from scratch).
 #[instrument(skip_all)]
 pub fn migrate(conn: &Connection) -> Result<()> {
-    conn.execute_batch(SCHEMA_SQL)?;
-
-    let current: Option<String> = match conn.query_row(
-        "SELECT value FROM meta WHERE key = 'schema_version'",
-        [],
-        |row| row.get::<_, String>(0),
-    ) {
-        Ok(v) => Some(v),
-        Err(rusqlite::Error::QueryReturnedNoRows) => None,
-        Err(e) => return Err(e.into()),
-    };
-
-    if current.as_deref() != Some(SCHEMA_VERSION_STR) {
-        conn.execute(
-            "INSERT INTO meta(key, value) VALUES ('schema_version', ?1) \
-             ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            rusqlite::params![SCHEMA_VERSION_STR],
-        )?;
-    }
-    Ok(())
+    migrations::run(conn)
 }
-
-/// Pre-rendered `SCHEMA_VERSION` so `migrate()` doesn't format on every call.
-const SCHEMA_VERSION_STR: &str = "1";
 
 /// Default on-disk database path: `dirs::data_local_dir() / "hotdoc" / "hotdoc.sqlite"`.
 /// Same directory the persistent Tantivy index lives in.
@@ -91,7 +75,8 @@ pub fn default_db_path() -> Result<std::path::PathBuf> {
 }
 
 /// The full schema as one batch. Mirrors spec §9.2 verbatim.
-const SCHEMA_SQL: &str = "
+/// pub(crate) so `migrations::v1` can reference it as the baseline.
+pub(crate) const SCHEMA_SQL: &str = "
 CREATE TABLE IF NOT EXISTS meta (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
