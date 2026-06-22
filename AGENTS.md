@@ -40,7 +40,9 @@ hotdoc/
 │       ├── commands.rs   # IPC commands (search, copy_syntax, hide_window)
 │       ├── index_state.rs# Index loading (persistent / temp)
 │       ├── hotkey.rs     # Global shortcut registration
-│       └── toggle.rs     # CLI toggle for window visibility
+│       ├── toggle.rs     # CLI toggle for window visibility
+│       ├── settings.rs   # Settings IPC commands (get_all_settings, set_setting, etc.)
+│       └── tray.rs       # System tray setup + right-click menu
 ├── crates/hotdoc-core/   # Core library (no Tauri deps)
 │   └── src/
 │       ├── lib.rs        # Module exports
@@ -48,9 +50,18 @@ hotdoc/
 │       ├── pack.rs       # Pack types, loader, validator
 │       ├── cli.rs        # hotdoc-cli subcommands (index, query, copy, bench)
 │       ├── golden.rs     # Golden-query benchmark harness
+│       ├── logging.rs    # Tracing/logging initialisation
+│       ├── store/        # SQLite store layer
+│       │   ├── mod.rs
+│       │   ├── meta.rs   # schema_version + DB init
+│       │   ├── packs.rs  # pack registry
+│       │   ├── pinned.rs # pin/unpin, list
+│       │   ├── recents.rs# recents ring-buffer
+│       │   └── settings.rs# key-value settings
 │       └── bin/
 │           ├── hotdoc-cli.rs  # CLI binary entry
-│           └── bench-open.rs  # Open-time benchmark binary
+│           ├── bench-open.rs  # Open-time benchmark binary
+│           └── bench-search.rs# Search p50 benchmark binary
 ├── packs/                # Data packs (curated tool cards)
 │   └── curate/           # Dev packs (editable, bundled at build time)
 ├── docs/
@@ -107,7 +118,7 @@ hotdoc/
 - **Packs**: JSON files in `packs/curate/` loaded via `pack::load_dir()`. Each pack has entries with id, title, syntax, description, source, source_url, tags, examples.
 - **Index**: tantivy BM25 search over packs. Schema fields include id, title, syntax, description, tags, example_codes, source, pack_id.
 - **Persistent index**: stored under `dirs::data_local_dir() / "hotdoc" / "index"` for fast re-launch.
-- **Golden queries**: in `docs/seed-data/tests/search/golden_queries.json` for NFR-3 performance gate.
+- **Golden queries**: in `tests/search/golden_queries.json` for NFR-3 performance gate (canonical — bench + CI load from this path; code: `golden::default_golden_path()`).
 
 ### Comments
 
