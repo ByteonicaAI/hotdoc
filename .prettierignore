@@ -13,5 +13,8 @@ pnpm-lock.yaml
 # Hand-curated fixture data — formatter must not touch these
 docs/seed-data/**
 
+# Internal docs (PRD, spec, plans, handoffs) — hand-written, not CI-gated
+docs/internal/**
+
 # Editor config files (managed by the editor, not prettier)
 .vscode/**

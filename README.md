@@ -6,25 +6,26 @@ Press `Ctrl+Shift+Space`, type a few fuzzy words, get the command, copy it, past
 
 ## Stack
 
-| Layer             | Tech                               |
-| ----------------- | ---------------------------------- |
-| App framework     | Tauri v2                           |
-| Frontend          | Svelte 5 + TypeScript (Vite SPA)   |
-| Search            | Tantivy (BM25 + fuzzy, in-process) |
-| Storage (planned) | SQLite via rusqlite                |
-| CLI               | hotdoc-cli (clap-based)            |
+| Layer         | Tech                               |
+| ------------- | ---------------------------------- |
+| App framework | Tauri v2                           |
+| Frontend      | Svelte 5 + TypeScript (Vite SPA)   |
+| Search        | Tantivy (BM25 + fuzzy, in-process) |
+| Storage       | SQLite via rusqlite (WAL)          |
+| CLI           | hotdoc-cli (clap-based)            |
 
 ## Milestones
 
-| Milestone                 | Status          | Scope                                                                                                                                                     |
-| ------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **M0** — Scaffold         | Done            | Tauri 2 + Svelte 5 + CI/lint/test + global hotkey + single-instance                                                                                       |
-| **M1** — Core (alpha)     | Done            | Tantivy index + search/query IPC + security gates (CSP, https-only URL)                                                                                   |
-| **M2** — Public readiness | **Done** (v0.2) | 5 curated packs (git, docker, kubectl, gh, curl), golden query set (24 queries), NFR benches, AppImage + .deb packaging, workspace hygiene, logging infra |
-| **M2.5** — Refactor       | Done            | `eprintln!` → `tracing!` sweep, file rotation logging, `log_error` IPC bridge, `EntryMeta` struct                                                         |
-| **M3** — Recents & nav    | **Planned**     | Recents (FR-R*), ↑/↓ keyboard nav (FR-S3), pinned (FR-P*), command palette, tray icon, settings                                                           |
-| **v1.0** — Public release | **TBD**         | All FR/NFR/SEC gates green, signed distributable                                                                                                          |
-| **v1.1** — Cross-platform | **TBD**         | Windows + macOS port, pack-update channel, full a11y, personal snippets                                                                                   |
+| Milestone                      | Status          | Scope                                                                                                                                                                |
+| ------------------------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **M0** — Scaffold              | Done            | Tauri 2 + Svelte 5 + CI/lint/test + global hotkey + single-instance                                                                                                  |
+| **M1** — Core (alpha)          | Done            | Tantivy index + search/query IPC + security gates (CSP, https-only URL)                                                                                              |
+| **M2** — Public readiness      | **Done** (v0.2) | 5 curated packs (git, docker, kubectl, gh, curl), golden query set (24 queries), NFR benches, AppImage + .deb packaging, workspace hygiene, logging infra            |
+| **M2.5** — Refactor            | Done            | `eprintln!` → `tracing!` sweep, file rotation logging, `log_error` IPC bridge, `EntryMeta` struct                                                                    |
+| **M3** — Recents & nav         | **Done**        | Recents (FR-R*), ↑/↓ keyboard nav (FR-S3), pinned (FR-P*), command palette, tray icon, settings                                                                      |
+| **M3.5** — Polish & audit-debt | **Planned**     | Theme apply, persistent-index reuse, SQLite pack/entry population, scorer↔spec reconciliation, SEC-5 lint, FR-I8 — see `docs/internal/plan-m3.5-audit-mitigation.md` |
+| **v1.0** — Public release      | **TBD**         | All FR/NFR/SEC gates green, signed distributable                                                                                                                     |
+| **v1.1** — Cross-platform      | **TBD**         | Windows + macOS port, pack-update channel, full a11y, personal snippets                                                                                              |
 
 ## Current features
 
@@ -76,4 +77,4 @@ docs/internal/        # PRD, spec, plans, handoffs, methodology
 
 ## License
 
-MIT (code). Bundled tldr-derived content remains CC-BY-4.0, attributed per pack.
+Dual **MIT OR Apache-2.0** (code). Bundled tldr-derived content remains CC-BY-4.0, attributed per pack.
