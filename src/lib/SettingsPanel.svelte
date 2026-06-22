@@ -1,35 +1,44 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { getAllSettings, setAutostart, setHotkey, setSetting, type SettingsMap } from "./tauri";
   import { log } from "./logger";
 
   type Props = { onClose: () => void };
   const { onClose }: Props = $props();
 
-  let hotkeyDraft = $state("");
+  // ponytail: hotkeyInputEl is bound via bind:this, not bind:value. Using a
+  // reactive bind:value schedules a Svelte DOM-update microtask when onMount
+  // sets the stored value; that microtask fires after fireEvent.input (in
+  // tests) resets element.value back to the stored value, so saveHotkey reads
+  // the wrong combo. Reading the live element.value directly avoids the race.
+  let hotkeyInputEl: HTMLInputElement | null = null;
   let theme = $state<"light" | "dark" | "system">("system");
   let autostart = $state(false);
   let recentsEnabled = $state(true);
   let status = $state<{ kind: "ok" | "err"; msg: string } | null>(null);
 
-  $effect(() => {
-    void (async () => {
-      try {
-        const s: SettingsMap = await getAllSettings();
-        hotkeyDraft = s["hotkey"] ?? "Ctrl+Shift+Space";
-        theme = (s["theme"] as "light" | "dark" | "system") ?? "system";
-        autostart = s["autostart"] === "true";
-        recentsEnabled = s["recents_enabled"] !== "false";
-      } catch (e) {
-        log.warn("load settings failed", { error: String(e) });
-        hotkeyDraft = "Ctrl+Shift+Space";
+  onMount(async () => {
+    try {
+      const s: SettingsMap = await getAllSettings();
+      if (hotkeyInputEl) {
+        hotkeyInputEl.value = s["hotkey"] ?? "Ctrl+Shift+Space";
       }
-    })();
+      theme = (s["theme"] as "light" | "dark" | "system") ?? "system";
+      autostart = s["autostart"] === "true";
+      recentsEnabled = s["recents_enabled"] !== "false";
+    } catch (e) {
+      log.warn("load settings failed", { error: String(e) });
+      if (hotkeyInputEl) {
+        hotkeyInputEl.value = "Ctrl+Shift+Space";
+      }
+    }
   });
 
   async function saveHotkey() {
+    const combo = hotkeyInputEl?.value ?? "Ctrl+Shift+Space";
     try {
-      await setHotkey(hotkeyDraft);
-      await setSetting("hotkey", hotkeyDraft);
+      await setHotkey(combo);
+      await setSetting("hotkey", combo);
       status = { kind: "ok", msg: "Saved." };
     } catch (e) {
       status = { kind: "err", msg: String(e) };
@@ -77,9 +86,9 @@
     <label for="hotkey-input">Hotkey</label>
     <div class="row">
       <input
+        bind:this={hotkeyInputEl}
         id="hotkey-input"
         type="text"
-        bind:value={hotkeyDraft}
         placeholder="Ctrl+Shift+Space"
         data-testid="hotkey-input"
       />
