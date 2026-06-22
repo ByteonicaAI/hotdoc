@@ -11,10 +11,6 @@ vi.mock("@tauri-apps/plugin-clipboard-manager", () => ({
   writeText: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@tauri-apps/plugin-opener", () => ({
-  openUrl: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock("@tauri-apps/api/event", () => ({
   listen: vi.fn().mockResolvedValue(() => {}),
 }));
@@ -22,7 +18,6 @@ vi.mock("@tauri-apps/api/event", () => ({
 import { invoke } from "@tauri-apps/api/core";
 import type { InvokeArgs } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { openUrl } from "@tauri-apps/plugin-opener";
 
 const mockHit = {
   id: "git-stash",
@@ -46,7 +41,6 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     vi.mocked(writeText).mockClear();
-    vi.mocked(openUrl).mockClear();
   });
 
   it("renders the search input and focuses it", () => {
@@ -110,7 +104,7 @@ describe("App launcher", () => {
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
     await waitFor(() => {
-      expect(openUrl).toHaveBeenCalledWith("https://git-scm.com");
+      expect(invoke).toHaveBeenCalledWith("open_url", { url: "https://git-scm.com" });
     });
   });
 
@@ -125,7 +119,9 @@ describe("App launcher", () => {
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
     await waitFor(() => {
-      expect(openUrl).not.toHaveBeenCalled();
+      // open_url IPC must NOT have been called for a non-https URL
+      const openCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "open_url");
+      expect(openCalls).toHaveLength(0);
       expect(screen.getByText(/only https: URLs allowed/i)).toBeInTheDocument();
     });
   });
@@ -595,5 +591,63 @@ describe("Launcher.applyTheme", () => {
     const applied = launcher.applyTheme("blue");
     expect(applied).toBe("system");
     expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+});
+
+// ponytail: SEC-1 / FR-C2. ResultItem renders `hit.syntax` and
+// `hit.example_code` via Svelte's `{...}` interpolation, which HTML-
+// escapes by default. A poisoned pack could carry `<img
+// src=x onerror=alert(1)>` in syntax and we MUST NOT execute it.
+// This test renders ResultItem directly so it does not need the
+// launcher/tauri plumbing — ResultItem is a pure presentation
+// component that takes a `hit` prop.
+describe("XSS regression (SEC-1)", () => {
+  it("poisoned_card_syntax_renders_inert_text", async () => {
+    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
+    const poisonedHit = {
+      id: "poisoned",
+      pack_id: "x",
+      title: "Poisoned",
+      syntax: "<img src=x onerror=alert(1)>",
+      description: "test",
+      source: "curated",
+      source_url: null,
+      example_code: null,
+      score: 1.0,
+    };
+    const { container } = render(ResultItem, {
+      hit: poisonedHit,
+      active: false,
+      pinned: false,
+    });
+    // The dangerous string must NOT be parsed as an <img> tag.
+    expect(container.querySelector("img")).toBeNull();
+    // And it must appear verbatim as text content (so the user can
+    // still see what the syntax was — escaping, not stripping).
+    expect(container.textContent).toContain("onerror=alert(1)");
+  });
+
+  it("poisoned_example_code_also_renders_inert", async () => {
+    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
+    const poisonedHit = {
+      id: "poisoned-2",
+      pack_id: "x",
+      title: "Poisoned 2",
+      syntax: "echo hi",
+      description: "test",
+      source: "curated",
+      source_url: null,
+      example_code: "<script>window.__pwned=true</script>",
+      score: 1.0,
+    };
+    const { container } = render(ResultItem, {
+      hit: poisonedHit,
+      active: false,
+      pinned: false,
+    });
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.textContent).toContain("<script>window.__pwned=true</script>");
+    // Sanity: window.__pwned was never set by the render.
+    expect((window as unknown as { __pwned?: boolean }).__pwned).toBeUndefined();
   });
 });

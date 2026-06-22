@@ -1,10 +1,10 @@
 import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   clearRecents,
   getRecents,
   hideWindow,
   listPacks,
+  openUrl,
   rebuildIndex as rebuildIndexRpc,
   searchPacks,
 } from "./tauri";
@@ -275,12 +275,19 @@ export class Launcher {
     if (!top) return;
     if (ctrl && top.source_url) {
       // ponytail: SEC-3 / FR-C3 — pack content can carry any string in
-      // source_url. openUrl() under the granted `opener:allow-open-url`
-      // capability would open javascript:, file:, or any scheme the OS
-      // supports. Allow https: only; reject and toast everything else.
+      // source_url. The frontend `openUrl` (from ./tauri) calls the
+      // Rust `open_url` IPC which re-checks the scheme with
+      // is_https_url and refuses anything non-https. The fast-path
+      // below avoids the round-trip for the obvious-reject case
+      // (javascript:, file:, etc.) but the Rust gate is authoritative.
       if (isHttpsUrl(top.source_url)) {
-        await openUrl(top.source_url);
-        await this.doHide();
+        try {
+          await openUrl(top.source_url);
+          await this.doHide();
+        } catch (e) {
+          log.error("open_url failed", { url: top.source_url, error: String(e) });
+          this.#showToast(`Open failed: ${String(e)}`);
+        }
       } else {
         this.#showToast(`Open rejected: only https: URLs allowed`);
       }

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use tauri::State;
 use tauri_plugin_autostart::ManagerExt as AutostartExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tauri_plugin_opener::OpenerExt;
 use tracing::{error, info, instrument};
 
 use hotdoc_core::index::SearchHit;
@@ -207,4 +208,23 @@ pub fn rebuild_index(state: State<'_, AppState>) -> Result<usize, String> {
     let _ = new_index;
     info!("rebuild_index completed");
     Ok(entries)
+}
+
+// ponytail: SEC-3 / FR-C3. Replaces the @tauri-apps/plugin-opener
+// `openUrl` wrapper in the frontend. We deliberately re-check the
+// scheme on the Rust side so a future frontend regression (or a
+// tampered pack that bypasses the validate-time https gate via some
+// other code path) can't `javascript:` or `file:` out of the host.
+// Defense-in-depth: the validate_into gate catches poisoned packs at
+// load time; this gate catches runtime mistakes. `opener.open_path`
+// accepts URLs as well as filesystem paths — xdg-open handles the
+// https: scheme transparently (see tray.rs for the existing
+// data-folder use of open_path).
+#[tauri::command]
+#[instrument(skip(app))]
+pub fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
+    if !hotdoc_core::pack::is_https_url(&url) {
+        return Err(format!("open_url: only https: URLs allowed, got {url:?}"));
+    }
+    app.opener().open_path(url, None::<&str>).map_err(|e| format!("open_url: {e}"))
 }

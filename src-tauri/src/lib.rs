@@ -70,7 +70,8 @@ pub fn run() {
             commands::get_all_settings,
             commands::set_hotkey,
             commands::set_autostart,
-            commands::rebuild_index
+            commands::rebuild_index,
+            commands::open_url
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {

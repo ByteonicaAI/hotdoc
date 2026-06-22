@@ -92,3 +92,12 @@ export async function rebuildIndex(): Promise<number> {
   // view so the pinned list picks up any new entries.
   return invoke<number>("rebuild_index");
 }
+
+// ponytail: SEC-3 / FR-C3. Wraps the Rust `open_url` IPC command.
+// The Rust side re-validates the scheme (https: only) before calling
+// the opener plugin; this thin wrapper exists so the frontend stays
+// consistent with the other IPC calls and never imports
+// `@tauri-apps/plugin-opener` for URL opens.
+export async function openUrl(url: string): Promise<void> {
+  await invoke("open_url", { url });
+}
