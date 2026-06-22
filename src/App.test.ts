@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/svelte";
 import App from "./App.svelte";
+import { Launcher } from "./lib/useLauncher.svelte";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
@@ -552,5 +553,47 @@ describe("App launcher", () => {
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("set_autostart", { enabled: true });
     });
+  });
+});
+
+describe("Launcher.applyTheme", () => {
+  beforeEach(() => {
+    delete document.documentElement.dataset.theme;
+  });
+
+  // ponytail: each test mints its own Launcher so the runes state in one
+  // test doesn't leak. The method is a pure DOM write (no IPC, no
+  // timer, no toast) so we exercise it directly instead of through
+  // App.svelte — keeps the test under 10 lines.
+  it("apply_theme_light_sets_data_theme_attribute", () => {
+    const launcher = new Launcher();
+    const applied = launcher.applyTheme("light");
+    expect(applied).toBe("light");
+    expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  it("apply_theme_dark_sets_data_theme_attribute", () => {
+    const launcher = new Launcher();
+    const applied = launcher.applyTheme("dark");
+    expect(applied).toBe("dark");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("apply_theme_system_removes_data_theme_attribute", () => {
+    const launcher = new Launcher();
+    document.documentElement.dataset.theme = "dark";
+    const applied = launcher.applyTheme("system");
+    expect(applied).toBe("system");
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+
+  it("apply_theme_rejects_unknown_value_falls_back_to_system", () => {
+    const launcher = new Launcher();
+    document.documentElement.dataset.theme = "dark";
+    // parameter is `unknown` so we don't need a cast; the stale row just
+    // arrives as a string here
+    const applied = launcher.applyTheme("blue");
+    expect(applied).toBe("system");
+    expect(document.documentElement.dataset.theme).toBeUndefined();
   });
 });

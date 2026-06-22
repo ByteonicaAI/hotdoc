@@ -5,6 +5,7 @@
   import EmptyView from "./lib/EmptyView.svelte";
   import SettingsPanel from "./lib/SettingsPanel.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
+  import { getAllSettings } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
 
   const launcher = new Launcher();
@@ -20,6 +21,17 @@
     void listen("hotdoc://open-settings", () => {
       launcher.openSettings();
     });
+    // ponytail: read the persisted theme synchronously after focus but
+    // before the first paint of user-driven content. applyTheme is a
+    // pure DOM flip — no flash because the cascade resolves on the same
+    // microtask as the attribute write.
+    void getAllSettings()
+      .then((s) => {
+        launcher.applyTheme(s["theme"]);
+      })
+      .catch(() => {
+        /* default theme (system) is fine */
+      });
     void launcher.loadEmptyView();
     void launcher.initPalette();
     return () => unlisten?.();

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getAllSettings, setAutostart, setHotkey, setSetting, type SettingsMap } from "./tauri";
+  import { Launcher, type Theme } from "./useLauncher.svelte";
   import { log } from "./logger";
 
   type Props = { onClose: () => void };
@@ -12,10 +13,24 @@
   // tests) resets element.value back to the stored value, so saveHotkey reads
   // the wrong combo. Reading the live element.value directly avoids the race.
   let hotkeyInputEl: HTMLInputElement | null = null;
-  let theme = $state<"light" | "dark" | "system">("system");
+  // ponytail: validate the stored theme string against the closed enum
+  // (plan-m3.5 §3 T11). A stale "blue" row from a previous schema, a manual
+  // DB edit, or a migration that didn't rewrite a value would otherwise
+  // un-check every radio. applyTheme also normalises; this normalises the
+  // radio state too so the displayed selection matches the applied theme.
+  const VALID_THEMES: ReadonlySet<Theme> = new Set<Theme>(["light", "dark", "system"]);
+  function normaliseTheme(v: unknown): Theme {
+    return VALID_THEMES.has(v as Theme) ? (v as Theme) : "system";
+  }
+  let theme = $state<Theme>("system");
   let autostart = $state(false);
   let recentsEnabled = $state(true);
   let status = $state<{ kind: "ok" | "err"; msg: string } | null>(null);
+  // ponytail: a single Launcher instance is owned by App.svelte. For tests
+  // that render SettingsPanel in isolation we fall back to a private one
+  // so applyTheme still has somewhere to write — the persist side (setSetting)
+  // is what the settings panel is responsible for either way.
+  const launcher = new Launcher();
 
   onMount(async () => {
     try {
@@ -23,7 +38,7 @@
       if (hotkeyInputEl) {
         hotkeyInputEl.value = s["hotkey"] ?? "Ctrl+Shift+Space";
       }
-      theme = (s["theme"] as "light" | "dark" | "system") ?? "system";
+      theme = normaliseTheme(s["theme"]);
       autostart = s["autostart"] === "true";
       recentsEnabled = s["recents_enabled"] !== "false";
     } catch (e) {
@@ -45,10 +60,12 @@
     }
   }
 
-  async function pickTheme(v: "light" | "dark" | "system") {
-    theme = v;
+  async function pickTheme(v: Theme) {
+    const next = normaliseTheme(v);
+    theme = next;
+    launcher.applyTheme(next);
     try {
-      await setSetting("theme", v);
+      await setSetting("theme", next);
     } catch (e) {
       status = { kind: "err", msg: String(e) };
     }
@@ -108,7 +125,7 @@
             name="theme"
             value={t}
             checked={theme === t}
-            onchange={() => pickTheme(t as "light" | "dark" | "system")}
+            onchange={() => pickTheme(t as Theme)}
             data-testid={`theme-${t}`}
           />
           {t}

@@ -25,6 +25,14 @@ const SEARCH_DEBOUNCE_MS = 30;
 const TOAST_MS = 1000;
 const HIDE_AFTER_COPY_MS = 300;
 
+// ponytail: closed enum per PRD §6.8 — three values, no "blue". The DB
+// stores the value as a string and a stale row (e.g. from a removed
+// setting) can land here. applyTheme rejects anything outside the set
+// and falls back to "system" so the launcher's CSS @media query still
+// follows the OS.
+export type Theme = "light" | "dark" | "system";
+const VALID_THEMES: ReadonlySet<Theme> = new Set<Theme>(["light", "dark", "system"]);
+
 export class Launcher {
   query = $state("");
   results = $state<SearchHit[]>([]);
@@ -118,6 +126,25 @@ export class Launcher {
     this.#showToast(
       "↑/↓ navigate · Enter copy · Shift+Enter example · Ctrl+P pin · Ctrl+Shift+? palette",
     );
+  }
+
+  // ponytail: single attribute flip on <html>. "system" removes the
+  // attribute so app.css @media (prefers-color-scheme: …) picks the
+  // colors. Unknown values (stale DB rows, manual edits) fall back to
+  // "system" — better to follow the OS than to render unstyled.
+  applyTheme(value: unknown): Theme {
+    const v: Theme = VALID_THEMES.has(value as Theme) ? (value as Theme) : "system";
+    if (v !== value) {
+      log.warn("applyTheme rejected unknown value", { value: String(value) });
+    }
+    if (typeof document !== "undefined") {
+      if (v === "system") {
+        delete document.documentElement.dataset.theme;
+      } else {
+        document.documentElement.dataset.theme = v;
+      }
+    }
+    return v;
   }
 
   async initPalette(): Promise<void> {
