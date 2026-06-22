@@ -50,6 +50,21 @@ jobs:
       - name: Dependency audit (SEC-6)
         run: pnpm audit --audit-level=high
 
+      - name: String extraction gate (NFR-10, T8)
+        run: |
+          # Fail if any .svelte file contains hard-coded static English strings
+          # outside the STRINGS extraction point (src/lib/strings.ts).
+          # Static = aria-label or placeholder value contains no {expression}.
+          VIOLATIONS=$(grep -Prn 'aria-label="[^{"]*"' src/ --include='*.svelte' || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "NFR-10 FAIL: hard-coded aria-label strings:" && echo "$VIOLATIONS" && exit 1
+          fi
+          VIOLATIONS=$(grep -Prn 'placeholder="[^{"]*"' src/ --include='*.svelte' || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "NFR-10 FAIL: hard-coded placeholder strings:" && echo "$VIOLATIONS" && exit 1
+          fi
+          echo "NFR-10 PASS"
+
   rust:
     name: Rust (fmt, clippy, test)
     runs-on: ubuntu-latest
@@ -105,6 +120,9 @@ jobs:
         working-directory: src-tauri
         run: cargo run -p hotdoc-core --bin hotdoc-cli -- bench --index target/bench-index
 
+      - name: Index size gate (NFR-6, T7)
+        run: bash scripts/nfr-index-size.sh src-tauri/target/bench-index packs/curate
+
       - name: Open-time bench (NFR-1 index-build portion)
         working-directory: src-tauri
         run: cargo run -p hotdoc-core --bin bench-open
@@ -112,3 +130,81 @@ jobs:
       - name: Search p50 bench (NFR-2)
         working-directory: src-tauri
         run: cargo run -p hotdoc-core --bin bench-search
+
+  nfr-build-gates:
+    name: NFR build gates (T4/T5/T6/T8-NFR7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target/
+
+      - name: Install Linux Tauri + display deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            xvfb \
+            xdotool \
+            netcat-openbsd
+
+      - name: Build Tauri app (release)
+        run: pnpm tauri build --bundles deb,appimage
+        env:
+          # Silence Tauri's interactive update prompts in CI.
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          CI: "true"
+
+      - name: Install size gate (NFR-5, T6)
+        run: bash scripts/nfr-install-size.sh src-tauri/target/release/bundle
+
+      - name: Start Xvfb
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 &
+          echo "XVFB_PID=$!" >> "$GITHUB_ENV"
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+          sleep 1
+
+      - name: Idle memory gate (NFR-4, T5)
+        env:
+          SOAK_SECONDS: "30"
+        run: bash scripts/nfr-memory.sh src-tauri/target/release/hotdoc
+
+      - name: Open-time E2E bench (NFR-1, T4)
+        run: bash scripts/nfr-open-bench.sh src-tauri/target/release/hotdoc 10
+
+      - name: Network monitor gate (NFR-7, T8)
+        run: sudo --preserve-env=DISPLAY bash scripts/nfr-network.sh src-tauri/target/release/hotdoc 60
+
+      - name: Stop Xvfb
+        if: always()
+        run: kill "$XVFB_PID" 2>/dev/null || true

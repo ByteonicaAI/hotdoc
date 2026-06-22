@@ -150,7 +150,10 @@ describe("App launcher", () => {
     const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
     await fireEvent.input(input, { target: { value: "asdfqwer" } });
     await waitFor(() => {
-      expect(screen.getByText(/no matches for "asdfqwer"/i)).toBeInTheDocument();
+      // Text is split across nodes (NO_MATCHES_PREFIX + query + suffix).
+      // Query the <li> by role/class and assert the prefix text is present.
+      const li = document.querySelector("li.empty.zero");
+      expect(li?.textContent).toMatch(/no matches for/i);
     });
   });
 

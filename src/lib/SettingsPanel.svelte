@@ -3,6 +3,7 @@
   import { getAllSettings, setAutostart, setHotkey, setSetting, type SettingsMap } from "./tauri";
   import { Launcher, type Theme } from "./useLauncher.svelte";
   import { log } from "./logger";
+  import { STRINGS } from "./strings";
 
   type Props = { onClose: () => void; launcher?: Launcher };
   const { onClose, launcher: externalLauncher }: Props = $props();
@@ -99,30 +100,30 @@
   }
 </script>
 
-<div class="settings" role="dialog" aria-label="Settings" data-testid="settings-panel">
+<div class="settings" role="dialog" aria-label={STRINGS.SETTINGS_ARIA} data-testid="settings-panel">
   <header>
-    <h2>Settings</h2>
-    <button type="button" class="close" onclick={onClose} aria-label="Close">×</button>
+    <h2>{STRINGS.SETTINGS_TITLE}</h2>
+    <button type="button" class="close" onclick={onClose} aria-label={STRINGS.CLOSE_ARIA}>×</button>
   </header>
 
   <section>
-    <label for="hotkey-input">Hotkey</label>
+    <label for="hotkey-input">{STRINGS.HOTKEY_SECTION}</label>
     <div class="row">
       <input
         bind:this={hotkeyInputEl}
         id="hotkey-input"
         type="text"
-        placeholder="Ctrl+Shift+Space"
+        placeholder={STRINGS.HOTKEY_PLACEHOLDER}
         data-testid="hotkey-input"
       />
       <button type="button" class="primary" onclick={saveHotkey} data-testid="hotkey-save"
-        >Save</button
+        >{STRINGS.SAVE_BTN}</button
       >
     </div>
   </section>
 
   <section>
-    <span>Theme</span>
+    <span>{STRINGS.THEME_SECTION}</span>
     <div class="row">
       {#each ["light", "dark", "system"] as t (t)}
         <label>
@@ -148,7 +149,7 @@
         onchange={toggleAutostart}
         data-testid="autostart-toggle"
       />
-      Launch at login
+      {STRINGS.LAUNCH_AT_LOGIN}
     </label>
   </section>
 
@@ -160,19 +161,19 @@
         onchange={toggleRecents}
         data-testid="recents-toggle"
       />
-      Save recents on activation
+      {STRINGS.SAVE_RECENTS}
     </label>
   </section>
 
   <section>
-    <span>Diagnostics</span>
+    <span>{STRINGS.DIAGNOSTICS_SECTION}</span>
     <div class="row">
       <button
         type="button"
         onclick={() => (externalLauncher ?? launcher).copyDiagnostics()}
         data-testid="copy-diagnostics"
       >
-        Copy diagnostics
+        {STRINGS.COPY_DIAGNOSTICS_BTN}
       </button>
     </div>
   </section>

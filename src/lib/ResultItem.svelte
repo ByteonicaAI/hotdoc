@@ -1,6 +1,7 @@
 <script lang="ts">
   import { sourceLabel, type SearchHit } from "./types";
   import { highlight } from "./launcher/highlight";
+  import { STRINGS } from "./strings";
 
   type Props = {
     hit: SearchHit;
@@ -43,7 +44,7 @@
   <div class="row syntax-row">
     <span class="syntax">{hit.syntax}</span>
     {#if pinned}
-      <span class="pin-mark" aria-label="pinned">📌</span>
+      <span class="pin-mark" aria-label={STRINGS.PIN_ARIA}>📌</span>
     {/if}
     <span class="source {hit.source}">{sourceLabel(hit.source)}</span>
   </div>
@@ -58,14 +59,18 @@
     <div class="example"><code>{hit.example_code}</code></div>
   {/if}
   <!-- ponytail: FR-C5 secondary actions; revealed on hover/focus-within. -->
-  <div class="actions" aria-label="Card actions">
-    <button type="button" onmousedown={(e) => act(e, onCopyExample)}>Copy example</button>
-    <button type="button" onmousedown={(e) => act(e, onCopyAll)}>Copy all</button>
+  <div class="actions" aria-label={STRINGS.CARD_ACTIONS_ARIA}>
+    <button type="button" onmousedown={(e) => act(e, onCopyExample)}
+      >{STRINGS.COPY_EXAMPLE_BTN}</button
+    >
+    <button type="button" onmousedown={(e) => act(e, onCopyAll)}>{STRINGS.COPY_ALL_BTN}</button>
     <button type="button" onmousedown={(e) => act(e, onTogglePin)}>
-      {pinned ? "Unpin" : "Pin"}
+      {pinned ? STRINGS.UNPIN_BTN : STRINGS.PIN_BTN}
     </button>
     {#if hit.source_url}
-      <button type="button" onmousedown={(e) => act(e, onOpenSource)}>Open source</button>
+      <button type="button" onmousedown={(e) => act(e, onOpenSource)}
+        >{STRINGS.OPEN_SOURCE_BTN}</button
+      >
     {/if}
   </div>
 </li>

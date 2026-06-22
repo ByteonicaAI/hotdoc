@@ -7,6 +7,7 @@
   import { Launcher } from "./lib/useLauncher.svelte";
   import { getAllSettings, indexStatus } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
+  import { STRINGS } from "./lib/strings";
 
   const launcher = new Launcher();
   // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
@@ -70,7 +71,7 @@
 <main>
   <input
     id="q"
-    placeholder="hotdoc: type to search…"
+    placeholder={STRINGS.SEARCH_PLACEHOLDER}
     value={launcher.query}
     oninput={(e) => launcher.onInput(e.currentTarget.value)}
     onkeydown={(e) => launcher.onKey(e)}
@@ -78,7 +79,7 @@
     autocorrect="off"
     spellcheck="false"
   />
-  <ul role="listbox" aria-label="Search results">
+  <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
     {#if launcher.emptyQuery}
       <EmptyView
         recents={launcher.recentList}
@@ -105,9 +106,9 @@
       {/each}
       {#if launcher.zeroResult}
         <li class="empty zero" role="status">
-          No matches for "{launcher.query.trim()}"
+          {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
           {#if launcher.suggestions.length > 0}
-            <span class="suggest-label">Did you mean:</span>
+            <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
             <span class="suggest-chips">
               {#each launcher.suggestions as pack (pack)}
                 <button
@@ -137,7 +138,7 @@
     {#if status}
       {status.entry_count} commands · {status.pack_count} packs
     {:else}
-      Indexing…
+      {STRINGS.INDEXING_STATUS}
     {/if}
   </footer>
 </main>

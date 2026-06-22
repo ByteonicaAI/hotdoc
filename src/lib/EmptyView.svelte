@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Recent, SearchHit } from "./types";
+  import { STRINGS } from "./strings";
 
   type Props = {
     recents: Recent[];
@@ -47,7 +48,7 @@
 </script>
 
 {#if recents.length === 0 && pinned.length === 0 && popular.length === 0}
-  <li class="empty" aria-hidden="true">Type to search packs.</li>
+  <li class="empty" aria-hidden="true">{STRINGS.EMPTY_STATE}</li>
 {:else}
   {#if recents.length > 0}
     {#each recents as r, i (r.query)}
@@ -58,7 +59,7 @@
           onclick={(e) => recentClick(e, r.query)}
           aria-label="Recent query: {r.query}"
         >
-          <span class="recent-label">Recent</span>
+          <span class="recent-label">{STRINGS.RECENT_LABEL}</span>
           <span class="recent-query">{r.query}</span>
         </button>
       </li>
@@ -86,7 +87,7 @@
     {/each}
   {/if}
   {#if popular.length > 0}
-    <li class="section-label" aria-hidden="true">Popular</li>
+    <li class="section-label" aria-hidden="true">{STRINGS.POPULAR_LABEL}</li>
     {#each popular as p (p.id)}
       <li role="option" aria-selected={false}>
         <button
