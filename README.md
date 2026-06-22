@@ -16,16 +16,17 @@ Press `Ctrl+Shift+Space`, type a few fuzzy words, get the command, copy it, past
 
 ## Milestones
 
-| Milestone                      | Status          | Scope                                                                                                                                                                |
-| ------------------------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **M0** — Scaffold              | Done            | Tauri 2 + Svelte 5 + CI/lint/test + global hotkey + single-instance                                                                                                  |
-| **M1** — Core (alpha)          | Done            | Tantivy index + search/query IPC + security gates (CSP, https-only URL)                                                                                              |
-| **M2** — Public readiness      | **Done** (v0.2) | 5 curated packs (git, docker, kubectl, gh, curl), golden query set (24 queries), NFR benches, AppImage + .deb packaging, workspace hygiene, logging infra            |
-| **M2.5** — Refactor            | Done            | `eprintln!` → `tracing!` sweep, file rotation logging, `log_error` IPC bridge, `EntryMeta` struct                                                                    |
-| **M3** — Recents & nav         | **Done**        | Recents (FR-R*), ↑/↓ keyboard nav (FR-S3), pinned (FR-P*), command palette, tray icon, settings                                                                      |
-| **M3.5** — Polish & audit-debt | **Planned**     | Theme apply, persistent-index reuse, SQLite pack/entry population, scorer↔spec reconciliation, SEC-5 lint, FR-I8 — see `docs/internal/plan-m3.5-audit-mitigation.md` |
-| **v1.0** — Public release      | **TBD**         | All FR/NFR/SEC gates green, signed distributable                                                                                                                     |
-| **v1.1** — Cross-platform      | **TBD**         | Windows + macOS port, pack-update channel, full a11y, personal snippets                                                                                              |
+| Milestone                      | Status          | Scope                                                                                                                                                                                                                                                 |
+| ------------------------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **M0** — Scaffold              | Done            | Tauri 2 + Svelte 5 + CI/lint/test + global hotkey + single-instance                                                                                                                                                                                   |
+| **M1** — Core (alpha)          | Done            | Tantivy index + search/query IPC + security gates (CSP, https-only URL)                                                                                                                                                                               |
+| **M2** — Public readiness      | **Done** (v0.2) | 5 curated packs (git, docker, kubectl, gh, curl), golden query set (25 queries), NFR benches, AppImage + .deb packaging, workspace hygiene, logging infra                                                                                             |
+| **M2.5** — Refactor            | Done            | `eprintln!` → `tracing!` sweep, file rotation logging, `log_error` IPC bridge, `EntryMeta` struct                                                                                                                                                     |
+| **M3** — Recents & nav         | **Done**        | Recents (FR-R*), ↑/↓ keyboard nav (FR-S3), pinned (FR-P*), command palette, tray icon, settings                                                                                                                                                       |
+| **M3.5** — Polish & audit-debt | **Done**        | Theme apply, persistent-index reuse, SQLite pack/entry population, scorer↔spec reconciliation, SEC-5 lint, FR-I8 — see `docs/internal/plan-m3.5-audit-mitigation.md`                                                                                  |
+| **M3.6** — Gap closure         | **Done**        | Zero-result suggestions (FR-S9), `<mark>` highlight (§7.3), hover actions (FR-C5), Popular + search_log (§7.5), Copy diagnostics (FR-G2), indexing footer (FR-I4), opener capability hardening (SEC-4) — see `docs/internal/plan-m3.6-gap-closure.md` |
+| **v1.0** — Public release      | **TBD**         | All FR/NFR/SEC gates green, signed distributable                                                                                                                                                                                                      |
+| **v1.1** — Cross-platform      | **TBD**         | Windows + macOS port, pack-update channel, full a11y, personal snippets                                                                                                                                                                               |
 
 ## Current features
 
@@ -40,7 +41,7 @@ Press `Ctrl+Shift+Space`, type a few fuzzy words, get the command, copy it, past
 - **Single-instance** — only one process runs; second launch focuses the existing window
 - **Structured logging** — `tracing` with daily file rotation under `~/.local/share/hotdoc/logs/`
 - **NFR benches** — `bench-open` (index-build p50 ≤ 50ms) and `bench-search` (search p50 ≤ 16ms)
-- **CI-gated golden queries** — 24 search-precision tests in CI
+- **CI-gated golden queries** — 25 search-precision tests in CI
 - **5 curated packs** — git (15 cards), docker (18 cards), kubectl (18 cards), gh (12 cards), curl (15 cards) — 13 more skeletal packs awaiting content
 - **Security** — strict CSP, https-only URL allowlist, escape-then-highlight rendering, `unwrap_used = deny`, `unsafe_code = forbid`
 

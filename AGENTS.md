@@ -47,6 +47,7 @@ hotdoc/
 │   └── src/
 │       ├── lib.rs        # Module exports
 │       ├── index.rs      # HotdocIndex: tantivy build/open/search
+│       ├── index_resolver.rs # pack-dir resolution + build/reuse + sqlite mirror
 │       ├── pack.rs       # Pack types, loader, validator
 │       ├── cli.rs        # hotdoc-cli subcommands (index, query, copy, bench)
 │       ├── golden.rs     # Golden-query benchmark harness
@@ -55,8 +56,11 @@ hotdoc/
 │       │   ├── mod.rs
 │       │   ├── meta.rs   # schema_version + DB init
 │       │   ├── packs.rs  # pack registry
+│       │   ├── entries.rs# entry rows (pinned/popular JOIN target)
 │       │   ├── pinned.rs # pin/unpin, list
 │       │   ├── recents.rs# recents ring-buffer
+│       │   ├── search_log.rs # activation log + Popular (§7.5)
+│       │   ├── time.rs   # unix_now_ms
 │       │   └── settings.rs# key-value settings
 │       └── bin/
 │           ├── hotdoc-cli.rs  # CLI binary entry
