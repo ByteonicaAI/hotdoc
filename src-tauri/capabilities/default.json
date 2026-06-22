@@ -1,15 +1,15 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Launcher capability: search, copy, hotkey, autostart, URL open (https only)",
+  "description": "Launcher capability: search, copy, hotkey, autostart. URL/file opens are Rust-only.",
   "windows": ["main"],
+  "_comment_opener": "No opener:* permission. The webview must NOT reach the opener plugin directly — its `open_url`/`allow-default-urls` would let pack content open http:/mailto:/tel: and bypass the https-only Rust gate (SEC-3/SEC-4). All opens route through the Rust `open_url` IPC and `tray.rs`, which call OpenerExt server-side (no capability needed).",
   "permissions": [
     "core:default",
     "core:window:allow-show",
     "core:window:allow-hide",
     "core:window:allow-set-focus",
     "core:window:allow-set-always-on-top",
-    "opener:default",
     "global-shortcut:default",
     "clipboard-manager:allow-write-text",
     "autostart:default"
