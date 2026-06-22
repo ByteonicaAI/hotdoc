@@ -28,15 +28,24 @@ pub struct PinnedHit {
 }
 
 /// Add `entry_id` to pinned; no-op when already pinned; evicts the oldest
-/// row beyond [`MAX_PINNED`].
+/// row beyond [`MAX_PINNED`]. Insert + evict run in a single transaction
+/// (NFR-8 atomicity) — a crash between the two would otherwise leave
+/// the table over-cap by one row.
 #[instrument(skip(conn))]
 pub fn add(conn: &Connection, entry_id: &str) -> Result<()> {
-    let now = unix_now();
-    conn.execute(
+    let tx = conn.unchecked_transaction()?;
+    let now = crate::store::time::unix_now_ms();
+    tx.execute(
         "INSERT OR IGNORE INTO pinned(entry_id, pinned_at, position) VALUES (?1, ?2, ?2)",
         params![entry_id, now],
     )?;
-    evict_beyond_cap(conn)?;
+    tx.execute(
+        "DELETE FROM pinned WHERE entry_id NOT IN ( \
+           SELECT entry_id FROM pinned ORDER BY pinned_at DESC LIMIT ?1 \
+         )",
+        params![MAX_PINNED as i64],
+    )?;
+    tx.commit()?;
     Ok(())
 }
 
@@ -79,34 +88,21 @@ pub fn list(conn: &Connection) -> Result<Vec<PinnedHit>> {
     Ok(out)
 }
 
-/// `true` when `entry_id` is currently pinned.
+/// `true` when `entry_id` is currently pinned. Propagates DB errors
+/// (the prior `.unwrap_or(0)` swallowed anything beyond `QueryReturnedNoRows`,
+/// hiding real failures as "not pinned" — audit §3.4).
 #[instrument(skip(conn))]
 pub fn is_pinned(conn: &Connection, entry_id: &str) -> Result<bool> {
-    let n: i64 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM pinned WHERE entry_id = ?1",
-            params![entry_id],
-            |row| row.get(0),
-        )
-        .unwrap_or(0);
+    let n: i64 = match conn.query_row(
+        "SELECT COUNT(*) FROM pinned WHERE entry_id = ?1",
+        params![entry_id],
+        |row| row.get(0),
+    ) {
+        Ok(n) => n,
+        Err(rusqlite::Error::QueryReturnedNoRows) => 0,
+        Err(e) => return Err(e.into()),
+    };
     Ok(n > 0)
-}
-
-fn evict_beyond_cap(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "DELETE FROM pinned WHERE entry_id NOT IN ( \
-           SELECT entry_id FROM pinned ORDER BY pinned_at DESC LIMIT ?1 \
-         )",
-        params![MAX_PINNED as i64],
-    )?;
-    Ok(())
-}
-
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
 }
 
 #[cfg(test)]
@@ -195,5 +191,78 @@ mod tests {
         .expect("orphan pin");
         let rows = list(&conn).expect("list");
         assert!(rows.is_empty(), "no entries row => nothing joined");
+    }
+
+    // ponytail: T19 (NFR-8 atomicity). Spawn a writer that loops `add()`
+    // past the cap while a reader thread polls `SELECT COUNT(*)`. The
+    // reader MUST never observe a count greater than MAX_PINNED — the
+    // single `unchecked_transaction` in `add` exposes only the
+    // pre-commit or post-commit snapshot to concurrent connections
+    // (WAL mode + busy_timeout are configured in `store::open`).
+    #[test]
+    fn add_is_atomic_under_concurrent_reader() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Arc;
+
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        let conn = crate::store::open(&db_path).expect("open");
+        crate::store::migrate(&conn).expect("migrate");
+        for i in 0..(MAX_PINNED + 4) {
+            seed_entry(&conn, &format!("entry-{i}"), "git");
+        }
+
+        let stop = Arc::new(AtomicBool::new(false));
+        let reader_path = db_path.clone();
+        let reader_stop = Arc::clone(&stop);
+        let reader = std::thread::spawn(move || {
+            let r = crate::store::open(&reader_path).expect("reader open");
+            crate::store::migrate(&r).expect("reader migrate");
+            let mut max_seen = 0i64;
+            while !reader_stop.load(Ordering::Relaxed) {
+                let n: i64 = r
+                    .query_row("SELECT COUNT(*) FROM pinned", [], |row| row.get(0))
+                    .expect("count");
+                if n > max_seen {
+                    max_seen = n;
+                }
+                assert!(
+                    n <= MAX_PINNED as i64,
+                    "reader observed {n} rows in pinned; cap = {MAX_PINNED} — transaction boundary leaked"
+                );
+            }
+            max_seen
+        });
+
+        for i in 0..(MAX_PINNED + 4) {
+            add(&conn, &format!("entry-{i}")).expect("add");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        stop.store(true, Ordering::Relaxed);
+        let _ = reader.join().expect("reader join");
+    }
+
+    // ponytail: T19 (audit §3.4 error visibility). The pre-T19
+    // `.unwrap_or(0)` swallowed any DB error and returned `false` —
+    // indistinguishable from "not pinned" and silently broken.
+    // Drop the `pinned` table to force a real, non-`QueryReturnedNoRows`
+    // error from the SELECT, and confirm we propagate it.
+    #[test]
+    fn is_pinned_propagates_db_errors() {
+        let (_d, conn) = open();
+        // Confirm the happy path still works after the `match` rewrite.
+        assert!(!is_pinned(&conn, "x").expect("happy path is_pinned"));
+        // Now break the schema. `DROP TABLE` is a real DB error path
+        // that is NOT `QueryReturnedNoRows`.
+        conn.execute("DROP TABLE pinned", []).expect("drop table");
+        let err =
+            is_pinned(&conn, "x").expect_err("must propagate a non-QueryReturnedNoRows error");
+        let msg = format!("{err}");
+        assert!(
+            msg.to_lowercase().contains("no such table")
+                || msg.to_lowercase().contains("pinned")
+                || msg.to_lowercase().contains("query"),
+            "expected a schema/query error, got: {msg}"
+        );
     }
 }

@@ -31,7 +31,7 @@ pub fn list_ids(conn: &Connection) -> Result<Vec<String>> {
 pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
     let tx = conn.unchecked_transaction()?;
     tx.execute("DELETE FROM packs", [])?;
-    let now = unix_now();
+    let now = crate::store::time::unix_now_ms();
     for pack in packs {
         tx.execute(
             "INSERT INTO packs(id, name, version, source, license, homepage, indexed_at) \
@@ -56,13 +56,6 @@ pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
     }
     tx.commit()?;
     Ok(())
-}
-
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
 }
 
 #[cfg(test)]

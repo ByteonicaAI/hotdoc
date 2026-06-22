@@ -10,13 +10,15 @@ use crate::store::Result;
 
 #[instrument(skip(conn))]
 pub fn get(conn: &Connection, key: &str) -> Result<Option<String>> {
-    let v: Option<String> = conn
-        .query_row(
-            "SELECT value FROM settings WHERE key = ?1",
-            params![key],
-            |row| row.get(0),
-        )
-        .ok();
+    let v: Option<String> = match conn.query_row(
+        "SELECT value FROM settings WHERE key = ?1",
+        params![key],
+        |row| row.get(0),
+    ) {
+        Ok(v) => Some(v),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
+        Err(e) => return Err(e.into()),
+    };
     Ok(v)
 }
 
@@ -90,5 +92,26 @@ mod tests {
         assert_eq!(m.get("theme").map(String::as_str), Some("dark"));
         assert_eq!(m.get("recents_enabled").map(String::as_str), Some("true"));
         assert_eq!(m.len(), 3);
+    }
+
+    // ponytail: T19 (audit §3.4 error visibility). Pre-T19 the
+    // `.ok()` swallowed any DB error and returned `None` — settings
+    // reads became silent no-ops under DB corruption instead of
+    // surfacing a propagated `StoreError::Db`. Drop the `settings`
+    // table to force a non-`QueryReturnedNoRows` error.
+    #[test]
+    fn get_propagates_db_errors() {
+        let (_d, conn) = open();
+        // Happy path: missing key returns `None`.
+        assert!(get(&conn, "missing").expect("happy path get").is_none());
+        conn.execute("DROP TABLE settings", []).expect("drop table");
+        let err = get(&conn, "any").expect_err("must propagate a non-QueryReturnedNoRows error");
+        let msg = format!("{err}");
+        assert!(
+            msg.to_lowercase().contains("no such table")
+                || msg.to_lowercase().contains("settings")
+                || msg.to_lowercase().contains("query"),
+            "expected a schema/query error, got: {msg}"
+        );
     }
 }

@@ -4,8 +4,8 @@
   import { Launcher, type Theme } from "./useLauncher.svelte";
   import { log } from "./logger";
 
-  type Props = { onClose: () => void };
-  const { onClose }: Props = $props();
+  type Props = { onClose: () => void; launcher?: Launcher };
+  const { onClose, launcher: externalLauncher }: Props = $props();
 
   // ponytail: hotkeyInputEl is bound via bind:this, not bind:value. Using a
   // reactive bind:value schedules a Svelte DOM-update microtask when onMount
@@ -87,6 +87,12 @@
     try {
       await setSetting("recents_enabled", String(next));
       recentsEnabled = next;
+      // ponytail: T19 (FR-R4) — keep the launcher's cache in lock-step
+      // with the DB write so the next activation() short-circuits
+      // without an app reload. If the SettingsPanel is rendered in
+      // isolation (tests) there's no shared launcher — the local one
+      // still gets the cached flag via the same call.
+      (externalLauncher ?? launcher).setRecentsEnabled(next);
     } catch (e) {
       status = { kind: "err", msg: String(e) };
     }

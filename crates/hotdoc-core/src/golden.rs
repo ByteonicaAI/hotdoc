@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 use std::time::Instant;
 
-use crate::cli::default_index_dir;
 use crate::index::{HotdocIndex, SearchHit};
 
 #[derive(serde::Deserialize)]
@@ -73,10 +72,6 @@ pub fn default_golden_path() -> std::path::PathBuf {
         .join("golden_queries.json")
 }
 
-pub fn re_export_default_index_dir() -> std::path::PathBuf {
-    default_index_dir()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,11 +82,7 @@ mod tests {
 
     #[test]
     fn golden_returns_expected_hits() {
-        let packs_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("packs")
-            .join("curate");
+        let packs_dir = crate::cli::default_packs_dir();
         let report = crate::pack::load_dir(&packs_dir).expect("load real packs");
         let packs = report.loaded;
         let index_dir = fresh_index_dir();

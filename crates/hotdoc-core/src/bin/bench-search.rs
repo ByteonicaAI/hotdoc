@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
@@ -37,10 +36,7 @@ const QUERIES: &[&str] = &[
 ];
 
 fn main() -> ExitCode {
-    let packs_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("packs")
-        .join("curate");
+    let packs_dir = hotdoc_core::cli::default_packs_dir();
     let packs = match pack::load_dir(&packs_dir) {
         Ok(r) => {
             for (path, errs) in &r.failed {

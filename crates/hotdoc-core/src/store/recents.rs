@@ -24,6 +24,8 @@ pub struct Recent {
 
 /// Insert or bump `query` in the recents table. No-op when recents are
 /// disabled in settings. Evicts the oldest rows beyond [`MAX_RECENTS`].
+/// Insert + evict run in a single transaction (NFR-8 atomicity) — a crash
+/// between the two would otherwise leave the table over-cap by one row.
 #[instrument(skip(conn))]
 pub fn record(conn: &Connection, query: &str) -> Result<()> {
     if !is_enabled(conn)? {
@@ -33,17 +35,22 @@ pub fn record(conn: &Connection, query: &str) -> Result<()> {
     if trimmed.is_empty() {
         return Ok(());
     }
-    let now = unix_now();
-
-    conn.execute(
+    let tx = conn.unchecked_transaction()?;
+    let now = crate::store::time::unix_now_ms();
+    tx.execute(
         "INSERT INTO recents(query, last_used_at, use_count) VALUES (?1, ?2, 1) \
          ON CONFLICT(query) DO UPDATE SET \
            last_used_at = excluded.last_used_at, \
            use_count = recents.use_count + 1",
         params![trimmed, now],
     )?;
-
-    evict_beyond_cap(conn)?;
+    tx.execute(
+        "DELETE FROM recents WHERE query NOT IN ( \
+           SELECT query FROM recents ORDER BY last_used_at DESC, use_count DESC LIMIT ?1 \
+         )",
+        params![MAX_RECENTS as i64],
+    )?;
+    tx.commit()?;
     Ok(())
 }
 
@@ -78,34 +85,21 @@ pub fn clear(conn: &Connection) -> Result<usize> {
     Ok(n)
 }
 
-/// True when the user has not disabled recents in settings.
+/// True when the user has not disabled recents in settings. Propagates
+/// DB errors (the prior `.ok()` swallowed anything beyond
+/// `QueryReturnedNoRows`, hiding real failures as "disabled" — audit §3.4).
 #[instrument(skip(conn))]
 pub fn is_enabled(conn: &Connection) -> Result<bool> {
-    let v: Option<String> = conn
-        .query_row(
-            "SELECT value FROM settings WHERE key = 'recents_enabled'",
-            [],
-            |row| row.get::<_, String>(0),
-        )
-        .ok();
+    let v: Option<String> = match conn.query_row(
+        "SELECT value FROM settings WHERE key = 'recents_enabled'",
+        [],
+        |row| row.get::<_, String>(0),
+    ) {
+        Ok(v) => Some(v),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
+        Err(e) => return Err(e.into()),
+    };
     Ok(v.as_deref() != Some("false"))
-}
-
-fn evict_beyond_cap(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "DELETE FROM recents WHERE query NOT IN ( \
-           SELECT query FROM recents ORDER BY last_used_at DESC, use_count DESC LIMIT ?1 \
-         )",
-        params![MAX_RECENTS as i64],
-    )?;
-    Ok(())
-}
-
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0)
 }
 
 // ponytail: StoreError already covers `Db` and `Io`; rusqlite errors map via
@@ -184,5 +178,67 @@ mod tests {
         let (_dir, conn) = open();
         record(&conn, "   ").expect("record");
         assert!(top_n(&conn, 5).expect("top_n").is_empty());
+    }
+
+    // ponytail: T19 (NFR-8 atomicity). Same shape as the pinned test:
+    // a writer loops `record()` past MAX_RECENTS while a reader polls
+    // `SELECT COUNT(*)`. The reader MUST never see more than
+    // MAX_RECENTS rows — the single `unchecked_transaction` in
+    // `record` is the only thing standing between us and an
+    // observable over-cap state under concurrent reads.
+    #[test]
+    fn record_is_atomic_under_concurrent_reader() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Arc;
+
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        let conn = crate::store::open(&db_path).expect("open");
+        crate::store::migrate(&conn).expect("migrate");
+        // Default setting (recents_enabled absent → is_enabled true).
+        let stop = Arc::new(AtomicBool::new(false));
+        let reader_path = db_path.clone();
+        let reader_stop = Arc::clone(&stop);
+        let reader = std::thread::spawn(move || {
+            let r = crate::store::open(&reader_path).expect("reader open");
+            crate::store::migrate(&r).expect("reader migrate");
+            while !reader_stop.load(Ordering::Relaxed) {
+                let n: i64 = r
+                    .query_row("SELECT COUNT(*) FROM recents", [], |row| row.get(0))
+                    .expect("count");
+                assert!(
+                    n <= MAX_RECENTS as i64,
+                    "reader observed {n} rows in recents; cap = {MAX_RECENTS}"
+                );
+            }
+        });
+
+        for i in 0..(MAX_RECENTS + 4) {
+            record(&conn, &format!("q-{i:02}")).expect("record");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        stop.store(true, Ordering::Relaxed);
+        let _ = reader.join().expect("reader join");
+    }
+
+    // ponytail: T19 (audit §3.4 error visibility). Pre-T19 the
+    // `.ok()` swallowed any DB error and returned `false` for
+    // `is_enabled` — the recents-disable toggle became a no-op
+    // instead of an error. Drop the `settings` table to force a
+    // non-`QueryReturnedNoRows` error.
+    #[test]
+    fn is_enabled_propagates_db_errors() {
+        let (_d, conn) = open();
+        // Happy path: no settings row → is_enabled == true.
+        assert!(is_enabled(&conn).expect("happy path is_enabled"));
+        conn.execute("DROP TABLE settings", []).expect("drop table");
+        let err = is_enabled(&conn).expect_err("must propagate a non-QueryReturnedNoRows error");
+        let msg = format!("{err}");
+        assert!(
+            msg.to_lowercase().contains("no such table")
+                || msg.to_lowercase().contains("settings")
+                || msg.to_lowercase().contains("query"),
+            "expected a schema/query error, got: {msg}"
+        );
     }
 }

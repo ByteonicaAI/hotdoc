@@ -51,6 +51,11 @@ export class Launcher {
   validPackIds = $state<Set<string>>(new Set());
   packFilter = $state<string | null>(null);
   settingsOpen = $state<boolean>(false);
+  // ponytail: T19 — cached from boot settings + flipped by SettingsPanel.
+  // Default true (recents on) so first-launch UX matches the prior behavior;
+  // a real `getAllSettings()` call will overwrite this from the DB before
+  // any activation can fire (App.svelte awaits it onMount).
+  recentsEnabled = $state<boolean>(true);
 
   zeroResult = $derived(this.query.trim() !== "" && this.results.length === 0);
   emptyQuery = $derived(this.query.trim() === "");
@@ -76,11 +81,12 @@ export class Launcher {
     }
   }
 
-  reset() {
-    this.#clearTimers();
-    this.query = "";
-    this.results = [];
-    this.toast = null;
+  // ponytail: T19 — called from SettingsPanel when the user toggles the
+  // `recents_enabled` setting so the launcher's cache flips in lock-step
+  // with the DB write (no app reload required). Reads of this field
+  // happen on every `activate()`, so the cache must be authoritative.
+  setRecentsEnabled(value: boolean): void {
+    this.recentsEnabled = value;
   }
 
   // ponytail: T13 + T16. Tray "Reload index" → rebuild tantivy +
@@ -296,7 +302,7 @@ export class Launcher {
     const text = shift ? (top.example_code ?? top.syntax) : top.syntax;
     await this.#copyAndToast(text);
     this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
-    void recents.onActivation(this.query);
+    void recents.onActivation(this.query, this.recentsEnabled);
   }
 
   onKey(e: KeyboardEvent) {

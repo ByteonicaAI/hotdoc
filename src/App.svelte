@@ -34,9 +34,14 @@
     void getAllSettings()
       .then((s) => {
         launcher.applyTheme(s["theme"]);
+        // ponytail: T19 (FR-R4) — sync the recents toggle into the
+        // launcher's cache before any activation can fire. The cache
+        // is also kept in sync by SettingsPanel.setRecentsEnabled on
+        // user toggle; this is the boot path.
+        launcher.setRecentsEnabled(s["recents_enabled"] !== "false");
       })
       .catch(() => {
-        /* default theme (system) is fine */
+        /* default theme (system) and recents (on) are fine */
       });
     void launcher.loadEmptyView();
     void launcher.initPalette();
@@ -82,6 +87,6 @@
     <div class="toast" role="status">{launcher.toast}</div>
   {/if}
   {#if launcher.settingsOpen}
-    <SettingsPanel onClose={() => launcher.closeSettings()} />
+    <SettingsPanel onClose={() => launcher.closeSettings()} {launcher} />
   {/if}
 </main>

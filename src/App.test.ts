@@ -550,6 +550,38 @@ describe("App launcher", () => {
       expect(invoke).toHaveBeenCalledWith("set_autostart", { enabled: true });
     });
   });
+
+  // ponytail: T19 (FR-R4). When the boot settings row says
+  // recents_enabled = "false", the launcher's cached flag is false
+  // before any activation can fire, so the `record_recent` IPC is
+  // never sent. The backend `recents::record` also gates on
+  // `is_enabled`, so this is defense in depth + an observable UI
+  // signal that the toggle "did something".
+  it("recents_disabled_in_settings_skips_record_recent_ipc", async () => {
+    // First call from App.svelte onMount — settings row says off.
+    const bootSettings: Record<string, string> = { recents_enabled: "false" };
+    const getAllSettingsMock = vi
+      .fn<() => Promise<Record<string, string>>>()
+      .mockResolvedValueOnce(bootSettings)
+      .mockResolvedValue(bootSettings);
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_all_settings") return getAllSettingsMock();
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Enter" });
+    // Activation copied syntax; recents IPC must NOT have been called.
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("git stash"));
+    const recordCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "record_recent");
+    expect(recordCalls).toHaveLength(0);
+  });
 });
 
 describe("Launcher.applyTheme", () => {

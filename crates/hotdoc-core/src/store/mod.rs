@@ -10,6 +10,7 @@ pub mod packs;
 pub mod pinned;
 pub mod recents;
 pub mod settings;
+pub mod time;
 
 use std::path::Path;
 
@@ -56,13 +57,15 @@ pub fn open(db_path: &Path) -> Result<Connection> {
 pub fn migrate(conn: &Connection) -> Result<()> {
     conn.execute_batch(SCHEMA_SQL)?;
 
-    let current: Option<String> = conn
-        .query_row(
-            "SELECT value FROM meta WHERE key = 'schema_version'",
-            [],
-            |row| row.get::<_, String>(0),
-        )
-        .ok();
+    let current: Option<String> = match conn.query_row(
+        "SELECT value FROM meta WHERE key = 'schema_version'",
+        [],
+        |row| row.get::<_, String>(0),
+    ) {
+        Ok(v) => Some(v),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
+        Err(e) => return Err(e.into()),
+    };
 
     if current.as_deref() != Some(SCHEMA_VERSION_STR) {
         conn.execute(

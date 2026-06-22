@@ -1,7 +1,7 @@
-use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Instant;
 
+use hotdoc_core::cli::default_packs_dir;
 use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::pack;
 
@@ -9,10 +9,7 @@ const RUNS: usize = 10;
 const MAX_P50_MS: u128 = 50;
 
 fn main() -> ExitCode {
-    let packs_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("packs")
-        .join("curate");
+    let packs_dir = default_packs_dir();
     let packs = match pack::load_dir(&packs_dir) {
         Ok(r) => {
             for (path, errs) in &r.failed {
