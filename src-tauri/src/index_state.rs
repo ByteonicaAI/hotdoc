@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use rusqlite::Connection;
-use tracing::{error, info, instrument, warn};
+use tracing::{info, instrument};
 
 use hotdoc_core::index::HotdocIndex;
-use hotdoc_core::pack;
+use hotdoc_core::index_resolver;
 
 pub struct AppState {
     // ponytail: tantivy's IndexReader wraps an Arc and is cheap to clone.
@@ -23,89 +23,58 @@ pub struct AppState {
     pub db: Arc<Mutex<Connection>>,
 }
 
-pub fn bundled_packs_dir() -> PathBuf {
-    PathBuf::from(env!("OUT_DIR")).join("bundled-packs")
-}
-
-pub fn dev_packs_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("packs").join("curate")
-}
-
-// ponytail: spec §11 NFR-1 (open p50 <= 150ms) cannot survive a full
-// tantivy rebuild on every launch once packs cross ~50 cards. The plan
-// T8 called for dirs::data_local_dir() / "hotdoc" / "index" — the old
-// code dropped everything in /tmp with no persistence, which is the
-// exact leak P1-2 flagged. This keeps the persistent location; the
-// "skip-rebuild-if-version-unchanged" check is a follow-up.
-pub fn persistent_index_dir() -> Option<PathBuf> {
-    hotdoc_core::cli::default_index_dir_option()
-}
-
+/// ponytail: T14. The body used to be ~80 LOC of mixed "where to look
+/// for packs / how to load them / when to reuse the tantivy index /
+/// what to do on failure" logic. T14 splits that into
+/// `hotdoc_core::index_resolver::resolve_and_build` and leaves this
+/// function as a thin shell. Spec §11 NFR-1 (open p50 <= 150ms) is met
+/// by the tantivy-open fast path inside the resolver — a typical
+/// second launch is a single SQLite migrate + an `Index::open_in_dir`,
+/// well under 50ms (see `bench-open`).
 #[instrument]
-pub fn load_or_build_index() -> Result<Arc<HotdocIndex>> {
-    let candidates = [bundled_packs_dir(), dev_packs_dir()];
-    for dir in &candidates {
-        if dir.is_dir() {
-            // ponytail: FR-I8 — log per-failed-pack at warn, error if all
-            // fail. A directory that exists but is empty (or all-failed)
-            // is not fatal; we move on to the next candidate. The bail at
-            // the bottom handles the "no packs at all" case.
-            match pack::load_dir(dir) {
-                Ok(report) => {
-                    for (path, errs) in &report.failed {
-                        for e in errs {
-                            warn!(
-                                file = %path.display(),
-                                error = %e,
-                                "failed to load pack"
-                            );
-                        }
-                    }
-                    if report.all_failed() {
-                        error!(
-                            path = %dir.display(),
-                            failed = report.failed.len(),
-                            "all packs in dir failed; trying next candidate"
-                        );
-                        continue;
-                    }
-                    if report.loaded.is_empty() {
-                        continue;
-                    }
-                    info!(packs = report.loaded.len(), path = %dir.display(), "loaded packs");
-                    let packs = report.loaded;
-                    if let Some(p) = persistent_index_dir() {
-                        if p.is_dir() {
-                            if let Ok(idx) = HotdocIndex::open(&p) {
-                                info!(path = %p.display(), "reusing index");
-                                return Ok(Arc::new(idx));
-                            }
-                        }
-                        std::fs::create_dir_all(&p).ok();
-                        match HotdocIndex::build(&packs, &p) {
-                            Ok(idx) => return Ok(Arc::new(idx)),
-                            Err(e) => {
-                                warn!(error = %format!("{e:#}"), "persistent build failed; falling back to tmp")
-                            }
-                        }
-                    }
-                    let tmp = std::env::temp_dir().join(format!(
-                        "hotdoc-runtime-{}-{}",
-                        std::process::id(),
-                        std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .map(|d| d.as_nanos())
-                            .unwrap_or(0)
+pub fn load_or_build_index(db: &Connection) -> Result<Arc<HotdocIndex>> {
+    let conn = db;
+    let bundled = bundled_packs_dir();
+    let res = index_resolver::resolve_and_build(conn, Some(&bundled))?;
+    info!(packs = res.packs.len(), "index resolved");
+    Ok(res.index)
+}
+
+/// T13 + tray integration: force-rebuild the tantivy index and the
+/// SQLite mirror from the on-disk packs, ignoring any persistent
+/// index. Used by the tray "Reload index" menu item.
+#[instrument]
+pub fn reload_index(db: &Connection) -> Result<Arc<HotdocIndex>> {
+    use hotdoc_core::cli::default_index_dir_option;
+    if let Some(p) = default_index_dir_option() {
+        if p.is_dir() {
+            // ponytail: index.rs's build() now propagates non-NotFound
+            // errors; here we just blow away the dir and let build()
+            // recreate it. If remove fails, build() will surface the
+            // error with full context.
+            if let Err(e) = std::fs::remove_dir_all(&p) {
+                if e.kind() != std::io::ErrorKind::NotFound {
+                    return Err(anyhow::anyhow!(
+                        "removing persistent index dir {}: {e}",
+                        p.display()
                     ));
-                    return HotdocIndex::build(&packs, &tmp)
-                        .map(Arc::new)
-                        .context("building runtime index");
-                }
-                Err(e) => {
-                    warn!(path = %dir.display(), error = %format!("{e:#}"), "failed to load pack dir")
                 }
             }
         }
     }
-    anyhow::bail!("no packs found in bundled-packs or dev packs/curate")
+    load_or_build_index(db)
+}
+
+pub fn bundled_packs_dir() -> PathBuf {
+    PathBuf::from(env!("OUT_DIR")).join("bundled-packs")
+}
+
+#[allow(dead_code)] // re-export for tests in lib.rs + future use
+pub fn dev_packs_dir() -> PathBuf {
+    index_resolver::dev_packs_dir()
+}
+
+#[allow(dead_code)] // re-export for tests + future use
+pub fn persistent_index_dir() -> Option<PathBuf> {
+    index_resolver::persistent_index_dir()
 }

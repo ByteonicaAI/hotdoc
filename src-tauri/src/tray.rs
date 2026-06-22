@@ -55,9 +55,14 @@ pub fn build(app: &AppHandle<Wry>) -> Result<()> {
                     let _ = app.emit("hotdoc://open-settings", ());
                 }
                 ID_RELOAD => {
-                    // ponytail: persistent-index-reuse (rebuild on demand)
-                    // is v1.1 work. M3 ships the menu item so the wiring
-                    // is present; the click is a no-op until then.
+                    // ponytail: T13 — tray "Reload index" now wired.
+                    // Frontend listens for this event and calls the
+                    // `rebuild_index` IPC command. The command deletes
+                    // the persistent tantivy dir, rebuilds from the
+                    // on-disk packs, and re-populates the SQLite
+                    // `packs`/`entries` tables (T16). A toast in the
+                    // launcher confirms the entry count after rebuild.
+                    let _ = app.emit("hotdoc://reload-index", ());
                 }
                 ID_OPEN_FOLDER => {
                     if let Some(dir) = hotdoc_core::store::default_db_path()

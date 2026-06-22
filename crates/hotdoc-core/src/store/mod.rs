@@ -4,6 +4,7 @@
 //! module is wired up here. Per-table CRUD modules (`recents`, `pinned`,
 //! `settings`, `packs`) land with their respective tasks (T2/T5/T8/T6).
 
+pub mod entries;
 pub mod meta;
 pub mod packs;
 pub mod pinned;

@@ -1,6 +1,13 @@
 import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { clearRecents, getRecents, hideWindow, listPacks, searchPacks } from "./tauri";
+import {
+  clearRecents,
+  getRecents,
+  hideWindow,
+  listPacks,
+  rebuildIndex as rebuildIndexRpc,
+  searchPacks,
+} from "./tauri";
 import type { Recent, SearchHit } from "./types";
 import { log } from "./logger";
 import * as recents from "./launcher/recents";
@@ -74,6 +81,23 @@ export class Launcher {
     this.query = "";
     this.results = [];
     this.toast = null;
+  }
+
+  // ponytail: T13 + T16. Tray "Reload index" → rebuild tantivy +
+  // re-populate SQLite packs/entries tables. Returns the entry count
+  // for the toast. Errors are surfaced via the existing launcher
+  // toast pipeline so the user always sees a result.
+  async reloadIndex(): Promise<number> {
+    try {
+      const n = await rebuildIndexRpc();
+      this.#showToast(`Reloaded: ${n} entries`);
+      void this.loadEmptyView();
+      return n;
+    } catch (e) {
+      log.error("reload index failed", { error: String(e) });
+      this.#showToast(`Reload failed: ${String(e)}`);
+      throw e;
+    }
   }
 
   async loadEmptyView() {

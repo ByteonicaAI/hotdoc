@@ -22,16 +22,21 @@ pub fn run() {
             Ok(c)
         })
         .expect("open store");
-    let db = Arc::new(Mutex::new(conn));
     info!(path = %db_path.display(), "store opened");
 
-    let index = match index_state::load_or_build_index() {
+    // ponytail: build the index first (T16 — populates packs/entries
+    // tables on the same conn), then wrap the conn in Arc<Mutex<>>.
+    // The resolver takes &Connection by reference; we hand it the
+    // un-wrapped conn here.
+    let index = match index_state::load_or_build_index(&conn) {
         Ok(i) => i,
         Err(e) => {
             tracing::error!(error = %format!("{e:#}"), "failed to build index");
             std::process::exit(1);
         }
     };
+
+    let db = Arc::new(Mutex::new(conn));
 
     tauri::Builder::default()
         .manage(index_state::AppState { index, db })
@@ -64,7 +69,8 @@ pub fn run() {
             commands::get_setting,
             commands::get_all_settings,
             commands::set_hotkey,
-            commands::set_autostart
+            commands::set_autostart,
+            commands::rebuild_index
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {

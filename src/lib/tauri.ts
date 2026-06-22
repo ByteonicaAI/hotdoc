@@ -85,3 +85,10 @@ export async function setHotkey(combo: string): Promise<void> {
 export async function setAutostart(enabled: boolean): Promise<void> {
   await invoke("set_autostart", { enabled });
 }
+
+export async function rebuildIndex(): Promise<number> {
+  // ponytail: T13. Returns the entry count of the freshly-rebuilt
+  // index. The frontend toasts the count and refreshes the empty
+  // view so the pinned list picks up any new entries.
+  return invoke<number>("rebuild_index");
+}

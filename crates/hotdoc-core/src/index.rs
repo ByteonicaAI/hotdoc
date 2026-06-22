@@ -41,8 +41,23 @@ pub struct EntryMeta {
 
 impl HotdocIndex {
     pub fn build(packs: &[Pack], path: &Path) -> Result<Self> {
+        // ponytail: T13 fix. Distinguish NotFound (legitimate: dir never
+        // existed) from real errors (busy, permission, etc). Previously
+        // .ok() silently swallowed EACCES/EBUSY and the subsequent
+        // create_dir_all could write into a half-removed dir, leaving
+        // tantivy in a wedged state.
         if path.exists() {
-            std::fs::remove_dir_all(path).ok();
+            match std::fs::remove_dir_all(path) {
+                Ok(()) => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                Err(e) => {
+                    return Err(anyhow::anyhow!(
+                        "removing old index dir {}: {e}",
+                        path.display()
+                    ))
+                    .context("preparing index rebuild");
+                }
+            }
         }
         std::fs::create_dir_all(path).context("creating index dir")?;
         let (schema, fields) = build_schema();
@@ -78,6 +93,26 @@ impl HotdocIndex {
             fields,
             entry_meta,
         })
+    }
+
+    // ponytail: T16. After a successful tantivy build, mirror the
+    // pack/entry set into SQLite so `pinned::list` (which JOINs the
+    // entries table) renders real card content and `> <pack_id>`
+    // palette filter validation has a real set to check against.
+    // The upsert is full-replace (delete then insert in one tx) so a
+    // mid-build failure can't leave a half-populated entries table.
+    // Caller decides when to invoke — build() stays tantivy-only.
+    pub fn entry_count(&self) -> usize {
+        self.entry_meta.len()
+    }
+
+    pub fn populate_store(conn: &rusqlite::Connection, packs: &[Pack]) -> Result<()> {
+        // ponytail: T16. Packs first — entries.pack_id has a FK
+        // reference to packs.id, and the schema enables foreign_keys
+        // (store::open). The order is the only safe one.
+        crate::store::packs::upsert_all(conn, packs).context("populating packs table")?;
+        crate::store::entries::upsert_all(conn, packs).context("populating entries table")?;
+        Ok(())
     }
 
     pub fn open(path: &Path) -> Result<Self> {
@@ -512,6 +547,37 @@ mod tests {
             Some("kubectl-get-pods-official"),
             "source-priority boost should put the official card above its curated sibling; got {:?}",
             hits.iter().take(3).map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    // ponytail: T13 — assert the new remove_dir_all error propagation
+    // works. Simulate a "busy" index dir by placing a non-empty file
+    // at the path; the underlying remove_dir_all returns an error
+    // (Not a directory / Directory not empty) and build must surface
+    // it rather than swallowing with .ok(). We simulate by creating
+    // the target as a regular file, which is a non-NotFound error.
+    #[test]
+    fn build_propagates_remove_dir_all_errors() {
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-busy-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        // create a regular file where build() expects a directory
+        std::fs::write(&dir, b"not a directory").expect("write blocker file");
+        let res = HotdocIndex::build(&packs_for_test(), &dir);
+        let _ = std::fs::remove_file(&dir);
+        assert!(
+            res.is_err(),
+            "build must fail when target path is a non-empty file, not a directory"
+        );
+        let msg = format!("{:#}", res.err().expect("err"));
+        assert!(
+            msg.contains("removing old index dir") || msg.contains("creating index dir"),
+            "expected remove-or-create error, got: {msg}"
         );
     }
 }
