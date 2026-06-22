@@ -115,24 +115,34 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
     // 1) Try to reuse the persistent index.
     if let Some(p) = persistent_index_dir() {
         if p.is_dir() {
-            if let Ok(idx) = HotdocIndex::open(&p) {
-                info!(path = %p.display(), "reusing index");
-                // ponytail: even when reusing, the on-disk pack set may
-                // have changed since last build (e.g. user edited a pack
-                // JSON). Re-populate the SQLite mirror so pinned::list and
-                // the palette validator see current content. Full replace
-                // is cheap at 5 packs / 79 entries.
-                if let Err(e) = HotdocIndex::populate_store(db, &packs) {
-                    warn!(error = %format!("{e:#}"), "populate_store on reuse failed");
+            match HotdocIndex::open(&p) {
+                Ok(idx) => {
+                    info!(path = %p.display(), "reusing index");
+                    // ponytail: even when reusing, the on-disk pack set may
+                    // have changed since last build (e.g. user edited a pack
+                    // JSON). Re-populate the SQLite mirror so pinned::list and
+                    // the palette validator see current content. Full replace
+                    // is cheap at 5 packs / 79 entries.
+                    if let Err(e) = HotdocIndex::populate_store(db, &packs) {
+                        warn!(error = %format!("{e:#}"), "populate_store on reuse failed");
+                    }
+                    return Ok(Some(IndexResolution {
+                        index: std::sync::Arc::new(idx),
+                        packs,
+                        index_dir: Some(p),
+                    }));
                 }
-                return Ok(Some(IndexResolution {
-                    index: std::sync::Arc::new(idx),
-                    packs,
-                    index_dir: Some(p),
-                }));
+                Err(e) => {
+                    // FR-I5: corrupt or incompatible index — log diagnostic and rebuild.
+                    warn!(
+                        path = %p.display(),
+                        error = %format!("{e:#}"),
+                        "index open failed (corrupt or incompatible) — will rebuild"
+                    );
+                }
             }
         }
-        // No persistent index yet — build it.
+        // No persistent index yet (or corrupt — see warn above) — build it.
         std::fs::create_dir_all(&p).ok();
         match HotdocIndex::build(&packs, &p) {
             Ok(idx) => {
@@ -359,5 +369,57 @@ mod tests {
         assert_eq!(rows[0].pack_id, "git");
         assert_eq!(rows[0].syntax, "x");
         assert_eq!(rows[0].description, "d");
+    }
+
+    // FR-I5 / NFR-8: a corrupt or truncated tantivy index is silently
+    // discarded and rebuilt from the pack set. The rebuild must produce a
+    // working, searchable index.
+    #[test]
+    fn corrupt_index_falls_back_to_rebuild() {
+        let dir = fresh_dir();
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        let pack = make_pack("git");
+        let packs = vec![pack];
+
+        // Build a valid index.
+        let idx = HotdocIndex::build(&packs, &dir).expect("initial build");
+        let hits = idx.search("x", 8, &Default::default()).expect("search ok");
+        assert!(!hits.is_empty(), "initial index must be searchable");
+        drop(idx);
+
+        // Corrupt the meta.json file (tantivy's index descriptor).
+        let meta_path = dir.join("meta.json");
+        if meta_path.exists() {
+            std::fs::write(&meta_path, b"CORRUPTED").expect("corrupt meta.json");
+        } else {
+            // Fallback: corrupt any file in the dir.
+            let first = std::fs::read_dir(&dir)
+                .expect("readdir")
+                .filter_map(|e| e.ok())
+                .map(|e| e.path())
+                .find(|p| p.is_file())
+                .expect("at least one file in index dir");
+            std::fs::write(&first, b"CORRUPTED").expect("corrupt segment");
+        }
+
+        // Open must fail on the corrupt index.
+        let open_result = HotdocIndex::open(&dir);
+        assert!(
+            open_result.is_err(),
+            "opening a corrupt index must return an error"
+        );
+
+        // Rebuild must succeed (build() removes and recreates the dir).
+        let rebuilt = HotdocIndex::build(&packs, &dir).expect("rebuild after corruption");
+        let hits = rebuilt
+            .search("x", 8, &Default::default())
+            .expect("search after rebuild");
+        assert!(
+            !hits.is_empty(),
+            "rebuilt index must be searchable; got zero hits"
+        );
+        assert_eq!(hits[0].id, "git-1", "rebuilt index returns correct entry");
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
