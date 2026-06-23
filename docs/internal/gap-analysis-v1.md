@@ -26,14 +26,14 @@
 | P2-8 Settings UI surface | **Closed** — SettingsPanel: hotkey, theme, launch-at-login, recents toggle, diagnostics, About | M3+M4-T12 |
 | P2-9 Tray balloon Windows | **N/A (Linux)** — Linux-only v1.0 | Platform override |
 | P2-10 Pin eviction at 12 | **Closed** — evict oldest by `pinned_at` in single transaction | M3 |
-| P2-11 search_log retention | **Closed** — rows older than 30d pruned on launch | M3 |
+| P2-11 search_log retention | **Reopened 2026-06-23 audit (false closure); Closed M4.5-T5** — `prune_old` runs from `store::open()` with 30d cutoff; `record()` is wrapped in `unchecked_transaction()` | M4.5-T5 |
 | P2-12 Chaos test write granularity | **Closed** — NFR-8 WAL chaos test; every mutation in a single SQLite transaction | M4-T3 |
 | P2-13 `> recents` palette | **Closed** — `> recents`, `> recents clear`, `> settings`, `> help`, `> about` | M3+M4-T12 |
 | P2-14 `> docker compose` parsing | **Closed** — first token = pack-id (exact match); remainder = fuzzy query on that pack | M3 |
 
 **P3 items:** all deferred to v1.1 (visual tokens, popular time window, cold-index budget, uninstall behaviour, golden versioning, glossary, WAL-on-network-share, in-flight debounce race, R10 details-pane Ctrl+C, non-ASCII, font enumeration, meta/settings split, ranking magnitude, R7 env-var redirect).
 
-**No P1 or P2 gap remains undispositioned as of M4 close-out.**
+**No P1 or P2 gap remains undispositioned as of M4.5 close-out.**
 
 ## M4.5 disposition (2026-06-23) — pre-release audit reconciliation
 
@@ -230,6 +230,7 @@ Severity legend:
 - **Where:** §9.2 (line 539) defines the table with `ts` and an index on `ts`. No retention policy.
 - **Risk:** the "recency-weighted (queries in the last 7d)" popularity boost (§7.2, line 330) means rows older than 7d are noise. But if we never prune, the table grows unboundedly (a heavy user could write 10k+ rows/year). NFR-6 (≤50MB) and NFR-4 (≤250MB idle) are sensitive to this.
 - **Fix:** add to §9.2 (or a new FR-I6): "On app launch, rows in `search_log` with `ts < now - 30d` are deleted (the 7-day popularity window is unaffected; the extra retention is for the FR-G2 diagnostics bundle, which can include last-30d summary stats)."
+- **Disposition (M4.5-T5):** `prune_old` runs from `store::open()` after pragmas are set, with cutoff = `unix_now_ms() - 30 * 86_400 * 1000` ms. The call skips gracefully when `search_log` doesn't exist yet (fresh DB before `migrate()`) by matching the `no such table` rusqlite error; otherwise the prune runs in an `unchecked_transaction` for atomicity. `record()` was also wrapped in `unchecked_transaction` for parity with `recents::record` — the atomicity primitive the NFR-8 chaos test asserts on. Implementation: `crates/hotdoc-core/src/store/search_log.rs` (`prune_old`, `record` tx wrap, 2 unit tests) + `crates/hotdoc-core/src/store/mod.rs` (`open()` wire-up, `SEARCH_LOG_RETENTION_MS` constant, `is_no_such_table` helper, 2 integration tests). Tests: `prune_old_deletes_only_rows_below_cutoff`, `record_runs_in_single_transaction`, `open_prunes_search_log_rows_older_than_retention`, `open_prune_is_noop_on_fresh_table`.
 
 ### P2-12. Crash-safety chaos test: which writes are protected?
 - **Where:** NFR-8 (line 228): "chaos test that kills the process mid-write and verifies the DB is consistent."
