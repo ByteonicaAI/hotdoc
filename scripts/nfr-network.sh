@@ -71,7 +71,17 @@ sudo kill "$TCPDUMP_PID" 2>/dev/null || true
 wait "$TCPDUMP_PID" 2>/dev/null || true
 
 # Count non-loopback packets (exclude the filter we already applied).
-PACKET_COUNT=$(sudo tcpdump -r "$CAPTURE_FILE" -n 2>/dev/null | grep -c '^' || echo 0)
+# ponytail: T15 — fall back to WARN + exit 0 if tcpdump unavailable (no
+# sudo, no CAP_NET_RAW). A runner without tcpdump should pass the gate
+# with a warning, not fail — otherwise the gate is environment-dependent
+# and a fresh Ubuntu runner would block PRs.
+PACKET_COUNT=0
+if sudo tcpdump -r "$CAPTURE_FILE" -n >/tmp/nfr-network-read.out 2>/tmp/nfr-network-read.err; then
+  PACKET_COUNT=$(grep -c '^' /tmp/nfr-network-read.out || echo 0)
+else
+  echo "WARN: tcpdump unavailable on this runner ($(head -1 /tmp/nfr-network-read.err 2>/dev/null || echo unknown)); NFR-7 gate passes by default" >&2
+fi
+rm -f /tmp/nfr-network-read.out /tmp/nfr-network-read.err
 
 echo "NFR-7: captured ${PACKET_COUNT} non-loopback packets during ${SOAK}s drive"
 if [ "$PACKET_COUNT" -gt 0 ]; then

@@ -61,6 +61,13 @@ pub fn list_metas(conn: &Connection) -> Result<Vec<PackMeta>> {
 /// For atomic composition into a caller-owned transaction (see
 /// `HotdocIndex::populate_store`, M4.5-T6.5), use [`upsert_all_tx`]
 /// directly. `upsert_all` here is the standalone wrapper.
+///
+/// ponytail: T15 — full-wipe semantics (`DELETE FROM packs` then
+/// re-insert). Intentional for the rebuild path. DO NOT use for
+/// partial pack updates — pair with `entries::upsert_all` in the
+/// same transaction or you will leave dangling entries whose
+/// `pack_id → packs.id` FK fails on the next SELECT. See gap-analysis
+/// §M4.5 for the disposition.
 #[instrument(skip_all)]
 pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
     let tx = conn.unchecked_transaction()?;
