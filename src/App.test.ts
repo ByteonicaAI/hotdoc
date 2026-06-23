@@ -18,8 +18,9 @@ vi.mock("@tauri-apps/api/event", () => ({
 import { invoke } from "@tauri-apps/api/core";
 import type { InvokeArgs } from "@tauri-apps/api/core";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import type { SearchHit } from "./lib/types";
 
-const mockHit = {
+const mockHit: SearchHit = {
   id: "git-stash",
   pack_id: "git",
   title: "Stash changes",
@@ -639,7 +640,7 @@ describe("Launcher.applyTheme", () => {
 describe("XSS regression (SEC-1)", () => {
   it("poisoned_card_syntax_renders_inert_text", async () => {
     const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    const poisonedHit = {
+    const poisonedHit: SearchHit = {
       id: "poisoned",
       pack_id: "x",
       title: "Poisoned",
@@ -664,7 +665,7 @@ describe("XSS regression (SEC-1)", () => {
 
   it("poisoned_example_code_also_renders_inert", async () => {
     const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    const poisonedHit = {
+    const poisonedHit: SearchHit = {
       id: "poisoned-2",
       pack_id: "x",
       title: "Poisoned 2",

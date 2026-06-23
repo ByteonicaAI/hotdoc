@@ -1,10 +1,15 @@
+// ponytail: must mirror Rust EntrySource (crates/hotdoc-core/src/pack.rs:9-15,
+// serde rename_all = "lowercase"). Closed union prevents class injection via
+// `class="source {hit.source}"` in ResultItem/DetailsPane.
+export type SourceKind = "official" | "cheat-sheet" | "curated" | "personal";
+
 export type SearchHit = {
   id: string;
   pack_id: string;
   title: string;
   syntax: string;
   description: string;
-  source: string;
+  source: SourceKind;
   source_url: string | null;
   example_code: string | null;
   score: number;
