@@ -3,16 +3,31 @@
   import { sourceLabel } from "./types";
   import { openUrl } from "./tauri";
   import { STRINGS } from "./strings";
+  import { isHttpsUrl } from "./url";
 
   type Props = {
     hit: SearchHit;
     onClose: () => void;
+    onToast: (msg: string) => void;
   };
-  const { hit, onClose }: Props = $props();
+  const { hit, onClose, onToast }: Props = $props();
 
+  // ponytail: M4.5-T4 / SEC-3 — add the same frontend isHttpsUrl
+  // guard the launcher's activate() already does, so the user sees
+  // a toast when the URL is non-https instead of an open call that
+  // the Rust gate silently rejects.
   async function handleSourceLink(e: MouseEvent) {
     e.preventDefault();
-    if (hit.source_url) await openUrl(hit.source_url);
+    if (!hit.source_url) return;
+    if (!isHttpsUrl(hit.source_url)) {
+      onToast(STRINGS.TOAST_OPEN_REJECTED);
+      return;
+    }
+    try {
+      await openUrl(hit.source_url);
+    } catch {
+      onToast(STRINGS.TOAST_OPEN_REJECTED);
+    }
   }
 </script>
 

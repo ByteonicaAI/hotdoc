@@ -20,14 +20,7 @@ import * as pinned from "./launcher/pinned";
 import { parseCommand } from "./launcher/commandMode";
 import { suggestPacks } from "./launcher/suggest";
 import { STRINGS, format } from "./strings";
-
-function isHttpsUrl(u: string): boolean {
-  try {
-    return new URL(u).protocol === "https:";
-  } catch {
-    return false;
-  }
-}
+import { isHttpsUrl } from "./url";
 
 // ponytail: Svelte 5 hooks live in `.svelte.ts` files. The runes `$state` and
 // `$derived` only track reactively when fields are read directly off `this`.
@@ -87,6 +80,14 @@ export class Launcher {
     this.toast = msg;
     if (this.#toastTimer) clearTimeout(this.#toastTimer);
     this.#toastTimer = setTimeout(() => (this.toast = null), TOAST_MS);
+  }
+
+  // ponytail: M4.5-T4 — public toast entry point for child
+  // components (AboutPanel, DetailsPane) that need to surface a
+  // rejection/error without owning the toast pipeline. Wraps the
+  // private #showToast so the timer logic stays in one place.
+  showToast(msg: string): void {
+    this.#showToast(msg);
   }
 
   #clearTimers() {

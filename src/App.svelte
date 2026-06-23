@@ -160,10 +160,15 @@
       version={appVersion}
       packs={launcher.packMetas}
       onClose={() => launcher.closeAbout()}
+      onToast={(m: string) => launcher.showToast(m)}
     />
   {/if}
   {#if launcher.detailsHit}
-    <DetailsPane hit={launcher.detailsHit} onClose={() => launcher.closeDetails()} />
+    <DetailsPane
+      hit={launcher.detailsHit}
+      onClose={() => launcher.closeDetails()}
+      onToast={(m: string) => launcher.showToast(m)}
+    />
   {/if}
   <footer class="status" aria-live="polite">
     {#if status}

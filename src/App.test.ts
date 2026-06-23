@@ -767,3 +767,82 @@ describe("zero-result suggestions + popular (G4/G5)", () => {
     });
   });
 });
+
+// ponytail: M4.5-T4 / SEC-3 — the AboutPanel and DetailsPane must
+// route every external URL through the Rust open_url IPC; native
+// <a target="_blank"> and silent open failures both bypass the
+// https-only gate. These tests cover the new handlers.
+describe("SEC-3 IPC routing (M4.5-T4)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents" || cmd === "get_pinned" || cmd === "list_packs")
+        return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+  });
+
+  it("about_panel_homepage_button_routes_through_ipc_for_https", async () => {
+    const { default: AboutPanel } = await import("./lib/AboutPanel.svelte");
+    const onClose = vi.fn();
+    const onToast = vi.fn();
+    const packs = [{ id: "git", name: "Git", license: "MIT", homepage: "https://git-scm.com" }];
+    render(AboutPanel, { version: "0.4.0", packs, onClose, onToast });
+    const link = await screen.findByTestId("homepage-link");
+    await fireEvent.click(link);
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("open_url", { url: "https://git-scm.com" });
+    });
+    expect(onToast).not.toHaveBeenCalled();
+  });
+
+  it("about_panel_homepage_button_rejects_non_https_with_toast", async () => {
+    const { default: AboutPanel } = await import("./lib/AboutPanel.svelte");
+    const onClose = vi.fn();
+    const onToast = vi.fn();
+    const packs = [{ id: "evil", name: "Evil", license: "MIT", homepage: "http://evil.com" }];
+    render(AboutPanel, { version: "0.4.0", packs, onClose, onToast });
+    const link = await screen.findByTestId("homepage-link");
+    await fireEvent.click(link);
+    await waitFor(() => {
+      expect(onToast).toHaveBeenCalledWith(expect.stringMatching(/only https/i));
+    });
+    const openCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "open_url");
+    expect(openCalls).toHaveLength(0);
+  });
+
+  it("details_pane_source_link_routes_through_ipc_for_https", async () => {
+    const { default: DetailsPane } = await import("./lib/DetailsPane.svelte");
+    const onClose = vi.fn();
+    const onToast = vi.fn();
+    render(DetailsPane, {
+      hit: { ...mockHit, source_url: "https://example.com/card" },
+      onClose,
+      onToast,
+    });
+    const link = screen.getByText("https://example.com/card");
+    await fireEvent.click(link);
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("open_url", { url: "https://example.com/card" });
+    });
+    expect(onToast).not.toHaveBeenCalled();
+  });
+
+  it("details_pane_source_link_rejects_non_https_with_toast", async () => {
+    const { default: DetailsPane } = await import("./lib/DetailsPane.svelte");
+    const onClose = vi.fn();
+    const onToast = vi.fn();
+    render(DetailsPane, {
+      hit: { ...mockHit, source_url: "javascript:alert(1)" },
+      onClose,
+      onToast,
+    });
+    const link = screen.getByText("javascript:alert(1)");
+    await fireEvent.click(link);
+    await waitFor(() => {
+      expect(onToast).toHaveBeenCalledWith(expect.stringMatching(/only https/i));
+    });
+    const openCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "open_url");
+    expect(openCalls).toHaveLength(0);
+  });
+});

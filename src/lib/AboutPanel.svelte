@@ -1,13 +1,35 @@
 <script lang="ts">
   import type { PackMeta } from "./types";
   import { STRINGS } from "./strings";
+  import { openUrl } from "./tauri";
+  import { isHttpsUrl } from "./url";
 
   type Props = {
     version: string;
     packs: PackMeta[];
     onClose: () => void;
+    onToast: (msg: string) => void;
   };
-  const { version, packs, onClose }: Props = $props();
+  const { version, packs, onClose, onToast }: Props = $props();
+
+  // ponytail: M4.5-T4 / SEC-3 — all URL opens route through the Rust
+  // open_url IPC (HTTPS-only gate). The native <a target="_blank">
+  // bypassed the gate; a pack could declare homepage: "javascript:..."
+  // or "http://evil.com" and open directly. This handler mirrors
+  // the FastPath in useLauncher's activate() — reject-then-toast.
+  async function handleHomepage(homepage: string) {
+    if (!isHttpsUrl(homepage)) {
+      onToast(STRINGS.TOAST_OPEN_REJECTED);
+      return;
+    }
+    try {
+      await openUrl(homepage);
+    } catch {
+      // Rust gate refused (defense in depth). Mirror the same toast
+      // the launcher shows so the user gets the same feedback either way.
+      onToast(STRINGS.TOAST_OPEN_REJECTED);
+    }
+  }
 </script>
 
 <div class="about" role="dialog" aria-label={STRINGS.ABOUT_ARIA} data-testid="about-panel">
@@ -49,7 +71,14 @@
               <td>{p.license}</td>
               <td>
                 {#if p.homepage}
-                  <a href={p.homepage} target="_blank" rel="noreferrer">{p.homepage}</a>
+                  <button
+                    type="button"
+                    class="homepage-link"
+                    data-testid="homepage-link"
+                    onclick={() => handleHomepage(p.homepage)}
+                  >
+                    {p.homepage}
+                  </button>
                 {/if}
               </td>
             </tr>
@@ -125,12 +154,18 @@
     font-size: 11px;
     text-transform: uppercase;
   }
-  a {
+  .homepage-link {
     color: var(--accent, #4a9eff);
     text-decoration: none;
     word-break: break-all;
+    font: inherit;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
   }
-  a:hover {
+  .homepage-link:hover {
     text-decoration: underline;
   }
 </style>
