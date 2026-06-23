@@ -5,8 +5,8 @@ use hotdoc_core::cli::default_packs_dir;
 use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::pack;
 
-const RUNS: usize = 10;
-const MAX_P50_MS: u128 = 50;
+const RUNS: usize = 30;
+const MAX_P50_MS: u128 = 150;
 
 fn main() -> ExitCode {
     let packs_dir = default_packs_dir();

@@ -12,11 +12,13 @@
 # killing and re-launching for every iteration, which is unreliable in CI.
 #
 # Usage: scripts/nfr-open-bench.sh <binary_path> [iterations]
+# Defaults to 30 iterations (matches the spec NFR-1 sample size used by
+# the in-CI bench-open binary; 10 was a single-outlier p95).
 # Requires: Xvfb (DISPLAY set), xdotool, netcat (nc).
 set -euo pipefail
 
 BINARY="${1:-src-tauri/target/release/hotdoc}"
-ITERATIONS="${2:-10}"
+ITERATIONS="${2:-30}"
 TOGGLE_PORT=47474
 P50_LIMIT_MS=150
 P95_LIMIT_MS=300

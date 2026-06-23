@@ -200,7 +200,7 @@ jobs:
         run: bash scripts/nfr-memory.sh src-tauri/target/release/hotdoc
 
       - name: Open-time E2E bench (NFR-1, T4)
-        run: bash scripts/nfr-open-bench.sh src-tauri/target/release/hotdoc 10
+        run: bash scripts/nfr-open-bench.sh src-tauri/target/release/hotdoc 30
 
       - name: Network monitor gate (NFR-7, T8)
         run: sudo --preserve-env=DISPLAY bash scripts/nfr-network.sh src-tauri/target/release/hotdoc 60
