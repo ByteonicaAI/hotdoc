@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NFR-7 (T8): zero outbound non-loopback connections during a 2-minute drive.
+# NFR-7 (T8, T11): zero outbound non-loopback connections during normal use.
 #
 # Captures non-loopback TCP/IP traffic with tcpdump for the duration that
 # the app runs. Any non-loopback packet fails the gate.
@@ -8,12 +8,21 @@
 # (search, copy, pin, settings). The only allowed loopback traffic is
 # the UDP toggle on 127.0.0.1:47474 (carved out by the filter).
 #
+# Soak length — accepted deviation per M4.5-T11 Option A:
+#   - CI uses 60s (the explicit second arg from ci.yml overrides the
+#     default; ci.yml:206 passes `60`). The 60s CI gate catches the bulk
+#     of suspicious startup-period traffic (autoupdate checks, telemetry
+#     pings, crash-report pings) which is where most leaks live.
+#   - Local direct invocation defaults to 600s (10 min) — matches the
+#     spec §13/NFR-7 requirement. Pre-release manual smoke MUST use the
+#     600s default (or pass 600 explicitly).
+#
 # Usage: scripts/nfr-network.sh <binary_path> [soak_seconds]
 # Requires: tcpdump (run as root or with CAP_NET_RAW), Xvfb (DISPLAY set).
 set -euo pipefail
 
 BINARY="${1:-src-tauri/target/release/hotdoc}"
-SOAK="${2:-120}"  # 2-minute drive; spec says 10 min for local; CI uses 2 min
+SOAK="${2:-600}"  # spec §13/NFR-7: 10 min pre-release smoke; CI overrides with 60
 TOGGLE_PORT=47474
 
 if [ ! -x "$BINARY" ]; then
