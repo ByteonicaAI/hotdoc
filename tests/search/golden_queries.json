@@ -4,7 +4,7 @@
     "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Queries that the indexer tie-breaks awkwardly (e.g. docker logs vs logs-tail) are intentionally skipped — those are T5 problems, not T4 problems.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
-    "draft_count": 24,
+    "draft_count": 25,
     "scope": "git (10 queries, M1) + docker (4) + kubectl (4) + gh (3) + curl (3). 12 skeleton packs remain pending user-authored content (post-M2)."
   },
   "queries": [

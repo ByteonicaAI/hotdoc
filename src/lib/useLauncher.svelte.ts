@@ -480,6 +480,11 @@ export class Launcher {
       if (this.detailsHit) {
         e.preventDefault();
         this.closeDetails();
+        // ponytail: FR-C6 — after the details pane closes, focus
+        // returns to the search input so the user can keep typing.
+        // App.svelte's onMount focuses on first paint; this restores
+        // that focus after the Tab detour.
+        document.getElementById("q")?.focus();
         return;
       }
       e.preventDefault();

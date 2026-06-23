@@ -91,4 +91,41 @@ mod tests {
         cmd_bench(&default_golden_path(), &index_dir).expect("all golden queries must pass");
         let _ = std::fs::remove_dir_all(&index_dir);
     }
+
+    // ponytail: M4.5-T12 / TI-3. The golden fixture's _meta.draft_count
+    // is meant to mirror the queries array length. If a future edit
+    // drops a query but forgets to bump draft_count (or vice-versa),
+    // this test fails loudly. The GoldenFile struct used by cmd_bench
+    // intentionally ignores _meta, so we parse a side struct here.
+    #[derive(serde::Deserialize)]
+    struct GoldenMeta {
+        #[serde(default)]
+        draft_count: Option<usize>,
+    }
+    #[derive(serde::Deserialize)]
+    struct GoldenFileWithMeta {
+        #[serde(default)]
+        queries: Vec<GoldenQuery>,
+        _meta: GoldenMeta,
+    }
+
+    #[test]
+    fn golden_meta_draft_count_matches_queries_len() {
+        let path = default_golden_path();
+        let raw = fs::read_to_string(&path).expect("read golden file");
+        let gf: GoldenFileWithMeta =
+            serde_json::from_str(&raw).expect("parse golden JSON (with _meta)");
+        let declared = gf
+            ._meta
+            .draft_count
+            .expect("_meta.draft_count is required for the TI-3 invariant");
+        assert_eq!(
+            declared,
+            gf.queries.len(),
+            "_meta.draft_count ({}) must equal queries.len() ({}) in {}",
+            declared,
+            gf.queries.len(),
+            path.display(),
+        );
+    }
 }

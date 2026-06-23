@@ -846,3 +846,236 @@ describe("SEC-3 IPC routing (M4.5-T4)", () => {
     expect(openCalls).toHaveLength(0);
   });
 });
+
+// ponytail: M4.5-T12 — boot-settings coverage. App.svelte onMount
+// reads get_all_settings, then calls applyTheme + setRecentsEnabled
+// before any activation can fire. Without these tests the boot path
+// could silently fail (the IPC mock returns undefined for unknown
+// commands and the launcher's applyTheme would log a warn).
+describe("boot settings (M4.5-T12)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(writeText).mockClear();
+    delete document.documentElement.dataset.theme;
+  });
+
+  it("boot_settings_theme_dark_applies_data_theme_to_root", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({ theme: "dark" });
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe("dark");
+    });
+  });
+
+  it("boot_settings_theme_system_clears_data_theme_attribute", async () => {
+    // ponytail: a stale "system" row should not set any attribute —
+    // the OS @media query handles it.
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({ theme: "system" });
+      return Promise.resolve(undefined);
+    });
+    document.documentElement.dataset.theme = "dark"; // start dirty
+    render(App);
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBeUndefined();
+    });
+  });
+
+  it("boot_settings_recents_default_present_calls_record_recent", async () => {
+    // ponytail: an absent recents_enabled key is treated as default-on
+    // by setRecentsEnabled (anything but the literal "false" is true).
+    // The complementary "false skips" path is covered by
+    // recents_disabled_in_settings_skips_record_recent_ipc above.
+    const bootSettings: Record<string, string> = {}; // no recents_enabled key
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve(bootSettings);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("git stash"));
+    const recordCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "record_recent");
+    expect(recordCalls.length).toBeGreaterThan(0);
+  });
+});
+
+// ponytail: M4.5-T12 — FR-C6 coverage. The Tab key on the focused
+// result opens the DetailsPane for that result, calls set_window_height
+// with 620, and Escape closes + restores height to 420 + returns focus
+// to the search input. The pane's close button must produce the same
+// height restore + unmount behavior as the direct closeDetails() call.
+describe("FR-C6 details pane (M4.5-T12)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(writeText).mockClear();
+  });
+
+  it("tab_opens_details_pane_for_selected_result", async () => {
+    // ponytail: M4.5-T12 — the plan's bullet says "renders with
+    // hit.title visible", but the DetailsPane implementation surfaces
+    // hit.syntax as the load-bearing command label (not hit.title).
+    // Asserting syntax is the load-bearing behavior; if a future
+    // refactor adds title rendering, expand the assertion then.
+    const hits = [{ ...mockHit, id: "a", title: "Stash changes" }];
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve(hits);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("Stash changes")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => {
+      const pane = screen.getByTestId("details-pane");
+      expect(pane).toBeInTheDocument();
+      expect(pane.textContent).toContain("git stash");
+    });
+  });
+
+  it("tab_calls_set_window_height_620_when_opening_details", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("set_window_height", {
+        height: 620,
+      });
+    });
+  });
+
+  it("escape_from_details_closes_pane_and_restores_height_420", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => expect(screen.getByTestId("details-pane")).toBeInTheDocument());
+    vi.mocked(invoke).mockClear();
+    await fireEvent.keyDown(input, { key: "Escape" });
+    await waitFor(() => {
+      expect(screen.queryByTestId("details-pane")).toBeNull();
+      expect(invoke).toHaveBeenCalledWith("set_window_height", {
+        height: 420,
+      });
+    });
+  });
+
+  it("escape_from_details_returns_focus_to_search_input", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => expect(screen.getByTestId("details-pane")).toBeInTheDocument());
+    // Move focus away from the input to simulate the user clicking
+    // the close button or tabbing onto the details.
+    (document.activeElement as HTMLElement | null)?.blur();
+    await fireEvent.keyDown(input, { key: "Escape" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(input);
+    });
+  });
+
+  it("close_button_click_same_height_restore_and_unmount", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => expect(screen.getByTestId("details-pane")).toBeInTheDocument());
+    vi.mocked(invoke).mockClear();
+    // Click the close button — same path as closeDetails() direct call.
+    const closeBtn = screen.getByRole("button", { name: /close/i });
+    await fireEvent.click(closeBtn);
+    await waitFor(() => {
+      expect(screen.queryByTestId("details-pane")).toBeNull();
+      expect(invoke).toHaveBeenCalledWith("set_window_height", {
+        height: 420,
+      });
+    });
+  });
+
+  it("details_pane_renders_command_and_example_labels", async () => {
+    const hits = [
+      {
+        ...mockHit,
+        id: "a",
+        title: "Stash changes",
+        syntax: "git stash",
+        example_code: 'git stash push -m "wip"',
+      },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "search") return Promise.resolve(hits);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("Stash changes")).toBeInTheDocument());
+    await fireEvent.keyDown(input, { key: "Tab" });
+    await waitFor(() => {
+      const pane = screen.getByTestId("details-pane");
+      expect(pane).toBeInTheDocument();
+      // Command + Example labels are surfaced from STRINGS — both
+      // appear when the hit has example_code.
+      expect(pane.textContent).toMatch(/command/i);
+      expect(pane.textContent).toMatch(/example/i);
+      expect(pane.textContent).toContain("git stash");
+      expect(pane.textContent).toContain('git stash push -m "wip"');
+    });
+  });
+});
