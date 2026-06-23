@@ -1,3 +1,45 @@
+// ponytail: scope-enum reflects scopes actually used in `git log`
+// (M4.5-T14). Adding a new scope requires a config PR — explicit
+// owner-approved trade-off.
 export default {
   extends: ["@commitlint/config-conventional"],
+  rules: {
+    "scope-enum": [
+      2,
+      "always",
+      [
+        "launcher",
+        "store",
+        "security",
+        "tauri",
+        "cli",
+        "pack",
+        "packs",
+        "index",
+        "core",
+        "ui",
+        "nfr",
+        "content",
+        "window",
+        "i18n",
+        "notification",
+        "handoff",
+        "gap-analysis",
+        "golden",
+        "theme",
+        "ux",
+        "lock",
+        "repo",
+        "about",
+        "settings",
+        "scorer",
+        "search",
+        "a11y",
+        "ci",
+        "coverage",
+        "rust",
+        "release",
+      ],
+    ],
+  },
 };

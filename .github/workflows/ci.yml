@@ -51,19 +51,7 @@ jobs:
         run: pnpm audit --audit-level=high
 
       - name: String extraction gate (NFR-10, T8)
-        run: |
-          # Fail if any .svelte file contains hard-coded static English strings
-          # outside the STRINGS extraction point (src/lib/strings.ts).
-          # Static = aria-label or placeholder value contains no {expression}.
-          VIOLATIONS=$(grep -Prn 'aria-label="[^{"]*"' src/ --include='*.svelte' || true)
-          if [ -n "$VIOLATIONS" ]; then
-            echo "NFR-10 FAIL: hard-coded aria-label strings:" && echo "$VIOLATIONS" && exit 1
-          fi
-          VIOLATIONS=$(grep -Prn 'placeholder="[^{"]*"' src/ --include='*.svelte' || true)
-          if [ -n "$VIOLATIONS" ]; then
-            echo "NFR-10 FAIL: hard-coded placeholder strings:" && echo "$VIOLATIONS" && exit 1
-          fi
-          echo "NFR-10 PASS"
+        run: pnpm run string:check
 
   rust:
     name: Rust (fmt, clippy, test)
@@ -104,10 +92,17 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
 
+      - name: Cache cargo-audit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: cargo-audit-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked --quiet 2>/dev/null || true
+
       - name: Dependency audit (SEC-6)
-        run: |
-          cargo install cargo-audit --locked --quiet
-          cargo audit
+        run: cargo audit
 
       - name: Test
         run: cargo test --workspace
