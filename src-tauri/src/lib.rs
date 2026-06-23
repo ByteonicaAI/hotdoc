@@ -8,6 +8,7 @@ mod tray;
 use std::sync::{Arc, Mutex};
 
 use tauri::{Emitter, Manager};
+use tauri_plugin_notification::NotificationExt;
 use tracing::info;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -67,6 +68,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--autostart"]),
@@ -105,7 +107,7 @@ pub fn run() {
                 let _ = window.emit("hotdoc://refresh-empty-view", ());
             }
         })
-        .setup(|app| {
+        .setup(move |app| {
             if let Some(w) = app.get_webview_window("main") {
                 if let Ok(Some(monitor)) = app.primary_monitor() {
                     // ponytail: FR-L2 / §8.2 — center-top, 60px logical from
@@ -125,6 +127,52 @@ pub fn run() {
             toggle::spawn(app.handle().clone());
             hotkey::register(app.handle(), hotkey::default_combo())?;
             tray::build(app.handle())?;
+            // ponytail: FR-T3 first-launch notification. Reads the
+            // persisted `first_launch_shown` flag from the settings
+            // table; on a fresh install the row is absent, so we fire
+            // one notification using the current default hotkey label
+            // and then write the flag so subsequent launches are
+            // silent. Any failure (notification permission denied,
+            // settings DB error, dbus down) is logged and swallowed —
+            // a missing hint is never fatal.
+            match hotdoc_core::store::open(&db_path) {
+                Ok(conn) => {
+                    let already_shown =
+                        hotdoc_core::store::settings::get(&conn, "first_launch_shown")
+                            .ok()
+                            .flatten()
+                            .is_some();
+                    if !already_shown {
+                        let combo = crate::hotkey::default_combo();
+                        if let Err(e) = app
+                            .notification()
+                            .builder()
+                            .title("Hotdoc")
+                            .body(format!("Press {combo} to open Hotdoc"))
+                            .show()
+                        {
+                            tracing::warn!(
+                                error = %format!("{e:#}"),
+                                "first-launch notification failed"
+                            );
+                        }
+                        if let Err(e) =
+                            hotdoc_core::store::settings::set(&conn, "first_launch_shown", "1")
+                        {
+                            tracing::warn!(
+                                error = %format!("{e:#}"),
+                                "first-launch: settings::set failed"
+                            );
+                        }
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        error = %format!("{e:#}"),
+                        "first-launch: store::open failed; skipping notification"
+                    );
+                }
+            }
             Ok(())
         })
         .run(tauri::generate_context!())

@@ -199,7 +199,7 @@ mod tests {
         let now = 1_700_000_000_000i64; // synthetic epoch ms
         let old = now - 31 * 86_400_000;
         let mid = now - 29 * 86_400_000;
-        let recent = now - 1 * 86_400_000;
+        let recent = now - 86_400_000;
         let cutoff = now - 30 * 86_400_000;
         for (label, ts) in [
             ("old", old),
@@ -279,7 +279,7 @@ mod tests {
         }
         std::thread::sleep(std::time::Duration::from_millis(20));
         stop.store(true, Ordering::Relaxed);
-        let _ = reader.join().expect("reader join");
+        reader.join().expect("reader join");
     }
 
     // Note: an integration test that opens the DB twice and asserts the
