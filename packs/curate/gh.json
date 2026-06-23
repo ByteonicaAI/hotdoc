@@ -104,7 +104,7 @@
     {
       "id": "gh-repo-view",
       "title": "View a repository",
-      "syntax": "gh repo view [<repo>]",
+      "syntax": "gh repo view <repo>",
       "description": "Show repository info. Add --web to open in the browser.",
       "examples": [{ "description": "View current repo in browser", "code": "gh repo view --web" }],
       "tags": ["repo", "view"],
