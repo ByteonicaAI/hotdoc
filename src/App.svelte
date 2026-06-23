@@ -10,7 +10,7 @@
   import { Launcher } from "./lib/useLauncher.svelte";
   import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
-  import { STRINGS } from "./lib/strings";
+  import { STRINGS, format } from "./lib/strings";
 
   const launcher = new Launcher();
   // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
@@ -167,7 +167,7 @@
   {/if}
   <footer class="status" aria-live="polite">
     {#if status}
-      {status.entry_count} commands · {status.pack_count} packs
+      {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
     {:else}
       {STRINGS.INDEXING_STATUS}
     {/if}

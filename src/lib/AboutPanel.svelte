@@ -18,28 +18,28 @@
 
   <section>
     <div class="meta-row">
-      <span class="label">Version</span>
+      <span class="label">{STRINGS.ABOUT_VERSION_LABEL}</span>
       <span>{version}</span>
     </div>
     <div class="meta-row">
-      <span class="label">App license</span>
+      <span class="label">{STRINGS.ABOUT_APP_LICENSE_LABEL}</span>
       <span>{STRINGS.ABOUT_LICENSE}</span>
     </div>
     <div class="meta-row">
-      <span class="label">Content license</span>
+      <span class="label">{STRINGS.ABOUT_CONTENT_LICENSE_LABEL}</span>
       <span>{STRINGS.ABOUT_CONTENT_LICENSE}</span>
     </div>
   </section>
 
   {#if packs.length > 0}
     <section>
-      <span class="section-label">Attribution</span>
+      <span class="section-label">{STRINGS.ABOUT_ATTRIBUTION_LABEL}</span>
       <table>
         <thead>
           <tr>
-            <th>Pack</th>
-            <th>License</th>
-            <th>Homepage</th>
+            <th>{STRINGS.ABOUT_TABLE_PACK}</th>
+            <th>{STRINGS.ABOUT_TABLE_LICENSE}</th>
+            <th>{STRINGS.ABOUT_TABLE_HOMEPAGE}</th>
           </tr>
         </thead>
         <tbody>

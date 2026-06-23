@@ -19,6 +19,7 @@ import * as recents from "./launcher/recents";
 import * as pinned from "./launcher/pinned";
 import { parseCommand } from "./launcher/commandMode";
 import { suggestPacks } from "./launcher/suggest";
+import { STRINGS, format } from "./strings";
 
 function isHttpsUrl(u: string): boolean {
   try {
@@ -114,12 +115,12 @@ export class Launcher {
   async reloadIndex(): Promise<number> {
     try {
       const n = await rebuildIndexRpc();
-      this.#showToast(`Reloaded: ${n} entries`);
+      this.#showToast(format(STRINGS.TOAST_RELOAD_OK, String(n)));
       void this.loadEmptyView();
       return n;
     } catch (e) {
       log.error("reload index failed", { error: String(e) });
-      this.#showToast(`Reload failed: ${String(e)}`);
+      this.#showToast(format(STRINGS.TOAST_RELOAD_FAIL, String(e)));
       throw e;
     }
   }
@@ -152,10 +153,10 @@ export class Launcher {
   async copyDiagnostics() {
     try {
       await copyDiagnostics();
-      this.#showToast("Copied diagnostics to clipboard");
+      this.#showToast(STRINGS.TOAST_DIAG_OK);
     } catch (e) {
       log.error("copy diagnostics failed", { error: String(e) });
-      this.#showToast(`Diagnostics failed: ${String(e)}`);
+      this.#showToast(format(STRINGS.TOAST_DIAG_FAIL, String(e)));
     }
   }
 
@@ -186,10 +187,10 @@ export class Launcher {
     const updated = new Set(this.pinnedIds);
     if (next) {
       updated.add(hit.id);
-      this.#showToast(`Pinned: ${hit.title}`);
+      this.#showToast(format(STRINGS.TOAST_PIN, hit.title));
     } else {
       updated.delete(hit.id);
-      this.#showToast(`Unpinned: ${hit.title}`);
+      this.#showToast(format(STRINGS.TOAST_UNPIN, hit.title));
     }
     this.pinnedIds = updated;
     void this.loadEmptyView();
@@ -215,7 +216,7 @@ export class Launcher {
   async openSource(hit: SearchHit) {
     if (!hit.source_url) return;
     if (!isHttpsUrl(hit.source_url)) {
-      this.#showToast(`Open rejected: only https: URLs allowed`);
+      this.#showToast(STRINGS.TOAST_OPEN_REJECTED);
       return;
     }
     try {
@@ -223,7 +224,7 @@ export class Launcher {
       await this.doHide();
     } catch (e) {
       log.error("open_url failed", { url: hit.source_url, error: String(e) });
-      this.#showToast(`Open failed: ${String(e)}`);
+      this.#showToast(format(STRINGS.TOAST_OPEN_FAIL, String(e)));
     }
   }
 
@@ -289,9 +290,7 @@ export class Launcher {
   }
 
   openHelp() {
-    this.#showToast(
-      "↑/↓ navigate · Enter copy · Shift+Enter example · Ctrl+P pin · Ctrl+Shift+? palette",
-    );
+    this.#showToast(STRINGS.TOAST_HELP);
   }
 
   // ponytail: single attribute flip on <html>. "system" removes the
@@ -405,7 +404,7 @@ export class Launcher {
       this.results = [];
       this.selectedIndex = -1;
       log.error("search failed", { query: q, error: String(e) });
-      this.#showToast(`Search failed: ${String(e)}`);
+      this.#showToast(format(STRINGS.TOAST_SEARCH_FAIL, String(e)));
     }
   }
 
@@ -418,10 +417,10 @@ export class Launcher {
   async #copyAndToast(text: string) {
     try {
       await clipboardWrite(text);
-      this.#showToast(`Copied: ${text}`);
+      this.#showToast(format(STRINGS.TOAST_COPY_OK, text));
     } catch (e) {
       log.error("copy failed", { text, error: String(e) });
-      this.#showToast(`Copy failed: ${String(e)}`);
+      this.#showToast(format(STRINGS.TOAST_COPY_FAIL, String(e)));
     }
   }
 
@@ -442,10 +441,10 @@ export class Launcher {
           await this.doHide();
         } catch (e) {
           log.error("open_url failed", { url: top.source_url, error: String(e) });
-          this.#showToast(`Open failed: ${String(e)}`);
+          this.#showToast(format(STRINGS.TOAST_OPEN_FAIL, String(e)));
         }
       } else {
-        this.#showToast(`Open rejected: only https: URLs allowed`);
+        this.#showToast(STRINGS.TOAST_OPEN_REJECTED);
       }
       return;
     }

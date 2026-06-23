@@ -25,7 +25,7 @@
   </div>
   <div class="details-body">
     <div class="detail-row">
-      <span class="detail-label">Command</span>
+      <span class="detail-label">{STRINGS.DETAILS_COMMAND_LABEL}</span>
       <code class="detail-syntax">{hit.syntax}</code>
     </div>
     <div class="detail-row">
@@ -40,7 +40,7 @@
       <div class="detail-desc">{hit.description}</div>
     {/if}
     {#if hit.example_code}
-      <div class="detail-section-label">Example</div>
+      <div class="detail-section-label">{STRINGS.DETAILS_EXAMPLE_LABEL}</div>
       <pre class="detail-example"><code>{hit.example_code}</code></pre>
     {/if}
     {#if hit.source_url}
