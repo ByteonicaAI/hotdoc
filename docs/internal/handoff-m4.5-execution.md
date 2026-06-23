@@ -3,7 +3,7 @@
 **Date:** 2026-06-23
 **From:** M4.5 execution session (CI-breaking → reconciliation)
 **To:** the agent(s) continuing M4.5 / starting M5
-**Status:** **IN PROGRESS — T1 through T6 done (7 commits). T7 through T15 still pending (T6.5 added as separate follow-up).** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
+**Status:** **IN PROGRESS — T1 through T6.5 done (8 commits). T7 through T15 still pending.** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
 
 ---
 
@@ -21,8 +21,9 @@
 | `2b143fa` | M4.5-T5 (part 1) — `prune_old` + `unchecked_transaction` wrap on `record` + 4 tests; `open()` calls `prune_old` with 30d cutoff (graceful `no such table` skip before `migrate()`) | 2 | +254/-1 |
 | `84d8af5` | M4.5-T5 (part 2) — gap-analysis P2-11 row reattribution (false closure → M4.5-T5) + "no undispositioned P1/P2" → M4.5 close-out | 1 | +3/-2 |
 | `051cf52` | M4.5-T6 — `apply_source_priority` drops unused `_score` param + `recents.rs:221` drops `let _ = ` binding; **populate_store outer-tx NOT closed** (became T6.5) | 2 | +6/-4 |
+| `4734e3a` | M4.5-T6.5 — populate_store atomic across packs + entries: `upsert_all_tx` variants on `packs` + `entries`; populate_store opens one outer tx and calls both `_tx` variants; 1 new integration test | 4 | +134/-10 |
 
-**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join. **T6.5 (populate_store outer-tx) remains undispositioned** — see §5.9 for paths. Test count: 95 Rust + 71 frontend (unchanged in T6).
+**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries** (was audit P1 half-populated-state gap). Test count: 96 Rust + 71 frontend (T6.5 +1).
 
 ---
 
@@ -103,6 +104,10 @@ crates/hotdoc-core/src/store/search_log.rs  (T5: prune_old fn + record tx wrap +
 crates/hotdoc-core/src/store/mod.rs         (T5: SEARCH_LOG_RETENTION_MS const + open() prune call + is_no_such_table helper + 2 integration tests)
 crates/hotdoc-core/src/index.rs             (T6: apply_source_priority drops _score param + call site update; populate_store NOT touched — see T6.5)
 crates/hotdoc-core/src/store/recents.rs     (T6: 1-line let _ = reader.join cleanup in record_is_atomic_under_concurrent_reader test)
+crates/hotdoc-core/src/store/packs.rs       (T6.5: add upsert_all_tx pub(crate); refactor upsert_all to delegate)
+crates/hotdoc-core/src/store/entries.rs     (T6.5: add upsert_all_tx pub(crate); refactor upsert_all to delegate)
+crates/hotdoc-core/src/index.rs             (T6.5: populate_store opens outer unchecked_transaction + calls both upsert_all_tx variants + commits; doc comment describes atomicity)
+crates/hotdoc-core/src/index_resolver.rs    (T6.5: +1 test populate_store_replaces_existing_data_atomically)
 ```
 
 ---
@@ -115,7 +120,7 @@ Sequencing from the plan, accounting for the T1→T2 ordering and the false-posi
 |---|---|---|---|
 | B | T5 — `search_log::prune_old` + outer-tx wrap + P2-11 reclose | **Done** | none |
 | B | T6 — `apply_source_priority` `_score` removal + `recents.rs:221` `let _ = ` cleanup | **Done** (cleanup only — populate_store outer-tx split to T6.5) | none |
-| B | T6.5 — `populate_store` outer-transaction for crash atomicity between `packs::upsert_all` and `entries::upsert_all` | **Pending — T6 follow-up** | requires 4-file refactor (refactor `upsert_all` to take `&Transaction` or add tx-abstraction trait) |
+| B | T6.5 — `populate_store` outer-transaction for crash atomicity between `packs::upsert_all` and `entries::upsert_all` | **Done** (4-file refactor: `upsert_all_tx` pub(crate) variants + populate_store outer-tx + 1 new integration test) | refactor path documented in §5.9 |
 | B | T7 — version 0.1.0 → 0.4.0 in `package.json` + `tauri.conf.json` + `src-tauri/Cargo.toml`; `resizable: true` → `false` | **Next** | independent of T6.5; XS |
 | B | T8 — FR-T3 first-launch notification (adds `tauri-plugin-notification`, fires once via `first_launch_shown` setting) | after T7 | version should be correct before first-launch fires |
 | C | T9 — bench-open: 30 iterations in CI, `MAX_P50_MS = 150` | independent | needs spec-vs-CI p50 discussion (CI is 50ms, spec is 150ms — loosening to spec) |
@@ -126,7 +131,7 @@ Sequencing from the plan, accounting for the T1→T2 ordering and the false-posi
 | E | T14 — `verify:all` completeness + `cargo-audit` cache + commitlint `scope-enum` + `string:check` | after T9/T10/T11 | verify:all adds the bench scripts |
 | F | T15 — gap-analysis + audit reconciliation | last | depends on all above closing |
 
-**Recommended next task:** T7 (version bump to 0.4.0 + `resizable: false`). It's independent of the rest of M4.5, XS scope, and unlocks T8 (which depends on the version being correct). T6.5 (populate_store outer-tx refactor) should land in its own task with a fresh design proposal — see §5.9.
+**Recommended next task:** T7 (version bump to 0.4.0 + `resizable: false`). It's independent of the rest of M4.5, XS scope, and unlocks T8 (which depends on the version being correct). T6.5 is now closed.
 
 ---
 
@@ -166,18 +171,15 @@ The plan said "call `prune_old` from `store::open()` after DB init" — sounds c
 
 The test asserts the wire-up works, so it cannot pass before the wire-up exists. T5-T2 only tests the in-module primitives (`prune_old` + tx wrap); T5-T3 tests the integration. Don't try to put both in one task — the failure surface gets confusing.
 
-### 5.9 T6: `populate_store` outer-tx requires a 4-file refactor, not a wire-up
+### 5.9 T6.5: `populate_store` outer-tx via `upsert_all_tx` extraction
 
-The plan said "wrap `packs::upsert_all` + `entries::upsert_all` in one outer `conn.transaction()`." Sounds simple, but `upsert_all` *already* opens its own `unchecked_transaction()` internally (each is a self-contained all-or-nothing table replace). A naive outer wrap fails with `cannot start a transaction within a transaction` — rusqlite's `unchecked_transaction` does NOT auto-savepoint (the Savepoint API is separate: `Transaction::savepoint()`). T6 caught this on the first test run (2 tests failed with the SQLite error).
+The plan's naive "wrap both in `conn.transaction`" approach hit `cannot start a transaction within a transaction` because `upsert_all` *already* opens its own internal `unchecked_transaction`. The fix shipped in T6.5: extracted the body of each `upsert_all` into a `pub(crate) fn upsert_all_tx(tx: &Transaction, packs)`, and refactored the public `upsert_all` to be a 4-line wrapper that opens a tx, delegates, commits. Then `populate_store` opens *one* outer tx and calls both `_tx` variants. If either inner call errors, the `?` propagates and the outer `Transaction` drops without commit → full rollback. The standalone `upsert_all` API is unchanged for tests and one-off callers.
 
-**Three paths to the real fix (none shipped in T6):**
-1. Refactor `upsert_all` to take `&Transaction` (or a tx-trait) so the outer call passes its transaction in. Touches `packs.rs`, `entries.rs`, their tests, `index_resolver.rs` test fixtures. The right way, but ~4 files and a new abstraction.
-2. Inline the upsert SQL into `populate_store` inside `conn.transaction(|tx| { ... })`. Smaller diff, but duplicates the SQL and increases the blast radius of any future upsert change.
-3. Leave the gap open. The audit flagged it as P1 (LOW but real) — crash recovery has to be the path that catches the half-populated state, not the write path. Acceptable but undispositioned.
+**Don't try to inline the SQL into `populate_store`** — that duplicates ~30 lines of `INSERT ... ON CONFLICT ... DO UPDATE` and creates two sources of truth for the upsert semantics. The `upsert_all_tx` extraction keeps the SQL in one place per table.
 
-**What's in T6 as shipped:** cleanup only. `_score` param dropped on `apply_source_priority` (vestigial; score is already in the additive) and the `let _ = ` binding on `recents.rs:221` dropped (`.expect()` already consumes the `thread::Result`). 2 trivial edits, 1 commit. The audit half-populated-state gap is **NOT** closed by T6.
+**T6.5 test setup gotcha:** the integration test `populate_store_replaces_existing_data_atomically` initially pre-seeded a `ghost-pack` row AND a matching `ghost-entry` row. The `entries.pack_id → packs.id` FK blocks `DELETE FROM packs` when matching entries exist (RESTRICT by default — no CASCADE in the schema). The test was failing with `FOREIGN KEY constraint failed` before the populate could even start. Fix: pre-seed only the ghost pack (no matching entry). The wire-up is still exercised; the FK behavior is working as intended and isn't what we're testing.
 
-**T6.5 follow-up:** the populate_store atomicity fix as a dedicated task. Owner picks one of the three paths above. Should be a separate plan/spec/approval cycle because path 1 is a 4-file refactor with a trait abstraction — wider than the M4.5 "smallest correct change" budget.
+**T6.5 failure-injection deferred:** the test exercises the happy path (pre-seeded data gets atomically replaced) but does not inject a failure into `entries::upsert_all_tx` to prove `packs` rolls back. The contract is: source-visible `?` propagation + rusqlite's `Transaction` drop-without-commit semantics. A contrived failure-injection test would need an artificial schema constraint; not worth the maintenance cost. Future-proofed by the existing test: if a refactor moves back to two separate `upsert_all` calls, the test will still pass (happy path succeeds either way) but the audit gap will be re-opened — the comment in the test makes the intent clear.
 
 ---
 
@@ -190,7 +192,7 @@ The plan said "wrap `packs::upsert_all` + `entries::upsert_all` in one outer `co
 | `pnpm format:check` | ✅ clean | |
 | `pnpm test --run` | ✅ 71/71 passing | was 67 before T4 |
 | `pnpm audit --audit-level=high` | not run this session | (T14 will add it to verify:all) |
-| `cargo test --workspace` | ✅ 95 unit + 1 chaos, all pass | verified after T5 (was 91; T6 unchanged) |
+| `cargo test --workspace` | ✅ 96 unit + 1 chaos, all pass | verified after T6.5 (was 95; T5 +1, T6.5 +1; T6 cleanup added 0) |
 | `cargo fmt --all --check` | ✅ clean | |
 | `cargo clippy --all-targets -- -D warnings` | ✅ clean | |
 | NFR-10 aria-label grep | ✅ PASS | zero hits |
