@@ -22,8 +22,9 @@
 | `84d8af5` | M4.5-T5 (part 2) — gap-analysis P2-11 row reattribution (false closure → M4.5-T5) + "no undispositioned P1/P2" → M4.5 close-out | 1 | +3/-2 |
 | `051cf52` | M4.5-T6 — `apply_source_priority` drops unused `_score` param + `recents.rs:221` drops `let _ = ` binding; **populate_store outer-tx NOT closed** (became T6.5) | 2 | +6/-4 |
 | `4734e3a` | M4.5-T6.5 — populate_store atomic across packs + entries: `upsert_all_tx` variants on `packs` + `entries`; populate_store opens one outer tx and calls both `_tx` variants; 1 new integration test | 4 | +134/-10 |
+| `e333905` | M4.5-T6.5-FU — failure-injection test for `populate_store` rollback path (trigger-based; closes the §5.9 deferred item) | 1 | +81/-0 |
 
-**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries** (was audit P1 half-populated-state gap). Test count: 96 Rust + 71 frontend (T6.5 +1).
+**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries with both happy-path AND failure-injection tests** (was audit P1 half-populated-state gap). Test count: 97 Rust + 71 frontend (T6.5 +1, T6.5-FU +1).
 
 ---
 
@@ -108,6 +109,7 @@ crates/hotdoc-core/src/store/packs.rs       (T6.5: add upsert_all_tx pub(crate);
 crates/hotdoc-core/src/store/entries.rs     (T6.5: add upsert_all_tx pub(crate); refactor upsert_all to delegate)
 crates/hotdoc-core/src/index.rs             (T6.5: populate_store opens outer unchecked_transaction + calls both upsert_all_tx variants + commits; doc comment describes atomicity)
 crates/hotdoc-core/src/index_resolver.rs    (T6.5: +1 test populate_store_replaces_existing_data_atomically)
+crates/hotdoc-core/src/index_resolver.rs    (T6.5-FU: +1 test populate_store_rolls_back_packs_when_entries_fail — trigger-based failure-injection)
 ```
 
 ---
@@ -179,9 +181,9 @@ The plan's naive "wrap both in `conn.transaction`" approach hit `cannot start a 
 
 **T6.5 test setup gotcha:** the integration test `populate_store_replaces_existing_data_atomically` initially pre-seeded a `ghost-pack` row AND a matching `ghost-entry` row. The `entries.pack_id → packs.id` FK blocks `DELETE FROM packs` when matching entries exist (RESTRICT by default — no CASCADE in the schema). The test was failing with `FOREIGN KEY constraint failed` before the populate could even start. Fix: pre-seed only the ghost pack (no matching entry). The wire-up is still exercised; the FK behavior is working as intended and isn't what we're testing.
 
-**T6.5 failure-injection deferred:** the test exercises the happy path (pre-seeded data gets atomically replaced) but does not inject a failure into `entries::upsert_all_tx` to prove `packs` rolls back. The contract is: source-visible `?` propagation + rusqlite's `Transaction` drop-without-commit semantics. A contrived failure-injection test would need an artificial schema constraint; not worth the maintenance cost. Future-proofed by the existing test: if a refactor moves back to two separate `upsert_all` calls, the test will still pass (happy path succeeds either way) but the audit gap will be re-opened — the comment in the test makes the intent clear.
+**T6.5-FU failure-injection test** (closes the deferred item): `populate_store_rolls_back_packs_when_entries_fail` in `index_resolver.rs` installs a `CREATE TRIGGER ... INSERT ON entries WHEN NEW.pack_id = 'real' BEGIN SELECT RAISE(ABORT, 'injected failure for atomicity test'); END` before `populate_store` is called. The trigger fires during `entries::upsert_all_tx`'s inner loop, after `packs::upsert_all_tx` has fully written its row. The `?` propagates, the outer `Transaction` drops without commit, the rollback path is exercised. The test asserts `populate_store` returns `Err` AND the `packs` table is empty post-failure (proving the packs writes that succeeded pre-trigger were rolled back). If a future refactor moves back to two separate `upsert_all` calls or breaks the outer-tx wire-up, the `packs` assertion fails loudly.
 
----
+**My T6.5 reasoning that `entries::upsert_all_tx` is "unfailable" was wrong** — `RAISE(ABORT)` triggers are a legitimate SQLite testing primitive, not a contrived schema constraint. The trap doc's earlier "deferred" wording was the wrong call. Updated reasoning captured in the test doc comment.
 
 ## 6. Verification matrix (cumulative, post-T4)
 
@@ -192,7 +194,7 @@ The plan's naive "wrap both in `conn.transaction`" approach hit `cannot start a 
 | `pnpm format:check` | ✅ clean | |
 | `pnpm test --run` | ✅ 71/71 passing | was 67 before T4 |
 | `pnpm audit --audit-level=high` | not run this session | (T14 will add it to verify:all) |
-| `cargo test --workspace` | ✅ 96 unit + 1 chaos, all pass | verified after T6.5 (was 95; T5 +1, T6.5 +1; T6 cleanup added 0) |
+| `cargo test --workspace` | ✅ 97 unit + 1 chaos, all pass | verified after T6.5-FU (was 96; T5 +1, T6.5 +1, T6.5-FU +1; T6 cleanup added 0) |
 | `cargo fmt --all --check` | ✅ clean | |
 | `cargo clippy --all-targets -- -D warnings` | ✅ clean | |
 | NFR-10 aria-label grep | ✅ PASS | zero hits |
