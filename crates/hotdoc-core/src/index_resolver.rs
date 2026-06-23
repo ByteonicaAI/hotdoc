@@ -500,4 +500,85 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&index_dir);
     }
+
+    // ponytail: T6.5-FU failure-injection counterpart to
+    // populate_store_replaces_existing_data_atomically. That test
+    // proves the happy path (pre-seeded data gets atomically
+    // replaced). This test proves the audit's actual contract: if
+    // entries::upsert_all_tx fails partway, the packs writes that
+    // already succeeded are rolled back. The fix's rollback
+    // guarantee is what closes the half-populated-state gap; the
+    // happy-path test alone cannot distinguish "atomic" from
+    // "sequential and consistent" — both end in the same final
+    // state when nothing fails.
+    //
+    // How the failure is injected: a SQLite trigger on the entries
+    // table that fires on INSERT and aborts when pack_id matches
+    // the populate's real pack. The trigger fires during the
+    // entries::upsert_all_tx inner loop, after packs::upsert_all_tx
+    // has already committed its DELETE + INSERT to the outer tx.
+    // The ? propagates, the outer Transaction drops without
+    // commit, and the rollback path is exercised.
+    //
+    // If a future refactor moves back to two separate
+    // upsert_all calls (or breaks the outer-tx wire-up), this
+    // test fails loudly: the packs table will retain the
+    // "real" row that packs::upsert_all_tx wrote, proving the
+    // rollback didn't happen.
+    #[test]
+    fn populate_store_rolls_back_packs_when_entries_fail() {
+        let (_dbdir, conn) = open_test_db();
+        // Install a trigger that aborts the first INSERT into
+        // entries with pack_id='real'. Fires inside
+        // entries::upsert_all_tx, after packs::upsert_all_tx
+        // has fully written its row.
+        conn.execute(
+            "CREATE TRIGGER fail_on_real_entry \
+             INSERT ON entries \
+             WHEN NEW.pack_id = 'real' \
+             BEGIN \
+               SELECT RAISE(ABORT, 'injected failure for atomicity test'); \
+             END",
+            [],
+        )
+        .expect("install trigger");
+        // Sanity: packs table is empty before populate.
+        let n_packs_before: i64 = conn
+            .query_row("SELECT COUNT(*) FROM packs", [], |r| r.get(0))
+            .expect("count packs before");
+        assert_eq!(n_packs_before, 0, "fresh db must start with 0 packs");
+        // populate MUST error out (the trigger aborts the
+        // entries INSERT). The test asserts the error rather
+        // than swallowing it.
+        let packs = vec![make_pack("real")];
+        let index_dir = fresh_dir();
+        let _idx = HotdocIndex::build(&packs, &index_dir).expect("build");
+        let result = HotdocIndex::populate_store(&conn, &packs);
+        assert!(
+            result.is_err(),
+            "populate must fail when entries trigger aborts; got Ok"
+        );
+        // The audit's contract: packs writes that already
+        // happened (DELETE FROM packs + INSERT INTO packs
+        // 'real') must be rolled back. If both tables are empty
+        // post-failure, the rollback worked. If packs retains
+        // the 'real' row, the wire-up is broken.
+        let n_packs_after: i64 = conn
+            .query_row("SELECT COUNT(*) FROM packs", [], |r| r.get(0))
+            .expect("count packs after");
+        assert_eq!(
+            n_packs_after, 0,
+            "packs writes must be rolled back when entries fails; \
+             a non-zero count means the outer-tx wire-up is broken"
+        );
+        let n_entries_after: i64 = conn
+            .query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0))
+            .expect("count entries after");
+        assert_eq!(
+            n_entries_after, 0,
+            "entries must remain empty (trigger fired before any INSERT committed)"
+        );
+
+        let _ = std::fs::remove_dir_all(&index_dir);
+    }
 }
