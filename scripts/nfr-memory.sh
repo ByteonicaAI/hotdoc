@@ -36,12 +36,28 @@ if ! kill -0 "$APP_PID" 2>/dev/null; then
   exit 1
 fi
 
-RSS_KB=$(awk '/^VmRSS:/{print $2}' "/proc/$APP_PID/status" 2>/dev/null || echo 0)
+RSS_KB=0
+PIDS=("$APP_PID")
+queue=("$APP_PID")
+while [ "${#queue[@]}" -gt 0 ]; do
+  next=()
+  for p in "${queue[@]}"; do
+    while IFS= read -r c; do
+      [ -n "$c" ] || continue
+      case " ${PIDS[*]} " in *" $c "*) ;; *) PIDS+=("$c"); next+=("$c") ;; esac
+    done < <(pgrep -P "$p" 2>/dev/null || true)
+  done
+  queue=("${next[@]}")
+done
+for p in "${PIDS[@]}"; do
+  rss=$(awk '/^VmRSS:/{print $2}' "/proc/$p/status" 2>/dev/null || echo 0)
+  RSS_KB=$(( RSS_KB + ${rss:-0} ))
+done
 kill "$APP_PID" 2>/dev/null || true
 wait "$APP_PID" 2>/dev/null || true
 
 RSS_MB=$(( RSS_KB / 1024 ))
-echo "NFR-4 idle RSS: ${RSS_KB}kB (${RSS_MB}MB), limit ${LIMIT_KB}kB (250MB)"
+echo "NFR-4 idle RSS (tree total, ${#PIDS[@]} procs): ${RSS_KB}kB (${RSS_MB}MB), limit ${LIMIT_KB}kB (250MB)"
 
 if [ "$RSS_KB" -gt "$LIMIT_KB" ]; then
   echo "NFR-4 FAIL: idle RSS ${RSS_MB}MB > 250MB"
