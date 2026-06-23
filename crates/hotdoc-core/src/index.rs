@@ -113,11 +113,23 @@ impl HotdocIndex {
     }
 
     pub fn populate_store(conn: &rusqlite::Connection, packs: &[Pack]) -> Result<()> {
-        // ponytail: T16. Packs first — entries.pack_id has a FK
-        // reference to packs.id, and the schema enables foreign_keys
-        // (store::open). The order is the only safe one.
-        crate::store::packs::upsert_all(conn, packs).context("populating packs table")?;
-        crate::store::entries::upsert_all(conn, packs).context("populating entries table")?;
+        // ponytail: T6.5 outer-transaction atomicity. A crash
+        // between packs and entries writes previously left the DB
+        // half-populated — pinned::list JOINs returned [] and the
+        // popular signal read zero rows. We compose both upserts
+        // into one unchecked_transaction by calling the
+        // pub(crate) `upsert_all_tx` variants on a single
+        // Transaction; the standalone `upsert_all` is a
+        // back-compat wrapper used by tests and other one-off
+        // callers.
+        //
+        // Packs first — entries.pack_id has a FK reference to
+        // packs.id, and the schema enables foreign_keys (store::open).
+        // The order is the only safe one.
+        let tx = conn.unchecked_transaction()?;
+        crate::store::packs::upsert_all_tx(&tx, packs).context("populating packs table")?;
+        crate::store::entries::upsert_all_tx(&tx, packs).context("populating entries table")?;
+        tx.commit()?;
         Ok(())
     }
 

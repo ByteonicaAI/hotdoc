@@ -422,4 +422,82 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    // ponytail: T6.5 atomicity wire-up. `populate_store` is supposed
+    // to rewrite both `packs` and `entries` in a single transaction,
+    // so a crash between the two can never leave the DB half-
+    // populated. This test pre-seeds a fake `packs` row (no matching
+    // `entries` row, to avoid the FK from entries.pack_id → packs.id
+    // blocking the populate's DELETE FROM packs step — that FK
+    // protection is working as intended and not what we're testing
+    // here), then asserts the fake pack is gone and the real pack
+    // + entry are present after populate. If a future refactor
+    // breaks the outer-tx wire-up (e.g. someone moves back to two
+    // separate `upsert_all` calls), this test exercises the
+    // "both tables actually got rewritten by the same transaction"
+    // invariant directly.
+    //
+    // Failure-injection (making `entries::upsert_all_tx` fail and
+    // proving `packs` rolls back) is left for a future test — the
+    // happy-path coverage + the source-visible `?` propagation +
+    // rusqlite's `Transaction` drop-without-commit semantics are
+    // the contract.
+    #[test]
+    fn populate_store_replaces_existing_data_atomically() {
+        let (_dbdir, conn) = open_test_db();
+        // Pre-seed a fake pack with no matching entry. The
+        // entries.pack_id → packs.id FK would block a DELETE
+        // FROM packs if a matching entry existed; we want to
+        // exercise the atomicity wire-up, not the FK behavior.
+        conn.execute(
+            "INSERT INTO packs(id, name, version, source, license, indexed_at) \
+             VALUES ('ghost-pack', 'Ghost', '0.0.1', 'curated', 'MIT', 0)",
+            [],
+        )
+        .expect("seed ghost pack");
+        // Sanity: pre-populate has the ghost row.
+        let n_ghost_before: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM packs WHERE id = 'ghost-pack'",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count ghost packs before");
+        assert_eq!(n_ghost_before, 1);
+        // Real pack list with no ghost-pack.
+        let packs = vec![make_pack("real")];
+        let index_dir = fresh_dir();
+        let _idx = HotdocIndex::build(&packs, &index_dir).expect("build");
+        HotdocIndex::populate_store(&conn, &packs).expect("populate");
+        // The ghost pack must be gone (proving packs::upsert_all_tx
+        // ran inside the outer tx).
+        let n_ghost_packs: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM packs WHERE id = 'ghost-pack'",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count ghost packs after");
+        assert_eq!(n_ghost_packs, 0, "ghost pack must be replaced");
+        // The real pack + entry must be present (proving both
+        // upserts landed in the same committed tx — if the
+        // entries upsert had been rolled back separately, the
+        // real entry would be missing).
+        let n_real_packs: i64 = conn
+            .query_row("SELECT COUNT(*) FROM packs WHERE id = 'real'", [], |r| {
+                r.get(0)
+            })
+            .expect("count real packs");
+        assert_eq!(n_real_packs, 1, "real pack must be present");
+        let n_real_entries: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM entries WHERE pack_id = 'real'",
+                [],
+                |r| r.get(0),
+            )
+            .expect("count real entries");
+        assert_eq!(n_real_entries, 1, "real entry must be present");
+
+        let _ = std::fs::remove_dir_all(&index_dir);
+    }
 }

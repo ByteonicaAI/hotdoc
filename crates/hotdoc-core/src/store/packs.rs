@@ -4,7 +4,7 @@
 //! `pinned::list` (which JOINs `entries`) and the `> <pack_id>` palette
 //! filter validation have no real set to check against.
 
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, Transaction};
 use serde::Serialize;
 use tracing::instrument;
 
@@ -57,9 +57,27 @@ pub fn list_metas(conn: &Connection) -> Result<Vec<PackMeta>> {
 /// replace is correct because the tantivy index is also a full rebuild
 /// — no diff state lives in SQLite. Wrapped in a transaction so a
 /// mid-build failure can't leave a half-populated table.
+///
+/// For atomic composition into a caller-owned transaction (see
+/// `HotdocIndex::populate_store`, M4.5-T6.5), use [`upsert_all_tx`]
+/// directly. `upsert_all` here is the standalone wrapper.
 #[instrument(skip_all)]
 pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
     let tx = conn.unchecked_transaction()?;
+    upsert_all_tx(&tx, packs)?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// Upsert body extracted from [`upsert_all`] so callers can compose
+/// it into their own transaction (the `populate_store` outer-tx
+/// path is the only current caller). The function does not commit
+/// or roll back — the owning `Transaction` does. `pub(crate)` because
+/// the only consumer is `HotdocIndex::populate_store` in the same
+/// crate; the standalone [`upsert_all`] is the public surface for
+/// tests and other standalone callers.
+#[instrument(skip_all)]
+pub(crate) fn upsert_all_tx(tx: &Transaction<'_>, packs: &[Pack]) -> Result<()> {
     tx.execute("DELETE FROM packs", [])?;
     let now = crate::store::time::unix_now_ms();
     for pack in packs {
@@ -84,7 +102,6 @@ pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
             ],
         )?;
     }
-    tx.commit()?;
     Ok(())
 }
 

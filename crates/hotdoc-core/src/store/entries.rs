@@ -10,7 +10,7 @@
 //! cheaper than diffing and the entry set is bounded by the on-disk
 //! pack files.
 
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, Transaction};
 use tracing::instrument;
 
 use crate::pack::Pack;
@@ -63,9 +63,27 @@ pub fn upsert_pack(conn: &Connection, pack: &Pack) -> Result<()> {
 
 /// Replace all entries for `packs` in one transaction. Entry point used
 /// by `HotdocIndex::build` (T16) and the index resolver (T14).
+///
+/// For atomic composition into a caller-owned transaction (see
+/// `HotdocIndex::populate_store`, M4.5-T6.5), use [`upsert_all_tx`]
+/// directly. `upsert_all` here is the standalone wrapper.
 #[instrument(skip_all)]
 pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
     let tx = conn.unchecked_transaction()?;
+    upsert_all_tx(&tx, packs)?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// Upsert body extracted from [`upsert_all`] so callers can compose
+/// it into their own transaction (the `populate_store` outer-tx
+/// path is the only current caller). The function does not commit
+/// or roll back — the owning `Transaction` does. `pub(crate)` because
+/// the only consumer is `HotdocIndex::populate_store` in the same
+/// crate; the standalone [`upsert_all`] is the public surface for
+/// tests and other standalone callers.
+#[instrument(skip_all)]
+pub(crate) fn upsert_all_tx(tx: &Transaction<'_>, packs: &[Pack]) -> Result<()> {
     for pack in packs {
         tx.execute("DELETE FROM entries WHERE pack_id = ?1", params![pack.id])?;
         for entry in &pack.entries {
@@ -73,7 +91,7 @@ pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
                 serde_json::to_string(&entry.examples).unwrap_or_else(|_| "[]".into());
             let tags_json = serde_json::to_string(&entry.tags).unwrap_or_else(|_| "[]".into());
             tx.execute(
-                "INSERT INTO entries( \
+                "INSERT INTO entries(\
                     id, pack_id, title, syntax, description, \
                     examples_json, tags_json, source, source_url) \
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) \
@@ -100,7 +118,6 @@ pub fn upsert_all(conn: &Connection, packs: &[Pack]) -> Result<()> {
             )?;
         }
     }
-    tx.commit()?;
     Ok(())
 }
 
