@@ -3,7 +3,7 @@
 **Date:** 2026-06-23
 **From:** M4.5 execution session (CI-breaking → reconciliation)
 **To:** the agent(s) continuing M4.5 / starting M5
-**Status:** **IN PROGRESS — T1 through T7 done (10 commits). T8 through T15 still pending.** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
+**Status:** **IN PROGRESS — T1 through T7 done (11 commits). T8 through T15 still pending.** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
 
 ---
 
@@ -25,6 +25,7 @@
 | `e333905` | M4.5-T6.5-FU — failure-injection test for `populate_store` rollback path (trigger-based; closes the §5.9 deferred item) | 1 | +81/-0 |
 | `943df27` | M4.5-T7 (part 1) — version bump 0.1.0 → 0.4.0 in `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `crates/hotdoc-core/Cargo.toml` | 4 | +4/-4 |
 | `07177d5` | M4.5-T7 (part 2) — `resizable: true` → `false` in `tauri.conf.json` (window-manager hint; programmatic `set_window_height` IPC unaffected) | 1 | +1/-1 |
+| `c228142` | M4.5-T7 (part 3) — `Cargo.lock` regeneration: [package] version entries for `hotdoc` + `hotdoc-core` synced with T7-part-1 manifest bump | 1 | +2/-2 |
 
 **Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries with both happy-path AND failure-injection tests** (was audit P1 half-populated-state gap), **every manifest version is now 0.4.0** (was 0.1.0), **the window is locked to non-resizable** (was a Tauri window-manager hint that conflicted with the fixed 420/620-height layout). Test count: 97 Rust + 71 frontend (T6.5 +1, T6.5-FU +1; T7 packaging-only).
 
@@ -116,6 +117,7 @@ package.json                                (T7: version 0.1.0 → 0.4.0)
 src-tauri/tauri.conf.json                   (T7: version 0.1.0 → 0.4.0; resizable true → false)
 src-tauri/Cargo.toml                        (T7: version 0.1.0 → 0.4.0)
 crates/hotdoc-core/Cargo.toml               (T7: version 0.1.0 → 0.4.0)
+Cargo.lock                                 (T7 follow-up: sync [package] version entries with manifest bump — cargo regenerates these on build; without the sync the lockfile diverges from the manifests)
 ```
 
 ---
