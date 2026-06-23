@@ -125,9 +125,14 @@ export class Launcher {
   }
 
   async loadEmptyView() {
+    // ponytail: M4.5-T1 / FR-R4 — when recents are disabled, skip the
+    // recents fetch and clear recentList so EmptyView doesn't briefly
+    // render stale rows from before the toggle. Pinned + Popular are
+    // independent of the toggle and still fetch.
+    if (!this.recentsEnabled) this.recentList = [];
     try {
       const [r, p, pop] = await Promise.all([
-        getRecents(5),
+        this.recentsEnabled ? getRecents(5) : Promise.resolve([] as Recent[]),
         pinned.fetchPinned(),
         getPopular(8).catch(() => [] as SearchHit[]),
       ]);

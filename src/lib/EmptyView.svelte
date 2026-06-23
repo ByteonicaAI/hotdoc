@@ -68,7 +68,7 @@
           aria-selected={i === selectedIndex}
           class="recent-row"
           onclick={(e) => recentClick(e, r.query)}
-          aria-label="Recent query: {r.query}"
+          aria-label="{STRINGS.ARIA_RECENT_QUERY}: {r.query}"
         >
           <span class="recent-label">{STRINGS.RECENT_LABEL}</span>
           <span class="recent-query">{r.query}</span>
@@ -86,7 +86,7 @@
           class="pinned-row"
           onclick={(e) => pinnedClick(e, p)}
           onkeydown={(e) => pinnedKey(e, p)}
-          aria-label="Pinned: {p.title}"
+          aria-label="{STRINGS.ARIA_PINNED}: {p.title}"
         >
           <span class="pin-mark" aria-hidden="true">📌</span>
           <span class="pinned-title">{p.title}</span>
@@ -106,7 +106,7 @@
           class="pinned-row"
           onclick={(e) => popularClick(e, p)}
           onkeydown={(e) => popularKey(e, p)}
-          aria-label="Popular: {p.title}"
+          aria-label="{STRINGS.ARIA_POPULAR}: {p.title}"
         >
           <span class="popular-title">{p.title}</span>
           <span class="pinned-syntax">{p.syntax}</span>

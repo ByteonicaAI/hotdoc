@@ -13,6 +13,10 @@ export const STRINGS = {
   // Empty-view section labels
   RECENT_LABEL: "Recent",
   POPULAR_LABEL: "Popular",
+  // Empty-view aria-labels (NFR-10: static aria-label text must live in STRINGS)
+  ARIA_RECENT_QUERY: "Recent query",
+  ARIA_PINNED: "Pinned",
+  ARIA_POPULAR: "Popular",
   // ResultItem actions
   CARD_ACTIONS_ARIA: "Card actions",
   COPY_EXAMPLE_BTN: "Copy example",
