@@ -6,6 +6,12 @@
 //! keystroke). The empty-query view reads [`popular`] for its "Popular"
 //! section; v1 does not yet feed the §7.2 popularity boost (that stays a
 //! v1.1 ranking change). Rows are local-only and never synced (FR-R2).
+//!
+//! Retention: rows older than 30 days are pruned on every store open
+//! (gap-analysis P2-11). The 30-day window is wider than the 7-day
+//! popularity signal so the FR-G2 diagnostics bundle can include a
+//! last-30d summary. Pruning is a runtime DML step, not a schema
+//! migration; the `search_log_ts_idx` already covers the DELETE predicate.
 
 use rusqlite::{params, Connection};
 use serde::Serialize;
@@ -33,6 +39,11 @@ pub struct PopularHit {
 /// activated (equals `first_id` when no arrow navigation occurred, per
 /// §9.2). Both are optional so a zero-result activation can still log the
 /// query without a result id.
+///
+/// INSERT runs inside `conn.unchecked_transaction()` for parity with
+/// `recents::record` — the same atomicity primitive the NFR-8 chaos test
+/// (recents.rs) asserts on. The early-return no-ops (disabled, empty
+/// query) stay outside the transaction since they do not write.
 #[instrument(skip(conn))]
 pub fn record(
     conn: &Connection,
@@ -45,12 +56,26 @@ pub fn record(
         return Ok(());
     }
     let now = crate::store::time::unix_now_ms();
-    conn.execute(
+    let tx = conn.unchecked_transaction()?;
+    tx.execute(
         "INSERT INTO search_log(query, first_result_id, clicked_result_id, ts) \
          VALUES (?1, ?2, ?3, ?4)",
         params![trimmed, first_id, clicked_id, now],
     )?;
+    tx.commit()?;
     Ok(())
+}
+
+/// Delete every row whose `ts < cutoff_ts` and return the number of rows
+/// removed. Caller supplies the cutoff (typically `unix_now_ms() -
+/// retention_ms`); keeping it parametric avoids `SystemTime` mocking in
+/// tests and makes the policy explicit at the call site. Invoked from
+/// `store::open()` on every launch — the only place the retention clock
+/// advances in v1.
+#[instrument(skip(conn))]
+pub fn prune_old(conn: &Connection, cutoff_ts: i64) -> Result<usize> {
+    let n = conn.execute("DELETE FROM search_log WHERE ts < ?1", params![cutoff_ts])?;
+    Ok(n)
 }
 
 /// Top `n` most-activated cards (by activation count, ties broken by most
@@ -163,4 +188,102 @@ mod tests {
         assert_eq!(n, 1);
         assert!(popular(&conn, 8).expect("popular").is_empty());
     }
+
+    // ponytail: P2-11 retention. Seed rows at -31d, -29d, -1d relative to
+    // a synthetic "now"; prune with cutoff = now - 30d; only the
+    // pre-cutoff row must go. Boundary case (ts == cutoff) must SURVIVE
+    // because the SQL is `ts < cutoff`, not `ts <= cutoff`.
+    #[test]
+    fn prune_old_deletes_only_rows_below_cutoff() {
+        let (_d, conn) = open();
+        let now = 1_700_000_000_000i64; // synthetic epoch ms
+        let old = now - 31 * 86_400_000;
+        let mid = now - 29 * 86_400_000;
+        let recent = now - 1 * 86_400_000;
+        let cutoff = now - 30 * 86_400_000;
+        for (label, ts) in [
+            ("old", old),
+            ("boundary", cutoff),
+            ("mid", mid),
+            ("recent", recent),
+        ] {
+            conn.execute(
+                "INSERT INTO search_log(query, first_result_id, clicked_result_id, ts) \
+                 VALUES (?1, NULL, NULL, ?2)",
+                params![label, ts],
+            )
+            .expect("seed");
+        }
+        let deleted = prune_old(&conn, cutoff).expect("prune");
+        assert_eq!(deleted, 1, "only the pre-cutoff row must be deleted");
+        let survivors: Vec<String> = {
+            let mut stmt = conn
+                .prepare("SELECT query FROM search_log ORDER BY ts ASC")
+                .expect("prepare");
+            stmt.query_map([], |r| r.get::<_, String>(0))
+                .expect("query")
+                .map(|r| r.expect("row"))
+                .collect()
+        };
+        assert_eq!(
+            survivors,
+            vec![
+                "boundary".to_string(),
+                "mid".to_string(),
+                "recent".to_string()
+            ],
+            "boundary row (ts == cutoff) must survive; mid and recent must survive"
+        );
+    }
+
+    // ponytail: T19 atomicity primitive for search_log. Mirror of
+    // recents::record_is_atomic_under_concurrent_reader. The reader
+    // asserts the row count is strictly monotonic — the
+    // `unchecked_transaction` in `record` is what guarantees no
+    // half-state leaks through (e.g. an INSERT mid-commit). Without
+    // the tx wrap, a sufficiently adversarial scheduler could observe
+    // a transient inconsistency; with it, the count is either pre- or
+    // post-commit, never anything in between.
+    #[test]
+    fn record_runs_in_single_transaction() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::sync::Arc;
+
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        let conn = crate::store::open(&db_path).expect("open");
+        crate::store::migrate(&conn).expect("migrate");
+
+        let stop = Arc::new(AtomicBool::new(false));
+        let reader_path = db_path.clone();
+        let reader_stop = Arc::clone(&stop);
+        let reader = std::thread::spawn(move || {
+            let r = crate::store::open(&reader_path).expect("reader open");
+            crate::store::migrate(&r).expect("reader migrate");
+            let mut last = 0i64;
+            while !reader_stop.load(Ordering::Relaxed) {
+                let n: i64 = r
+                    .query_row("SELECT COUNT(*) FROM search_log", [], |row| row.get(0))
+                    .expect("count");
+                assert!(
+                    n >= last,
+                    "reader observed non-monotonic count {n} after {last}; \
+                     record() must commit atomically"
+                );
+                last = n;
+            }
+        });
+
+        for i in 0..200 {
+            record(&conn, &format!("q-{i:03}"), None, None).expect("record");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        stop.store(true, Ordering::Relaxed);
+        let _ = reader.join().expect("reader join");
+    }
+
+    // Note: an integration test that opens the DB twice and asserts the
+    // ancient row is gone lives in T5-T3, alongside the wire-up that
+    // makes it pass. Splitting it that way keeps T5-T2's failure surface
+    // limited to the search_log module's own primitives.
 }

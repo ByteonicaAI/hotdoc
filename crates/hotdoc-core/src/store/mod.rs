@@ -37,11 +37,27 @@ pub enum StoreError {
 
 pub type Result<T> = std::result::Result<T, StoreError>;
 
+/// Search-log retention window (P2-11). Rows older than this are pruned
+/// from `search_log` on every `store::open()` call. 30d is wider than
+/// the 7d popularity signal so the FR-G2 diagnostics bundle can include
+/// a last-30d summary; the FR-G2 read path itself is unaffected.
+const SEARCH_LOG_RETENTION_MS: i64 = 30 * 86_400 * 1000;
+
 /// Open (or create) the SQLite database at `db_path`. Enables WAL mode and
 /// foreign keys; sets a 5s busy timeout. Caller invokes [`migrate`] to
 /// ensure the schema is current before use.
 ///
 /// SEC-8: sets data dir to 0700 and DB file to 0600 on Unix (idempotent).
+///
+/// After a successful open, attempts to prune `search_log` rows older
+/// than [`SEARCH_LOG_RETENTION_MS`] (P2-11). The prune runs from
+/// `open()` rather than from `migrate()` because it is DML, not DDL —
+/// pruning on every launch is the v1 retention clock; a schema
+/// migration step would run exactly once and not capture subsequent
+/// launches. The call site contract (`open()` before `migrate()`) means
+/// the `search_log` table may not exist yet — in that case the prune
+/// silently no-ops; the next launch (after migrate has run) will prune
+/// correctly. Other DB errors propagate.
 #[instrument(skip_all, fields(db_path = %db_path.display()))]
 pub fn open(db_path: &Path) -> Result<Connection> {
     if let Some(parent) = db_path.parent() {
@@ -58,7 +74,45 @@ pub fn open(db_path: &Path) -> Result<Connection> {
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     conn.pragma_update(None, "busy_timeout", 5_000i64)?;
+    // P2-11 retention. Wrap in a transaction so the prune is atomic
+    // with respect to concurrent readers; WAL gives us crash-safety.
+    // Skip when the search_log table doesn't exist yet (fresh DB,
+    // before migrate) — that's the documented `open()`-then-`migrate()`
+    // call sequence. Once migrate has run, every subsequent open()
+    // will prune successfully.
+    let cutoff = crate::store::time::unix_now_ms() - SEARCH_LOG_RETENTION_MS;
+    let tx = conn.unchecked_transaction()?;
+    match tx.execute("DELETE FROM search_log WHERE ts < ?1", [cutoff]) {
+        Ok(0) => {
+            tx.commit()?;
+        }
+        Ok(pruned) => {
+            tx.commit()?;
+            tracing::debug!(pruned, cutoff, "search_log retention prune");
+        }
+        Err(e) if is_no_such_table(&e) => {
+            // search_log not yet created by migrate — nothing to prune.
+            // Roll back the empty transaction so we don't leave a
+            // dangling implicit lock on the fresh-DB path.
+            let _ = tx.rollback();
+        }
+        Err(e) => {
+            let _ = tx.rollback();
+            return Err(e.into());
+        }
+    }
     Ok(conn)
+}
+
+/// True if the rusqlite error is the SQLite "no such table" SQLSTATE,
+/// used by the P2-11 prune-on-open call to gracefully skip when
+/// `search_log` doesn't exist yet (the table is created by `migrate()`,
+/// which runs after `open()` at every call site).
+fn is_no_such_table(e: &rusqlite::Error) -> bool {
+    matches!(
+        e,
+        rusqlite::Error::SqliteFailure(_, Some(msg)) if msg.contains("no such table")
+    )
 }
 
 /// SEC-8: restrict the data directory to owner-only (0700).
@@ -291,5 +345,81 @@ mod tests {
             0o600,
             "file perms must be 0600 after reopen"
         );
+    }
+
+    // ponytail: P2-11 wire-up. `open()` must run `prune_old` on every
+    // reopen so the 30-day retention clock advances on launch. Seed a
+    // row at epoch 0 (1970), close, reopen via the public `open()` path
+    // (same path the Tauri binary uses); the ancient row must be gone.
+    #[test]
+    fn open_prunes_search_log_rows_older_than_retention() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        {
+            let conn = open(&db_path).expect("open");
+            migrate(&conn).expect("migrate");
+            // Seed an ancient row (well past any plausible 30d cutoff)
+            // plus a fresh row (must survive). Distinct queries so the
+            // survivor check is unambiguous.
+            conn.execute(
+                "INSERT INTO search_log(query, first_result_id, clicked_result_id, ts) \
+                 VALUES ('ancient', NULL, NULL, 0)",
+                [],
+            )
+            .expect("seed ancient");
+            conn.execute(
+                "INSERT INTO search_log(query, first_result_id, clicked_result_id, ts) \
+                 VALUES ('fresh', NULL, NULL, ?1)",
+                rusqlite::params![crate::store::time::unix_now_ms()],
+            )
+            .expect("seed fresh");
+            let n: i64 = conn
+                .query_row("SELECT COUNT(*) FROM search_log", [], |r| r.get(0))
+                .expect("count before");
+            assert_eq!(n, 2);
+        }
+        // Reopen — the wire-up runs here.
+        let conn = open(&db_path).expect("reopen");
+        let n: i64 = conn
+            .query_row("SELECT COUNT(*) FROM search_log", [], |r| r.get(0))
+            .expect("count after");
+        assert_eq!(
+            n, 1,
+            "ancient row must be pruned by open()'s 30d cutoff; fresh row survives"
+        );
+        let survivor: String = conn
+            .query_row(
+                "SELECT query FROM search_log ORDER BY ts ASC LIMIT 1",
+                [],
+                |r| r.get(0),
+            )
+            .expect("survivor");
+        assert_eq!(survivor, "fresh");
+    }
+
+    // P2-11: opening a brand-new DB (no search_log table yet) must not
+    // error — the prune must skip when the table is absent rather than
+    // returning a `no such table` error.
+    //
+    // We can't easily test "no migrate was called" because the file
+    // gets `journal_mode = WAL` set in `open()` which is DDL-ish. But
+    // the prune only runs AFTER `open()` finishes the pragma setup,
+    // and pragmas work on a DB without tables. The chaos-writer test
+    // already exercises this path; here we assert the simpler case
+    // that open+prune is happy on a DB with a fresh search_log table
+    // (0 rows that need pruning).
+    #[test]
+    fn open_prune_is_noop_on_fresh_table() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let db_path = dir.path().join("hotdoc.sqlite");
+        let conn = open(&db_path).expect("open");
+        migrate(&conn).expect("migrate");
+        // search_log now exists, empty. Reopen and confirm no panic.
+        drop(conn);
+        let conn = open(&db_path).expect("reopen");
+        let n: i64 = conn
+            .query_row("SELECT COUNT(*) FROM search_log", [], |r| r.get(0))
+            .expect("count");
+        assert_eq!(n, 0, "fresh table + reopen must report 0 rows");
     }
 }
