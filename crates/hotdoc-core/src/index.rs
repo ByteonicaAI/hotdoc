@@ -181,7 +181,7 @@ impl HotdocIndex {
                 &meta.description,
                 &self.entry_meta_tags(&id),
             );
-            let src = apply_source_priority(score, &source);
+            let src = apply_source_priority(&source);
             let pop = popularity.get(&id).copied().unwrap_or(0.0);
             let adjusted_score = score + exact + src + pop;
             hits.push(SearchHit {
@@ -501,8 +501,10 @@ fn apply_exact_match_bonuses(
 // authoritative. Pre-T17 was multiplicative (×2.0/×1.5/×1.0);
 // spec §7.2 calls for additive so the priority doesn't dwarf the
 // exact-match bonuses. Personal is rejected by pack validation
-// and never reaches here.
-fn apply_source_priority(_score: f32, source: &str) -> f32 {
+// and never reaches here. Score-relative scaling was dropped: the
+// offset is a fixed f32 per source, not a function of the BM25
+// score — keeps the additive stacking in `search` deterministic.
+fn apply_source_priority(source: &str) -> f32 {
     let offset: f32 = match source {
         "official" => 1.0,
         "cheat-sheet" => 0.5,

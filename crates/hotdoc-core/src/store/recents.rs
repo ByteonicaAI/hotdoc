@@ -218,7 +218,7 @@ mod tests {
         }
         std::thread::sleep(std::time::Duration::from_millis(20));
         stop.store(true, Ordering::Relaxed);
-        let _ = reader.join().expect("reader join");
+        reader.join().expect("reader join");
     }
 
     // ponytail: T19 (audit §3.4 error visibility). Pre-T19 the
