@@ -3,7 +3,7 @@
 **Date:** 2026-06-23
 **From:** M4.5 execution session (CI-breaking → reconciliation)
 **To:** the agent(s) continuing M4.5 / starting M5
-**Status:** **IN PROGRESS — T1 through T6.5 done (8 commits). T7 through T15 still pending.** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
+**Status:** **IN PROGRESS — T1 through T7 done (10 commits). T8 through T15 still pending.** Each remaining task follows the default workflow (plan → approval gate → execute). Rust backend, schema, CI, dependency additions, and broad refactors need owner approval before implementation.
 
 ---
 
@@ -23,8 +23,10 @@
 | `051cf52` | M4.5-T6 — `apply_source_priority` drops unused `_score` param + `recents.rs:221` drops `let _ = ` binding; **populate_store outer-tx NOT closed** (became T6.5) | 2 | +6/-4 |
 | `4734e3a` | M4.5-T6.5 — populate_store atomic across packs + entries: `upsert_all_tx` variants on `packs` + `entries`; populate_store opens one outer tx and calls both `_tx` variants; 1 new integration test | 4 | +134/-10 |
 | `e333905` | M4.5-T6.5-FU — failure-injection test for `populate_store` rollback path (trigger-based; closes the §5.9 deferred item) | 1 | +81/-0 |
+| `943df27` | M4.5-T7 (part 1) — version bump 0.1.0 → 0.4.0 in `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `crates/hotdoc-core/Cargo.toml` | 4 | +4/-4 |
+| `07177d5` | M4.5-T7 (part 2) — `resizable: true` → `false` in `tauri.conf.json` (window-manager hint; programmatic `set_window_height` IPC unaffected) | 1 | +1/-1 |
 
-**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries with both happy-path AND failure-injection tests** (was audit P1 half-populated-state gap). Test count: 97 Rust + 71 frontend (T6.5 +1, T6.5-FU +1).
+**Net effect:** CI grep gate clean, NFR-10 extraction complete, SEC-3 closed, search_log retention now real (was false closure), search_log::record has the same atomicity primitive as recents::record, `apply_source_priority` no longer carries a vestigial parameter, the recents atomicity test has a cleaner thread join, **populate_store is now atomic across packs + entries with both happy-path AND failure-injection tests** (was audit P1 half-populated-state gap), **every manifest version is now 0.4.0** (was 0.1.0), **the window is locked to non-resizable** (was a Tauri window-manager hint that conflicted with the fixed 420/620-height layout). Test count: 97 Rust + 71 frontend (T6.5 +1, T6.5-FU +1; T7 packaging-only).
 
 ---
 
@@ -110,6 +112,10 @@ crates/hotdoc-core/src/store/entries.rs     (T6.5: add upsert_all_tx pub(crate);
 crates/hotdoc-core/src/index.rs             (T6.5: populate_store opens outer unchecked_transaction + calls both upsert_all_tx variants + commits; doc comment describes atomicity)
 crates/hotdoc-core/src/index_resolver.rs    (T6.5: +1 test populate_store_replaces_existing_data_atomically)
 crates/hotdoc-core/src/index_resolver.rs    (T6.5-FU: +1 test populate_store_rolls_back_packs_when_entries_fail — trigger-based failure-injection)
+package.json                                (T7: version 0.1.0 → 0.4.0)
+src-tauri/tauri.conf.json                   (T7: version 0.1.0 → 0.4.0; resizable true → false)
+src-tauri/Cargo.toml                        (T7: version 0.1.0 → 0.4.0)
+crates/hotdoc-core/Cargo.toml               (T7: version 0.1.0 → 0.4.0)
 ```
 
 ---
@@ -123,8 +129,9 @@ Sequencing from the plan, accounting for the T1→T2 ordering and the false-posi
 | B | T5 — `search_log::prune_old` + outer-tx wrap + P2-11 reclose | **Done** | none |
 | B | T6 — `apply_source_priority` `_score` removal + `recents.rs:221` `let _ = ` cleanup | **Done** (cleanup only — populate_store outer-tx split to T6.5) | none |
 | B | T6.5 — `populate_store` outer-transaction for crash atomicity between `packs::upsert_all` and `entries::upsert_all` | **Done** (4-file refactor: `upsert_all_tx` pub(crate) variants + populate_store outer-tx + 1 new integration test) | refactor path documented in §5.9 |
-| B | T7 — version 0.1.0 → 0.4.0 in `package.json` + `tauri.conf.json` + `src-tauri/Cargo.toml`; `resizable: true` → `false` | **Next** | independent of T6.5; XS |
-| B | T8 — FR-T3 first-launch notification (adds `tauri-plugin-notification`, fires once via `first_launch_shown` setting) | after T7 | version should be correct before first-launch fires |
+| B | T6.5-FU — failure-injection test for `populate_store` rollback path | **Done** (trigger-based; closes §5.9 deferred item; +1 test in `index_resolver.rs`) | none |
+| B | T7 — version 0.1.0 → 0.4.0 in `package.json` + `tauri.conf.json` + `src-tauri/Cargo.toml` + `crates/hotdoc-core/Cargo.toml`; `resizable: true` → `false` | **Done** | XS |
+| B | T8 — FR-T3 first-launch notification (adds `tauri-plugin-notification`, fires once via `first_launch_shown` setting) | **Next** | T7 done (version is now correct); adds Tauri dependency → approval gate |
 | C | T9 — bench-open: 30 iterations in CI, `MAX_P50_MS = 150` | independent | needs spec-vs-CI p50 discussion (CI is 50ms, spec is 150ms — loosening to spec) |
 | C | T10 — nfr-memory.sh: aggregate parent + descendant VmRSS | independent | trivial shell edit |
 | C | T11 — NFR-7 soak disposition | independent | Option A (recommended, owner-approved): accept 60s CI soak as deviation, document 600s pre-release manual smoke |
@@ -133,7 +140,7 @@ Sequencing from the plan, accounting for the T1→T2 ordering and the false-posi
 | E | T14 — `verify:all` completeness + `cargo-audit` cache + commitlint `scope-enum` + `string:check` | after T9/T10/T11 | verify:all adds the bench scripts |
 | F | T15 — gap-analysis + audit reconciliation | last | depends on all above closing |
 
-**Recommended next task:** T7 (version bump to 0.4.0 + `resizable: false`). It's independent of the rest of M4.5, XS scope, and unlocks T8 (which depends on the version being correct). T6.5 is now closed.
+**Recommended next task:** T8 (FR-T3 first-launch notification — adds `tauri-plugin-notification` dependency + first-launch setting). T7 is now closed (version is correct, window locked). T8 adds a Tauri dependency, so it goes through the full plan → approval → spec → approval → tasks → approval → execute cycle.
 
 ---
 
@@ -194,7 +201,7 @@ The plan's naive "wrap both in `conn.transaction`" approach hit `cannot start a 
 | `pnpm format:check` | ✅ clean | |
 | `pnpm test --run` | ✅ 71/71 passing | was 67 before T4 |
 | `pnpm audit --audit-level=high` | not run this session | (T14 will add it to verify:all) |
-| `cargo test --workspace` | ✅ 97 unit + 1 chaos, all pass | verified after T6.5-FU (was 96; T5 +1, T6.5 +1, T6.5-FU +1; T6 cleanup added 0) |
+| `cargo test --workspace` | ✅ 97 unit + 1 chaos, all pass | verified after T6.5-FU (was 96; T5 +1, T6.5 +1, T6.5-FU +1; T6 + T7 added 0) |
 | `cargo fmt --all --check` | ✅ clean | |
 | `cargo clippy --all-targets -- -D warnings` | ✅ clean | |
 | NFR-10 aria-label grep | ✅ PASS | zero hits |
