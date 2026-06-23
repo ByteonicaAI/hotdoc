@@ -1,6 +1,6 @@
 {
   "name": "hotdoc",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "description": "hotdoc is a local-first, keyboard driven desktop launcher that answers one question fast: \"what's the command for the tool I already know?\" Press a global hotkey, type a few fuzzy words, get the command, copy, paste, and back to flow.",
   "type": "module",
   "engines": {
