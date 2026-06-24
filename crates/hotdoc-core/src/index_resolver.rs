@@ -12,7 +12,7 @@
 //! distraction the audit specifically called out as out-of-scope.
 
 use anyhow::{anyhow, Context, Result};
-use rusqlite::Connection;
+use rusqlite::{params, Connection};
 use std::path::{Path, PathBuf};
 use tracing::{error, info, instrument, warn};
 
@@ -34,6 +34,54 @@ pub fn dev_packs_dir() -> PathBuf {
 /// index. Returns None if the platform data dir is unavailable.
 pub fn persistent_index_dir() -> Option<PathBuf> {
     crate::cli::default_index_dir_option()
+}
+
+/// Fingerprint of a pack directory: sorted `filename:mtime_ns:size` pairs
+/// joined by `|`. Stable across launches as long as files are unchanged.
+/// mtime granularity is nanoseconds (falls back to 0 if unsupported by the
+/// filesystem or OS; size is included as a secondary discriminant).
+fn pack_dir_fingerprint(dir: &Path) -> String {
+    let mut files: Vec<(String, u64, u64)> = std::fs::read_dir(dir)
+        .ok()
+        .into_iter()
+        .flatten()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("json"))
+        .filter_map(|e| {
+            let name = e.file_name().to_string_lossy().into_owned();
+            let meta = e.metadata().ok()?;
+            let mtime = meta
+                .modified()
+                .ok()?
+                .duration_since(std::time::UNIX_EPOCH)
+                .ok()?
+                .as_nanos() as u64;
+            Some((name, mtime, meta.len()))
+        })
+        .collect();
+    files.sort_unstable_by(|a, b| a.0.cmp(&b.0));
+    files
+        .iter()
+        .map(|(n, m, s)| format!("{n}:{m}:{s}"))
+        .collect::<Vec<_>>()
+        .join("|")
+}
+
+fn read_pack_fingerprint(db: &Connection) -> Option<String> {
+    db.query_row(
+        "SELECT value FROM meta WHERE key = 'pack_dir_fingerprint'",
+        [],
+        |r| r.get::<_, String>(0),
+    )
+    .ok()
+}
+
+fn write_pack_fingerprint(db: &Connection, fp: &str) {
+    let _ = db.execute(
+        "INSERT INTO meta(key, value) VALUES ('pack_dir_fingerprint', ?1) \
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        params![fp],
+    );
 }
 
 /// Resolve + build (or reuse) the launcher's tantivy index, and mirror
@@ -112,17 +160,20 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
     info!(packs = report.loaded.len(), path = %dir.display(), "loaded packs");
     let packs = report.loaded;
 
-    // 1) Try to reuse the persistent index.
+    // FR-I2: fingerprint the pack directory so we can skip tantivy rebuild
+    // when nothing has changed. Stored in meta['pack_dir_fingerprint'].
+    let current_fp = pack_dir_fingerprint(dir);
+    let stored_fp = read_pack_fingerprint(db);
+    let packs_changed = stored_fp.as_deref() != Some(current_fp.as_str());
+
+    // 1) Try to reuse the persistent index (only when packs are unchanged).
     if let Some(p) = persistent_index_dir() {
-        if p.is_dir() {
+        if p.is_dir() && !packs_changed {
             match HotdocIndex::open(&p) {
                 Ok(idx) => {
-                    info!(path = %p.display(), "reusing index");
-                    // ponytail: even when reusing, the on-disk pack set may
-                    // have changed since last build (e.g. user edited a pack
-                    // JSON). Re-populate the SQLite mirror so pinned::list and
-                    // the palette validator see current content. Full replace
-                    // is cheap at 5 packs / 79 entries.
+                    info!(path = %p.display(), "reusing index (packs unchanged)");
+                    // Repopulate SQLite mirror even on reuse so pinned::list
+                    // and the palette validator always see current content.
                     if let Err(e) = HotdocIndex::populate_store(db, &packs) {
                         warn!(error = %format!("{e:#}"), "populate_store on reuse failed");
                     }
@@ -133,7 +184,7 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
                     }));
                 }
                 Err(e) => {
-                    // FR-I5: corrupt or incompatible index — log diagnostic and rebuild.
+                    // FR-I5: corrupt or incompatible index — log and rebuild.
                     warn!(
                         path = %p.display(),
                         error = %format!("{e:#}"),
@@ -141,14 +192,17 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
                     );
                 }
             }
+        } else if packs_changed {
+            info!("pack fingerprint changed; rebuilding tantivy index");
         }
-        // No persistent index yet (or corrupt — see warn above) — build it.
+        // No persistent index, packs changed, or open failed — build it.
         std::fs::create_dir_all(&p).ok();
         match HotdocIndex::build(&packs, &p) {
             Ok(idx) => {
                 if let Err(e) = HotdocIndex::populate_store(db, &packs) {
                     warn!(error = %format!("{e:#}"), "populate_store on build failed");
                 }
+                write_pack_fingerprint(db, &current_fp);
                 return Ok(Some(IndexResolution {
                     index: std::sync::Arc::new(idx),
                     packs,
@@ -171,13 +225,10 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
             .unwrap_or(0)
     ));
     let idx = HotdocIndex::build(&packs, &tmp).context("building runtime index")?;
-    // Tmp mirror — same code path, just a different DB connection or
-    // skipped if the caller's DB rejects the writes. Currently the
-    // launcher's `db` is the real DB; tmp fallbacks are bench/test
-    // paths and don't reach here.
     if let Err(e) = HotdocIndex::populate_store(db, &packs) {
         warn!(error = %format!("{e:#}"), "populate_store on tmp failed");
     }
+    write_pack_fingerprint(db, &current_fp);
     Ok(Some(IndexResolution {
         index: std::sync::Arc::new(idx),
         packs,
@@ -580,5 +631,67 @@ mod tests {
         );
 
         let _ = std::fs::remove_dir_all(&index_dir);
+    }
+
+    // FR-I2: pack_dir_fingerprint changes when a pack file is modified.
+    // Modifying a file must produce a different fingerprint from the original.
+    #[test]
+    fn pack_fingerprint_changes_on_file_modification() {
+        let dir = fresh_dir();
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        std::fs::write(dir.join("alpha.json"), good_pack_json("alpha")).expect("write");
+        // Small sleep to ensure mtime differs (1ms should be enough; fs
+        // resolution is typically 1s on some systems, so we write different
+        // content and rely on size change as the secondary discriminant).
+        let fp_before = super::pack_dir_fingerprint(&dir);
+        // Modify the file (change content → different size and/or mtime).
+        std::fs::write(dir.join("alpha.json"), good_pack_json("alpha-modified"))
+            .expect("overwrite");
+        let fp_after = super::pack_dir_fingerprint(&dir);
+        assert_ne!(
+            fp_before, fp_after,
+            "fingerprint must differ after pack content changes"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // FR-I2: fingerprint is stable when files are unchanged.
+    #[test]
+    fn pack_fingerprint_stable_when_unchanged() {
+        let dir = fresh_dir();
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        std::fs::write(dir.join("alpha.json"), good_pack_json("alpha")).expect("write");
+        let fp1 = super::pack_dir_fingerprint(&dir);
+        let fp2 = super::pack_dir_fingerprint(&dir);
+        assert_eq!(
+            fp1, fp2,
+            "fingerprint must be stable across consecutive reads"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // FR-I2: read/write fingerprint round-trips through the meta table.
+    #[test]
+    fn pack_fingerprint_round_trips_meta_table() {
+        let (_dbdir, conn) = open_test_db();
+        assert!(
+            super::read_pack_fingerprint(&conn).is_none(),
+            "fresh db must have no stored fingerprint"
+        );
+        super::write_pack_fingerprint(&conn, "test-fp:123:456");
+        let stored = super::read_pack_fingerprint(&conn);
+        assert_eq!(
+            stored.as_deref(),
+            Some("test-fp:123:456"),
+            "stored fingerprint must round-trip"
+        );
+        // Overwrite must replace, not duplicate.
+        super::write_pack_fingerprint(&conn, "new-fp:789:0");
+        let updated = super::read_pack_fingerprint(&conn);
+        assert_eq!(
+            updated.as_deref(),
+            Some("new-fp:789:0"),
+            "write_pack_fingerprint must update, not insert a second row"
+        );
     }
 }

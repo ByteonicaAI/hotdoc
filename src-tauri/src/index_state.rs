@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 use anyhow::Result;
 use rusqlite::Connection;
@@ -9,20 +9,14 @@ use hotdoc_core::index::HotdocIndex;
 use hotdoc_core::index_resolver;
 
 pub struct AppState {
-    // ponytail: tantivy's IndexReader wraps an Arc and is cheap to clone.
-    // Wrapping the whole HotdocIndex in a Mutex serialised every search
-    // against itself, which became a real bottleneck once M2 adds the
-    // recents-write hot path. HotdocIndex::search takes &self and is
-    // already thread-safe via the inner reader.
-    pub index: Arc<HotdocIndex>,
-    // rusqlite::Connection is not Sync in 0.31 (RefCell-based internals);
-    // the plan's "Send + Sync since 0.27" claim is wrong for 0.31. A Mutex
-    // serialises commands, which is fine: each command is a single
-    // short-lived transaction and the hot path is one `record()` per
-    // activation, not per keystroke.
+    // M5-T2: RwLock<Arc<HotdocIndex>> lets rebuild_index hot-swap the
+    // pointer without restarting. HotdocIndex::search takes &self and is
+    // thread-safe; readers hold a read lock only for the duration of the
+    // Arc::clone (cheap), then release before calling search.
+    pub index: RwLock<Arc<HotdocIndex>>,
+    // rusqlite::Connection is not Sync in 0.31; Mutex serialises commands.
     pub db: Arc<Mutex<Connection>>,
     // §7.2 popularity map built once on launcher open (not per keystroke).
-    // Arc<HashMap> is cheaply cloneable and immutable — no lock needed.
     pub popularity_map: Arc<std::collections::HashMap<String, f32>>,
 }
 

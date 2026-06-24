@@ -17,15 +17,14 @@ use crate::index_state;
 use crate::index_state::AppState;
 use crate::settings as hotkey_settings;
 
-// ponytail: P1-3. The AppState now holds Arc<HotdocIndex>; HotdocIndex::search
-// takes &self and is thread-safe via the inner tantivy::IndexReader, so no
-// per-call lock is needed. Errors are still returned as Result<T, String>
-// so the UI can toast (P1-3 from the prior review).
+// M5-T2: index is now RwLock<Arc<HotdocIndex>>. Clone the Arc under a
+// read lock (cheap), then release the lock before calling search so
+// concurrent reads never block each other.
 #[tauri::command]
 #[instrument(skip(state))]
 pub fn search(query: String, state: State<'_, AppState>) -> Result<Vec<SearchHit>, String> {
-    let hits = state
-        .index
+    let idx = state.index.read().map_err(|_| "index lock poisoned".to_string())?.clone();
+    let hits = idx
         .search(&query, 8, &state.popularity_map)
         .map_err(|e| format!("search failed: {e:#}"))?;
     info!(query = %query, hits = hits.len(), "search");
@@ -39,8 +38,8 @@ pub fn copy_syntax(
     state: State<'_, AppState>,
     app: tauri::AppHandle,
 ) -> Result<Option<String>, String> {
-    let hit = state
-        .index
+    let idx = state.index.read().map_err(|_| "index lock poisoned".to_string())?.clone();
+    let hit = idx
         .search(&query, 1, &state.popularity_map)
         .map_err(|e| format!("search failed: {e:#}"))?
         .into_iter()
@@ -286,31 +285,20 @@ pub fn set_autostart(enabled: bool, app: tauri::AppHandle) -> Result<(), String>
     }
 }
 
-// ponytail: T13 tray integration. The tray menu emits
-// `hotdoc://reload-index`; App.svelte's onMount listens, calls this
-// command, and on success calls `launcher.loadEmptyView()` so the
-// pinned/recent lists pick up the freshly-populated entries table.
-// rebuild_index returns a new Arc<HotdocIndex> which we swap into
-// AppState. Mutating the field through &mut State<AppState> is safe
-// because the State lock is held for the duration of the command
-// (Tauri serialises commands per-thread).
+// M5-T2: tray "Reload index" → frontend emits hotdoc://reload-index →
+// launcher.reloadIndex() calls this command. Build the new index while
+// holding the db lock, then release the db lock before acquiring the
+// index write lock to avoid any lock-order inversion.
 #[tauri::command]
 #[instrument(skip(state))]
 pub fn rebuild_index(state: State<'_, AppState>) -> Result<usize, String> {
-    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
-    let new_index =
-        index_state::reload_index(&conn).map_err(|e| format!("rebuild_index: {e:#}"))?;
+    let new_index = {
+        let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
+        index_state::reload_index(&conn).map_err(|e| format!("rebuild_index: {e:#}"))?
+    };
     let entries = new_index.entry_count();
-    // ponytail: we can't replace state.index through State<'_, …> directly
-    // (the field is `pub` and would need &mut access). The pragmatic fix
-    // is to wrap AppState in a Mutex — but that's a larger refactor.
-    // For now, emit an event the frontend uses to know a rebuild
-    // happened, and rely on the next launch picking up the fresh state.
-    // The rebuild itself is the load-bearing piece; the in-memory
-    // index update without restart is v1.1 work.
-    drop(conn);
-    let _ = new_index;
-    info!("rebuild_index completed");
+    *state.index.write().map_err(|_| "index write lock poisoned".to_string())? = new_index;
+    info!(entries, "rebuild_index hot-swap complete");
     Ok(entries)
 }
 
