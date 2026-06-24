@@ -19,7 +19,7 @@
       ],
       "tags": ["s3", "listing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/ls.html"
     },
     {
       "id": "aws-s3-cp",
@@ -34,7 +34,7 @@
       ],
       "tags": ["s3", "transfer"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html"
     },
     {
       "id": "aws-s3-rm",
@@ -49,7 +49,7 @@
       ],
       "tags": ["s3", "deletion"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/rm.html"
     },
     {
       "id": "aws-ec2-describe",
@@ -64,7 +64,7 @@
       ],
       "tags": ["ec2", "instances"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html"
     },
     {
       "id": "aws-lambda-invoke",
@@ -79,7 +79,7 @@
       ],
       "tags": ["lambda", "functions"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/lambda/invoke.html"
     },
     {
       "id": "aws-iam-create-user",
@@ -94,7 +94,7 @@
       ],
       "tags": ["iam", "users"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/iam/create-user.html"
     },
     {
       "id": "aws-iam-attach-policy",
@@ -109,7 +109,7 @@
       ],
       "tags": ["iam", "policies"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/iam/attach-user-policy.html"
     },
     {
       "id": "aws-dynamodb-scan",
@@ -124,7 +124,7 @@
       ],
       "tags": ["dynamodb", "tables"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/dynamodb/scan.html"
     },
     {
       "id": "aws-dynamodb-query",
@@ -139,7 +139,7 @@
       ],
       "tags": ["dynamodb", "tables"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/dynamodb/query.html"
     },
     {
       "id": "aws-cloudformation-deploy",
@@ -154,7 +154,7 @@
       ],
       "tags": ["cloudformation", "infrastructure"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/deploy.html"
     },
     {
       "id": "aws-cloudformation-describe",
@@ -169,7 +169,7 @@
       ],
       "tags": ["cloudformation", "infrastructure"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/describe-stacks.html"
     },
     {
       "id": "aws-rds-describe",
@@ -184,7 +184,7 @@
       ],
       "tags": ["rds", "databases"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/rds/describe-db-instances.html"
     },
     {
       "id": "aws-logs-describe",
@@ -199,7 +199,7 @@
       ],
       "tags": ["cloudwatch", "logging"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/describe-log-groups.html"
     },
     {
       "id": "aws-logs-filter",
@@ -214,7 +214,7 @@
       ],
       "tags": ["cloudwatch", "logging"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/filter-log-events.html"
     },
     {
       "id": "aws-cli-configure",
@@ -229,7 +229,7 @@
       ],
       "tags": ["config", "authentication"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/configure/index.html"
     },
     {
       "id": "aws-sts-get-caller-identity",

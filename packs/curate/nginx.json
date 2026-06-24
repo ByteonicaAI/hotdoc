@@ -19,7 +19,7 @@
       ],
       "tags": ["config", "server"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#server"
     },
     {
       "id": "nginx-location-block",
@@ -34,7 +34,7 @@
       ],
       "tags": ["config", "routing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#location"
     },
     {
       "id": "nginx-proxy-pass",
@@ -49,7 +49,7 @@
       ],
       "tags": ["proxy", "routing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass"
     },
     {
       "id": "nginx-listen",
@@ -64,7 +64,7 @@
       ],
       "tags": ["config", "ports"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#listen"
     },
     {
       "id": "nginx-ssl-certificate",
@@ -79,7 +79,7 @@
       ],
       "tags": ["ssl", "security"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate"
     },
     {
       "id": "nginx-error-log",
@@ -94,7 +94,7 @@
       ],
       "tags": ["logging", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/ngx_core_module.html#error_log"
     },
     {
       "id": "nginx-access-log",
@@ -109,7 +109,7 @@
       ],
       "tags": ["logging", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log"
     },
     {
       "id": "nginx-upstream",
@@ -124,7 +124,7 @@
       ],
       "tags": ["load-balancing", "upstream"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html#upstream"
     },
     {
       "id": "nginx-redirect",
@@ -139,7 +139,7 @@
       ],
       "tags": ["routing", "redirect"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return"
     },
     {
       "id": "nginx-gzip",
@@ -154,7 +154,7 @@
       ],
       "tags": ["compression", "performance"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_gzip_module.html"
     },
     {
       "id": "nginx-proxy-headers",
@@ -169,7 +169,7 @@
       ],
       "tags": ["proxy", "headers"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header"
     },
     {
       "id": "nginx-http-block",
@@ -184,7 +184,7 @@
       ],
       "tags": ["config", "structure"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#http"
     },
     {
       "id": "nginx-include",
@@ -199,7 +199,7 @@
       ],
       "tags": ["config", "modular"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/ngx_core_module.html#include"
     },
     {
       "id": "nginx-cache",
@@ -214,7 +214,7 @@
       ],
       "tags": ["caching", "performance"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache"
     },
     {
       "id": "nginx-rate-limit",
@@ -229,7 +229,7 @@
       ],
       "tags": ["security", "rate-limiting"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html"
     },
     {
       "id": "nginx-test-config",

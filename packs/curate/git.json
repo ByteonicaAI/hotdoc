@@ -34,7 +34,7 @@
       ],
       "tags": ["stash", "restore", "apply"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-stash"
     },
     {
       "id": "git-stash-list",
@@ -49,7 +49,7 @@
       ],
       "tags": ["stash", "list", "show"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-stash"
     },
     {
       "id": "git-reset-hard-head",
@@ -64,7 +64,7 @@
       ],
       "tags": ["reset", "discard", "hard", "undo"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-reset"
     },
     {
       "id": "git-reset-soft-head-1",
@@ -109,7 +109,7 @@
       ],
       "tags": ["branch", "switch", "checkout"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-checkout"
     },
     {
       "id": "git-branch-delete",
@@ -124,7 +124,7 @@
       ],
       "tags": ["branch", "delete", "remove"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-branch"
     },
     {
       "id": "git-cherry-pick",
@@ -154,7 +154,7 @@
       ],
       "tags": ["log", "oneline", "history"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-log"
     },
     {
       "id": "git-log-graph",
@@ -169,7 +169,7 @@
       ],
       "tags": ["log", "graph", "history", "branches"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-log"
     },
     {
       "id": "git-diff-staged",
@@ -184,7 +184,7 @@
       ],
       "tags": ["diff", "staged", "cached", "review"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-diff"
     },
     {
       "id": "git-rebase-interactive",
@@ -199,7 +199,7 @@
       ],
       "tags": ["rebase", "interactive", "squash", "edit"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-rebase"
     },
     {
       "id": "git-fetch-prune",
@@ -214,7 +214,7 @@
       ],
       "tags": ["fetch", "prune", "remote", "cleanup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-fetch"
     },
     {
       "id": "git-remote-add",
@@ -229,7 +229,7 @@
       ],
       "tags": ["remote", "add", "url"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-remote"
     },
     {
       "id": "git-tag",
@@ -244,7 +244,7 @@
       ],
       "tags": ["tag", "release", "version"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-tag"
     },
     {
       "id": "git-merge",
@@ -259,7 +259,7 @@
       ],
       "tags": ["merge", "branch", "combine"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-merge"
     },
     {
       "id": "git-blame",
@@ -274,7 +274,7 @@
       ],
       "tags": ["blame", "history", "author"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-blame"
     },
     {
       "id": "git-rebase-continue",
@@ -289,7 +289,7 @@
       ],
       "tags": ["rebase", "continue", "conflict"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-rebase"
     },
     {
       "id": "git-grep",
@@ -304,7 +304,7 @@
       ],
       "tags": ["grep", "search", "pattern"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-grep"
     },
     {
       "id": "git-reflog",
@@ -319,7 +319,7 @@
       ],
       "tags": ["reflog", "recovery", "history"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-reflog"
     },
     {
       "id": "git-show",
@@ -334,7 +334,7 @@
       ],
       "tags": ["show", "diff", "commit"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-show"
     },
     {
       "id": "git-push",
@@ -349,7 +349,7 @@
       ],
       "tags": ["push", "remote", "upload"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-push"
     },
     {
       "id": "git-pull",
@@ -364,7 +364,7 @@
       ],
       "tags": ["pull", "fetch", "merge", "remote"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://git-scm.com/docs/git-pull"
     },
     {
       "id": "git-status",

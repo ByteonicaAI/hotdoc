@@ -19,7 +19,7 @@
       ],
       "tags": ["dependencies", "installation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/install"
     },
     {
       "id": "pnpm-add",
@@ -34,7 +34,7 @@
       ],
       "tags": ["dependencies", "package-management"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/add"
     },
     {
       "id": "pnpm-remove",
@@ -49,7 +49,7 @@
       ],
       "tags": ["dependencies", "package-management"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/remove"
     },
     {
       "id": "pnpm-run",
@@ -64,7 +64,7 @@
       ],
       "tags": ["scripts", "execution"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/run"
     },
     {
       "id": "pnpm-update",
@@ -79,7 +79,7 @@
       ],
       "tags": ["dependencies", "updates"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/update"
     },
     {
       "id": "pnpm-list",
@@ -94,7 +94,7 @@
       ],
       "tags": ["inspection", "packages"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/list"
     },
     {
       "id": "pnpm-why",
@@ -109,7 +109,7 @@
       ],
       "tags": ["inspection", "debugging"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/why"
     },
     {
       "id": "pnpm-audit",
@@ -124,7 +124,7 @@
       ],
       "tags": ["security", "vulnerability"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/audit"
     },
     {
       "id": "pnpm-publish",
@@ -139,7 +139,7 @@
       ],
       "tags": ["publishing", "npm"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/publish"
     },
     {
       "id": "pnpm-dedupe",
@@ -154,7 +154,7 @@
       ],
       "tags": ["optimization", "lock-file"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/dedupe"
     },
     {
       "id": "pnpm-link",
@@ -169,7 +169,7 @@
       ],
       "tags": ["development", "linking"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/link"
     },
     {
       "id": "pnpm-store",
@@ -184,7 +184,7 @@
       ],
       "tags": ["cleanup", "store"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/store"
     },
     {
       "id": "pnpm-workspace",
@@ -199,7 +199,7 @@
       ],
       "tags": ["workspace", "monorepo"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/workspaces"
     },
     {
       "id": "pnpm-exec",
@@ -214,7 +214,7 @@
       ],
       "tags": ["execution", "binaries"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/exec"
     },
     {
       "id": "pnpm-test",
@@ -229,7 +229,7 @@
       ],
       "tags": ["testing", "scripts"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/cli/test"
     },
     {
       "id": "pnpm-filter",
@@ -244,7 +244,7 @@
       ],
       "tags": ["workspace", "filtering"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://pnpm.io/filtering"
     },
     {
       "id": "pnpm-dlx",

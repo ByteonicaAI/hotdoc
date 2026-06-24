@@ -19,7 +19,7 @@
       ],
       "tags": ["ps", "list", "running"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/ls/"
     },
     {
       "id": "docker-ps-all",
@@ -34,7 +34,7 @@
       ],
       "tags": ["ps", "list", "all", "stopped"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/ls/"
     },
     {
       "id": "docker-images",
@@ -49,7 +49,7 @@
       ],
       "tags": ["images", "list", "local"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/ls/"
     },
     {
       "id": "docker-run",
@@ -64,7 +64,7 @@
       ],
       "tags": ["run", "create", "start"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/run/"
     },
     {
       "id": "docker-run-rm",
@@ -79,7 +79,7 @@
       ],
       "tags": ["run", "rm", "ephemeral", "one-shot"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/run/"
     },
     {
       "id": "docker-exec",
@@ -94,7 +94,7 @@
       ],
       "tags": ["exec", "shell", "interactive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/exec/"
     },
     {
       "id": "docker-logs",
@@ -109,7 +109,7 @@
       ],
       "tags": ["logs", "tail", "follow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/logs/"
     },
     {
       "id": "docker-logs-tail",
@@ -124,7 +124,7 @@
       ],
       "tags": ["logs", "tail", "history"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/logs/"
     },
     {
       "id": "docker-stop",
@@ -139,7 +139,7 @@
       ],
       "tags": ["stop", "shutdown"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/stop/"
     },
     {
       "id": "docker-start",
@@ -154,7 +154,7 @@
       ],
       "tags": ["start", "resume"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/start/"
     },
     {
       "id": "docker-rm",
@@ -169,7 +169,7 @@
       ],
       "tags": ["rm", "remove", "cleanup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/rm/"
     },
     {
       "id": "docker-rmi",
@@ -184,7 +184,7 @@
       ],
       "tags": ["rmi", "remove", "image", "cleanup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/rm/"
     },
     {
       "id": "docker-pull",
@@ -199,7 +199,7 @@
       ],
       "tags": ["pull", "download", "registry"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/pull/"
     },
     {
       "id": "docker-build",
@@ -229,7 +229,7 @@
       ],
       "tags": ["prune", "cleanup", "disk"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/system/prune/"
     },
     {
       "id": "docker-inspect",
@@ -244,7 +244,7 @@
       ],
       "tags": ["inspect", "debug", "json"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/inspect/"
     },
     {
       "id": "docker-network-ls",
@@ -259,7 +259,7 @@
       ],
       "tags": ["network", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/network/ls/"
     },
     {
       "id": "docker-volume-ls",
@@ -274,7 +274,7 @@
       ],
       "tags": ["volume", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/volume/ls/"
     },
     {
       "id": "docker-tag",
@@ -289,7 +289,7 @@
       ],
       "tags": ["tag", "image", "registry"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/tag/"
     },
     {
       "id": "docker-push",
@@ -304,7 +304,7 @@
       ],
       "tags": ["push", "registry", "upload"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/push/"
     },
     {
       "id": "docker-save",
@@ -319,7 +319,7 @@
       ],
       "tags": ["save", "export", "archive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/save/"
     },
     {
       "id": "docker-load",
@@ -334,7 +334,7 @@
       ],
       "tags": ["load", "import", "archive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/load/"
     },
     {
       "id": "docker-rename",
@@ -349,7 +349,7 @@
       ],
       "tags": ["rename", "container"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/rename/"
     },
     {
       "id": "docker-update",
@@ -364,7 +364,7 @@
       ],
       "tags": ["update", "config", "resources"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/update/"
     },
     {
       "id": "docker-attach",
@@ -379,7 +379,7 @@
       ],
       "tags": ["attach", "logs", "interactive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/container/attach/"
     },
     {
       "id": "docker-history",
@@ -394,7 +394,7 @@
       ],
       "tags": ["history", "image", "layers"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.docker.com/reference/cli/docker/image/history/"
     },
     {
       "id": "docker-run-port",

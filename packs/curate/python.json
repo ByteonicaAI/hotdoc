@@ -19,7 +19,7 @@
       ],
       "tags": ["imports", "modules"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/simple_stmts.html#import"
     },
     {
       "id": "python-if-elif-else",
@@ -34,7 +34,7 @@
       ],
       "tags": ["conditionals", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#if"
     },
     {
       "id": "python-for-loop",
@@ -49,7 +49,7 @@
       ],
       "tags": ["loops", "iteration"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#for"
     },
     {
       "id": "python-while-loop",
@@ -64,7 +64,7 @@
       ],
       "tags": ["loops", "iteration", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#while"
     },
     {
       "id": "python-function",
@@ -79,7 +79,7 @@
       ],
       "tags": ["functions", "reusability"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#function"
     },
     {
       "id": "python-class",
@@ -94,7 +94,7 @@
       ],
       "tags": ["classes", "oop", "objects"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#class"
     },
     {
       "id": "python-list-comprehension",
@@ -109,7 +109,7 @@
       ],
       "tags": ["comprehensions", "lists", "functional"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/expressions.html#list-displays"
     },
     {
       "id": "python-dict-comprehension",
@@ -124,7 +124,7 @@
       ],
       "tags": ["comprehensions", "dictionaries", "functional"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/expressions.html#dictionary-displays"
     },
     {
       "id": "python-try-except",
@@ -139,7 +139,7 @@
       ],
       "tags": ["error-handling", "exceptions"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#try"
     },
     {
       "id": "python-with-statement",
@@ -154,7 +154,7 @@
       ],
       "tags": ["context-managers", "file-io", "resources"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/compound_stmts.html#with"
     },
     {
       "id": "python-lambda",
@@ -169,7 +169,7 @@
       ],
       "tags": ["functions", "functional", "anonymous"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/expressions.html#lambda"
     },
     {
       "id": "python-string-formatting",
@@ -184,7 +184,7 @@
       ],
       "tags": ["strings", "formatting"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting"
     },
     {
       "id": "python-slice",
@@ -199,7 +199,7 @@
       ],
       "tags": ["slicing", "sequences", "strings"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/reference/expressions.html#slicings"
     },
     {
       "id": "python-enumerate",
@@ -214,7 +214,7 @@
       ],
       "tags": ["iteration", "sequences", "indexing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/library/functions.html#enumerate"
     },
     {
       "id": "python-zip",
@@ -229,7 +229,7 @@
       ],
       "tags": ["iteration", "sequences"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://docs.python.org/3/library/functions.html#zip"
     },
     {
       "id": "python-run-script",

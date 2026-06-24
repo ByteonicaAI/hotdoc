@@ -19,7 +19,7 @@
       ],
       "tags": ["targets", "rules"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Rule-Introduction"
     },
     {
       "id": "make-recipe",
@@ -34,7 +34,7 @@
       ],
       "tags": ["recipes", "commands"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Recipe-Syntax"
     },
     {
       "id": "make-variable",
@@ -49,7 +49,7 @@
       ],
       "tags": ["variables", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Using-Variables"
     },
     {
       "id": "make-phony",
@@ -64,7 +64,7 @@
       ],
       "tags": ["targets", "special"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },
     {
       "id": "make-automatic-variables",
@@ -79,7 +79,7 @@
       ],
       "tags": ["variables", "patterns"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Automatic-Variables"
     },
     {
       "id": "make-pattern-rule",
@@ -94,7 +94,7 @@
       ],
       "tags": ["rules", "patterns"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Pattern-Rules"
     },
     {
       "id": "make-conditional",
@@ -109,7 +109,7 @@
       ],
       "tags": ["conditions", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Conditionals"
     },
     {
       "id": "make-include",
@@ -124,7 +124,7 @@
       ],
       "tags": ["structure", "modular"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Include"
     },
     {
       "id": "make-function-call",
@@ -139,7 +139,7 @@
       ],
       "tags": ["functions", "string-manipulation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Functions"
     },
     {
       "id": "make-wildcard",
@@ -154,7 +154,7 @@
       ],
       "tags": ["patterns", "file-matching"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Wildcard-Function"
     },
     {
       "id": "make-all",
@@ -169,7 +169,7 @@
       ],
       "tags": ["targets", "default"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
     {
       "id": "make-clean",
@@ -184,7 +184,7 @@
       ],
       "tags": ["cleanup", "phony"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },
     {
       "id": "make-install",
@@ -199,7 +199,7 @@
       ],
       "tags": ["installation", "phony"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
     {
       "id": "make-help",
@@ -214,7 +214,7 @@
       ],
       "tags": ["documentation", "phony"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
     {
       "id": "make-VPATH",
@@ -229,7 +229,7 @@
       ],
       "tags": ["search", "paths"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/make/manual/make.html#VPATH"
     },
     {
       "id": "make-run-target",

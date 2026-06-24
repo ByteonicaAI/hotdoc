@@ -19,7 +19,7 @@
       ],
       "tags": ["loops", "iteration", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Looping-Constructs"
     },
     {
       "id": "bash-while-loop",
@@ -34,7 +34,7 @@
       ],
       "tags": ["loops", "iteration", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Looping-Constructs"
     },
     {
       "id": "bash-if-statement",
@@ -49,7 +49,7 @@
       ],
       "tags": ["conditions", "control-flow", "testing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Conditional-Constructs"
     },
     {
       "id": "bash-function",
@@ -64,7 +64,7 @@
       ],
       "tags": ["functions", "reusability"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Functions"
     },
     {
       "id": "bash-pipe",
@@ -79,7 +79,7 @@
       ],
       "tags": ["pipes", "chaining", "redirection"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Pipelines"
     },
     {
       "id": "bash-redirect",
@@ -94,7 +94,7 @@
       ],
       "tags": ["redirection", "io", "output"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Redirections"
     },
     {
       "id": "bash-variable",
@@ -109,7 +109,7 @@
       ],
       "tags": ["variables", "data-storage"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Parameters"
     },
     {
       "id": "bash-quoting",
@@ -124,7 +124,7 @@
       ],
       "tags": ["quoting", "escaping", "strings"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Quoting"
     },
     {
       "id": "bash-array",
@@ -139,7 +139,7 @@
       ],
       "tags": ["arrays", "data-structures"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Arrays"
     },
     {
       "id": "bash-string-substitution",
@@ -154,7 +154,7 @@
       ],
       "tags": ["strings", "substitution", "manipulation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Parameter-Expansion"
     },
     {
       "id": "bash-command-substitution",
@@ -169,7 +169,7 @@
       ],
       "tags": ["substitution", "command-output", "dynamic"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Command-Substitution"
     },
     {
       "id": "bash-case-statement",
@@ -184,7 +184,7 @@
       ],
       "tags": ["conditions", "pattern-matching", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Conditional-Constructs"
     },
     {
       "id": "bash-arithmetic",
@@ -199,7 +199,7 @@
       ],
       "tags": ["arithmetic", "math", "variables"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Arithmetic"
     },
     {
       "id": "bash-test-conditions",
@@ -214,7 +214,7 @@
       ],
       "tags": ["testing", "conditions", "operators"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Bash-Conditional-Expressions"
     },
     {
       "id": "bash-error-handling",
@@ -229,7 +229,7 @@
       ],
       "tags": ["error-handling", "exit-codes", "control-flow"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin"
     },
     {
       "id": "bash-shebang",

@@ -19,7 +19,7 @@
       ],
       "tags": ["get", "fetch", "request"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html"
     },
     {
       "id": "curl-headers-only",
@@ -34,7 +34,7 @@
       ],
       "tags": ["head", "headers", "response"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-I"
     },
     {
       "id": "curl-save-output",
@@ -64,7 +64,7 @@
       ],
       "tags": ["follow", "redirect", "location"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-L"
     },
     {
       "id": "curl-insecure",
@@ -79,7 +79,7 @@
       ],
       "tags": ["insecure", "tls", "ssl", "self-signed"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-k"
     },
     {
       "id": "curl-method-post",
@@ -94,7 +94,7 @@
       ],
       "tags": ["post", "method", "create"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-X"
     },
     {
       "id": "curl-data",
@@ -109,7 +109,7 @@
       ],
       "tags": ["data", "post", "form"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-d"
     },
     {
       "id": "curl-header",
@@ -124,7 +124,7 @@
       ],
       "tags": ["header", "auth", "bearer", "token"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-H"
     },
     {
       "id": "curl-user",
@@ -139,7 +139,7 @@
       ],
       "tags": ["auth", "basic", "user", "credentials"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-u"
     },
     {
       "id": "curl-cookie",
@@ -154,7 +154,7 @@
       ],
       "tags": ["cookie", "session", "jar"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-b"
     },
     {
       "id": "curl-verbose",
@@ -169,7 +169,7 @@
       ],
       "tags": ["verbose", "debug", "trace"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-v"
     },
     {
       "id": "curl-silent",
@@ -184,7 +184,7 @@
       ],
       "tags": ["silent", "quiet", "script"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-s"
     },
     {
       "id": "curl-show-error",
@@ -199,7 +199,7 @@
       ],
       "tags": ["silent", "error", "script"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-S"
     },
     {
       "id": "curl-timeout",
@@ -214,7 +214,7 @@
       ],
       "tags": ["timeout", "max-time", "limit"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#--max-time"
     },
     {
       "id": "curl-resolve",
@@ -229,7 +229,7 @@
       ],
       "tags": ["resolve", "dns", "override", "host"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#--resolve"
     },
     {
       "id": "curl-compressed",
@@ -244,7 +244,7 @@
       ],
       "tags": ["compressed", "gzip", "brotli"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#--compressed"
     },
     {
       "id": "curl-form",
@@ -259,7 +259,7 @@
       ],
       "tags": ["form", "multipart", "upload"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-F"
     },
     {
       "id": "curl-output-no-rename",
@@ -274,7 +274,7 @@
       ],
       "tags": ["remote-name", "download", "filename"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-O"
     },
     {
       "id": "curl-request-target",
@@ -289,7 +289,7 @@
       ],
       "tags": ["request", "target", "path"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#--request-target"
     },
     {
       "id": "curl-location-trusted",
@@ -304,7 +304,7 @@
       ],
       "tags": ["location", "redirect", "auth"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#--location-trusted"
     },
     {
       "id": "curl-bearer",
@@ -319,7 +319,7 @@
       ],
       "tags": ["bearer", "auth", "token", "oauth"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://curl.se/docs/manpage.html#-H"
     },
     {
       "id": "curl-json-post",

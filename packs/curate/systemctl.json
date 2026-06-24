@@ -19,7 +19,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#start%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-stop",
@@ -34,7 +34,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#stop%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-restart",
@@ -49,7 +49,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#restart%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-reload",
@@ -64,7 +64,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#reload%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-enable",
@@ -79,7 +79,7 @@
       ],
       "tags": ["services", "boot"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#enable%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-disable",
@@ -94,7 +94,7 @@
       ],
       "tags": ["services", "boot"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#disable%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-status",
@@ -109,7 +109,7 @@
       ],
       "tags": ["services", "monitoring"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#status%20PATTERN%E2%80%A6%7CPID%E2%80%A6"
     },
     {
       "id": "systemctl-is-active",
@@ -124,7 +124,7 @@
       ],
       "tags": ["services", "monitoring"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#is-active%20PATTERN%E2%80%A6"
     },
     {
       "id": "systemctl-is-enabled",
@@ -139,7 +139,7 @@
       ],
       "tags": ["services", "boot"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#is-enabled%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-daemon-reload",
@@ -154,7 +154,7 @@
       ],
       "tags": ["system", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#daemon-reload"
     },
     {
       "id": "systemctl-list-units",
@@ -169,7 +169,7 @@
       ],
       "tags": ["services", "listing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#list-units%20PATTERN%E2%80%A6"
     },
     {
       "id": "systemctl-show",
@@ -184,7 +184,7 @@
       ],
       "tags": ["services", "properties"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#show%20PATTERN%E2%80%A6%7CPID%E2%80%A6"
     },
     {
       "id": "systemctl-mask",
@@ -199,7 +199,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#mask%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-unmask",
@@ -214,7 +214,7 @@
       ],
       "tags": ["services", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#unmask%20UNIT%E2%80%A6"
     },
     {
       "id": "systemctl-journal",
@@ -229,7 +229,7 @@
       ],
       "tags": ["services", "logging"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.freedesktop.org/software/systemd/man/journalctl.html"
     },
     {
       "id": "systemctl-enable-now",

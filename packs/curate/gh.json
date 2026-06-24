@@ -19,7 +19,7 @@
       ],
       "tags": ["pr", "create", "open"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_create"
     },
     {
       "id": "gh-pr-list",
@@ -34,7 +34,7 @@
       ],
       "tags": ["pr", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_list"
     },
     {
       "id": "gh-pr-view",
@@ -49,7 +49,7 @@
       ],
       "tags": ["pr", "view", "show"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_view"
     },
     {
       "id": "gh-pr-checkout",
@@ -64,7 +64,7 @@
       ],
       "tags": ["pr", "checkout", "local"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_checkout"
     },
     {
       "id": "gh-pr-merge",
@@ -79,7 +79,7 @@
       ],
       "tags": ["pr", "merge"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_merge"
     },
     {
       "id": "gh-issue-create",
@@ -94,7 +94,7 @@
       ],
       "tags": ["issue", "create", "open"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_issue_create"
     },
     {
       "id": "gh-issue-list",
@@ -109,7 +109,7 @@
       ],
       "tags": ["issue", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_issue_list"
     },
     {
       "id": "gh-repo-clone",
@@ -124,7 +124,7 @@
       ],
       "tags": ["repo", "clone"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_repo_clone"
     },
     {
       "id": "gh-repo-view",
@@ -139,7 +139,7 @@
       ],
       "tags": ["repo", "view"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_repo_view"
     },
     {
       "id": "gh-run-list",
@@ -154,7 +154,7 @@
       ],
       "tags": ["run", "workflow", "actions", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_run_list"
     },
     {
       "id": "gh-run-watch",
@@ -169,7 +169,7 @@
       ],
       "tags": ["run", "watch", "logs"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_run_watch"
     },
     {
       "id": "gh-auth-status",
@@ -184,7 +184,7 @@
       ],
       "tags": ["auth", "status", "login"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_auth_status"
     },
     {
       "id": "gh-auth-login",
@@ -199,7 +199,7 @@
       ],
       "tags": ["auth", "login", "setup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_auth_login"
     },
     {
       "id": "gh-gist-create",
@@ -214,7 +214,7 @@
       ],
       "tags": ["gist", "create", "share"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_gist_create"
     },
     {
       "id": "gh-secret-list",
@@ -229,7 +229,7 @@
       ],
       "tags": ["secret", "list", "environment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_secret_list"
     },
     {
       "id": "gh-release-list",
@@ -244,7 +244,7 @@
       ],
       "tags": ["release", "list", "version"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_release_list"
     },
     {
       "id": "gh-workflow-run",
@@ -259,7 +259,7 @@
       ],
       "tags": ["workflow", "run", "actions"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_workflow_run"
     },
     {
       "id": "gh-comment-create",
@@ -274,7 +274,7 @@
       ],
       "tags": ["comment", "issue", "pr"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_pr_comment"
     },
     {
       "id": "gh-label-list",
@@ -289,7 +289,7 @@
       ],
       "tags": ["label", "list", "organization"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://cli.github.com/manual/gh_label_list"
     },
     {
       "id": "gh-pr-status",

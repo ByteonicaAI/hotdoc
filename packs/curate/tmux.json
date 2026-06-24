@@ -19,7 +19,7 @@
       ],
       "tags": ["sessions", "creation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-split-window",
@@ -34,7 +34,7 @@
       ],
       "tags": ["windows", "panes", "layout"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-select-window",
@@ -49,7 +49,7 @@
       ],
       "tags": ["windows", "navigation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-select-pane",
@@ -64,7 +64,7 @@
       ],
       "tags": ["panes", "navigation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-kill-session",
@@ -79,7 +79,7 @@
       ],
       "tags": ["sessions", "cleanup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-kill-window",
@@ -94,7 +94,7 @@
       ],
       "tags": ["windows", "cleanup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-list-sessions",
@@ -109,7 +109,7 @@
       ],
       "tags": ["sessions", "listing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-list-windows",
@@ -124,7 +124,7 @@
       ],
       "tags": ["windows", "listing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-bind-key",
@@ -139,7 +139,7 @@
       ],
       "tags": ["keybindings", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-send-keys",
@@ -154,7 +154,7 @@
       ],
       "tags": ["input", "automation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-copy-mode",
@@ -169,7 +169,7 @@
       ],
       "tags": ["scrolling", "selection", "navigation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-swap-window",
@@ -184,7 +184,7 @@
       ],
       "tags": ["windows", "layout"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-swap-pane",
@@ -199,7 +199,7 @@
       ],
       "tags": ["panes", "layout"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-attach-session",
@@ -214,7 +214,7 @@
       ],
       "tags": ["sessions", "connection"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-new-window",
@@ -229,7 +229,7 @@
       ],
       "tags": ["windows", "creation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-capture-pane",
@@ -244,7 +244,7 @@
       ],
       "tags": ["panes", "output"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },
     {
       "id": "tmux-detach-client",

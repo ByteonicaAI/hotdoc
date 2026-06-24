@@ -38,7 +38,7 @@
       ],
       "tags": ["get", "deployments", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-services",
@@ -53,7 +53,7 @@
       ],
       "tags": ["get", "services", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-describe-pod",
@@ -68,7 +68,7 @@
       ],
       "tags": ["describe", "pod", "debug"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-logs",
@@ -98,7 +98,7 @@
       ],
       "tags": ["exec", "shell", "interactive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-apply",
@@ -113,7 +113,7 @@
       ],
       "tags": ["apply", "manifest", "yaml"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-apply-kustomize",
@@ -128,7 +128,7 @@
       ],
       "tags": ["apply", "kustomize", "manifest"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-delete-pod",
@@ -143,7 +143,7 @@
       ],
       "tags": ["delete", "pod"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-delete-deployment",
@@ -158,7 +158,7 @@
       ],
       "tags": ["delete", "deployment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-scale",
@@ -173,7 +173,7 @@
       ],
       "tags": ["scale", "deployment", "replicas"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-rollout-restart",
@@ -188,7 +188,7 @@
       ],
       "tags": ["rollout", "restart", "deployment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-rollout-status",
@@ -203,7 +203,7 @@
       ],
       "tags": ["rollout", "status", "deployment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-config-current-context",
@@ -218,7 +218,7 @@
       ],
       "tags": ["config", "context", "kubeconfig"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/#kubectl-context-and-configuration"
     },
     {
       "id": "kubectl-config-use-context",
@@ -233,7 +233,7 @@
       ],
       "tags": ["config", "context", "switch"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/#kubectl-context-and-configuration"
     },
     {
       "id": "kubectl-contexts",
@@ -248,7 +248,7 @@
       ],
       "tags": ["config", "contexts", "list"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/#kubectl-context-and-configuration"
     },
     {
       "id": "kubectl-port-forward",
@@ -263,7 +263,7 @@
       ],
       "tags": ["port-forward", "debug", "local"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-top-pods",
@@ -278,7 +278,7 @@
       ],
       "tags": ["top", "metrics", "cpu", "memory"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-events",
@@ -293,7 +293,7 @@
       ],
       "tags": ["events", "debug", "troubleshoot"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-patch",
@@ -308,7 +308,7 @@
       ],
       "tags": ["patch", "update", "edit"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-set-image",
@@ -323,7 +323,7 @@
       ],
       "tags": ["set", "image", "update", "deployment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-configmap",
@@ -338,7 +338,7 @@
       ],
       "tags": ["configmap", "get", "config"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-secret",
@@ -353,7 +353,7 @@
       ],
       "tags": ["secret", "get", "sensitive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-explain",
@@ -368,7 +368,7 @@
       ],
       "tags": ["explain", "docs", "api"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-cordon",
@@ -383,7 +383,7 @@
       ],
       "tags": ["cordon", "node", "maintenance"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-drain",
@@ -398,7 +398,7 @@
       ],
       "tags": ["drain", "node", "evict", "maintenance"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-all",

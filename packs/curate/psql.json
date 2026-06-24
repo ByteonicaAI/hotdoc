@@ -19,7 +19,7 @@
       ],
       "tags": ["connection", "authentication"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
     {
       "id": "psql-list-databases",
@@ -34,7 +34,7 @@
       ],
       "tags": ["inspection", "databases"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
     {
       "id": "psql-list-tables",
@@ -49,7 +49,7 @@
       ],
       "tags": ["inspection", "tables"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
     {
       "id": "psql-describe-table",
@@ -64,7 +64,7 @@
       ],
       "tags": ["inspection", "schema"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
     {
       "id": "psql-list-functions",
@@ -79,7 +79,7 @@
       ],
       "tags": ["inspection", "functions"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
     {
       "id": "psql-select",
@@ -94,7 +94,7 @@
       ],
       "tags": ["queries", "data-retrieval"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-select.html"
     },
     {
       "id": "psql-insert",
@@ -109,7 +109,7 @@
       ],
       "tags": ["queries", "data-modification"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-insert.html"
     },
     {
       "id": "psql-update",
@@ -124,7 +124,7 @@
       ],
       "tags": ["queries", "data-modification"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-update.html"
     },
     {
       "id": "psql-delete",
@@ -139,7 +139,7 @@
       ],
       "tags": ["queries", "data-modification"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-delete.html"
     },
     {
       "id": "psql-create-table",
@@ -154,7 +154,7 @@
       ],
       "tags": ["schema", "table-creation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-createtable.html"
     },
     {
       "id": "psql-alter-table",
@@ -169,7 +169,7 @@
       ],
       "tags": ["schema", "modification"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-altertable.html"
     },
     {
       "id": "psql-create-index",
@@ -184,7 +184,7 @@
       ],
       "tags": ["schema", "optimization"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-createindex.html"
     },
     {
       "id": "psql-join",
@@ -199,7 +199,7 @@
       ],
       "tags": ["queries", "joins"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-JOIN"
     },
     {
       "id": "psql-aggregate",
@@ -214,7 +214,7 @@
       ],
       "tags": ["queries", "aggregation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
     },
     {
       "id": "psql-copy",
@@ -229,7 +229,7 @@
       ],
       "tags": ["import-export", "data-transfer"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/sql-copy.html"
     },
     {
       "id": "psql-transaction",
@@ -244,7 +244,7 @@
       ],
       "tags": ["transactions", "control"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://www.postgresql.org/docs/current/tutorial-transactions.html"
     },
     {
       "id": "psql-change-database",

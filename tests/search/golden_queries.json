@@ -1,11 +1,11 @@
 {
   "_meta": {
-    "description": "M2 golden query set: 24 queries across 5 packs (git, docker, kubectl, gh, curl). CI gate for NFR-3 (first-result accuracy). Authored 2026-06-21 against the actual packs/curate/*.json card IDs after M2 T3 partial (4 packs added).",
+    "description": "M5 golden query set: 50 queries across 18 packs. CI gate for NFR-3 (first-result accuracy). Authored 2026-06-21 (25 original) + expanded 2026-06-24 (25 new covering all curated packs).",
     "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Queries that the indexer tie-breaks awkwardly (e.g. docker logs vs logs-tail) are intentionally skipped — those are T5 problems, not T4 problems.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
-    "draft_count": 25,
-    "scope": "git (10 queries, M1) + docker (4) + kubectl (4) + gh (3) + curl (3). 12 skeleton packs remain pending user-authored content (post-M2)."
+    "draft_count": 50,
+    "scope": "git (10) + docker (5) + kubectl (4) + gh (3) + curl (3) + aws-cli (2) + bash (2) + jq (2) + make (2) + nginx (2) + pnpm (2) + psql (2) + python (2) + ripgrep (2) + ssh (2) + systemctl (2) + terraform (1) + tmux (1) + zero-match (2)."
   },
   "queries": [
     {
@@ -132,6 +132,135 @@
       "query": "curl save output",
       "expected_first": "curl-save-output",
       "acceptable_top3": ["curl-save-output", "curl-get"]
+    },
+    {
+      "query": "aws s3 list objects",
+      "expected_first": "aws-s3-ls",
+      "acceptable_top3": ["aws-s3-ls", "aws-s3api-list-buckets", "aws-s3-sync"]
+    },
+    {
+      "query": "aws configure credentials profile",
+      "expected_first": "aws-cli-configure",
+      "acceptable_top3": ["aws-cli-configure", "aws-configure-sso", "aws-profile-region"]
+    },
+    {
+      "query": "bash for loop iterate",
+      "expected_first": "bash-for-loop",
+      "acceptable_top3": ["bash-for-loop", "bash-while-loop", "bash-array"]
+    },
+    {
+      "query": "bash if else condition",
+      "expected_first": "bash-if-statement",
+      "acceptable_top3": ["bash-if-statement", "bash-test-conditions", "bash-case-statement"]
+    },
+    {
+      "query": "jq select filter field",
+      "expected_first": "jq-select",
+      "acceptable_top3": ["jq-select", "jq-field", "jq-if-then-else"]
+    },
+    {
+      "query": "jq map transform array",
+      "expected_first": "jq-map",
+      "acceptable_top3": ["jq-map", "jq-select", "jq-flatten"]
+    },
+    {
+      "query": "makefile phony target",
+      "expected_first": "make-phony",
+      "acceptable_top3": ["make-phony", "make-target", "make-all"]
+    },
+    {
+      "query": "make clean build",
+      "expected_first": "make-clean",
+      "acceptable_top3": ["make-clean", "make-all", "make-target"]
+    },
+    {
+      "query": "nginx reverse proxy pass",
+      "expected_first": "nginx-proxy-pass",
+      "acceptable_top3": ["nginx-proxy-pass", "nginx-upstream", "nginx-proxy-headers"]
+    },
+    {
+      "query": "nginx test reload config",
+      "expected_first": "nginx-test-config",
+      "acceptable_top3": ["nginx-test-config", "nginx-reload", "nginx-dump-config"]
+    },
+    {
+      "query": "pnpm install dependencies",
+      "expected_first": "pnpm-install",
+      "acceptable_top3": ["pnpm-install", "pnpm-add", "pnpm-install-frozen-lockfile"]
+    },
+    {
+      "query": "pnpm add dev dependency",
+      "expected_first": "pnpm-add-dev",
+      "acceptable_top3": ["pnpm-add-dev", "pnpm-add", "pnpm-install"]
+    },
+    {
+      "query": "psql connect to database",
+      "expected_first": "psql-connect",
+      "acceptable_top3": ["psql-connect", "psql-change-database", "psql-conninfo"]
+    },
+    {
+      "query": "psql list tables schemas",
+      "expected_first": "psql-list-tables",
+      "acceptable_top3": ["psql-list-tables", "psql-list-schemas", "psql-describe-table"]
+    },
+    {
+      "query": "python virtual environment create",
+      "expected_first": "python-venv",
+      "acceptable_top3": ["python-venv", "python-pip-install"]
+    },
+    {
+      "query": "python list comprehension",
+      "expected_first": "python-list-comprehension",
+      "acceptable_top3": [
+        "python-list-comprehension",
+        "python-dict-comprehension",
+        "python-for-loop"
+      ]
+    },
+    {
+      "query": "ripgrep case insensitive search",
+      "expected_first": "rg-ignore-case",
+      "acceptable_top3": ["rg-ignore-case", "rg-basic-search", "rg-fixed-string"]
+    },
+    {
+      "query": "ripgrep search by file type",
+      "expected_first": "rg-file-type",
+      "acceptable_top3": ["rg-file-type", "rg-glob", "rg-type-add"]
+    },
+    {
+      "query": "ssh tunnel port forward",
+      "expected_first": "ssh-tunneling",
+      "acceptable_top3": ["ssh-tunneling", "ssh-local-forward", "ssh-socks-proxy"]
+    },
+    {
+      "query": "ssh copy key to server",
+      "expected_first": "ssh-copy-id",
+      "acceptable_top3": ["ssh-copy-id", "ssh-key-generation", "ssh-add"]
+    },
+    {
+      "query": "systemctl start enable service",
+      "expected_first": "systemctl-enable-now",
+      "acceptable_top3": ["systemctl-enable-now", "systemctl-start", "systemctl-enable"]
+    },
+    {
+      "query": "systemctl check service status",
+      "expected_first": "systemctl-status",
+      "acceptable_top3": ["systemctl-status", "systemctl-is-active", "systemctl-is-enabled"]
+    },
+    {
+      "query": "terraform plan infrastructure",
+      "expected_first": "terraform-plan",
+      "acceptable_top3": ["terraform-plan", "terraform-apply", "terraform-plan-out"]
+    },
+    {
+      "query": "tmux new session split window",
+      "expected_first": "tmux-new-session",
+      "acceptable_top3": ["tmux-new-session", "tmux-split-window", "tmux-new-window"]
+    },
+    {
+      "query": "xyzzy-nonexistent-zzz-token",
+      "expected_first": null,
+      "acceptable_top3": []
     }
   ]
 }

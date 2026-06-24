@@ -19,7 +19,7 @@
       ],
       "tags": ["keys", "authentication"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh-keygen.1.html"
     },
     {
       "id": "ssh-copy-id",
@@ -34,7 +34,7 @@
       ],
       "tags": ["keys", "setup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh-copy-id.1.html"
     },
     {
       "id": "ssh-keyscan",
@@ -49,7 +49,7 @@
       ],
       "tags": ["keys", "hosts"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh-keyscan.1.html"
     },
     {
       "id": "ssh-config",
@@ -64,7 +64,7 @@
       ],
       "tags": ["config", "setup"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man5/ssh_config.5.html"
     },
     {
       "id": "ssh-connect",
@@ -79,7 +79,7 @@
       ],
       "tags": ["connection", "remote"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html"
     },
     {
       "id": "ssh-scp",
@@ -94,7 +94,7 @@
       ],
       "tags": ["file-transfer", "remote"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/scp.1.html"
     },
     {
       "id": "ssh-tunneling",
@@ -109,7 +109,7 @@
       ],
       "tags": ["tunneling", "forwarding"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-agent",
@@ -124,7 +124,7 @@
       ],
       "tags": ["authentication", "keys"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh-agent.1.html"
     },
     {
       "id": "ssh-port",
@@ -139,7 +139,7 @@
       ],
       "tags": ["ports", "connection"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-identity",
@@ -154,7 +154,7 @@
       ],
       "tags": ["keys", "authentication"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-proxy-jump",
@@ -169,7 +169,7 @@
       ],
       "tags": ["tunneling", "jump"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-verbose",
@@ -184,7 +184,7 @@
       ],
       "tags": ["debugging", "logs"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-batch-mode",
@@ -199,7 +199,7 @@
       ],
       "tags": ["scripting", "automation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
     {
       "id": "ssh-command-execution",
@@ -214,7 +214,7 @@
       ],
       "tags": ["remote", "commands"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html"
     },
     {
       "id": "ssh-sftp",
@@ -229,7 +229,7 @@
       ],
       "tags": ["file-transfer", "remote"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://man7.org/linux/man-pages/man1/sftp.1.html"
     },
     {
       "id": "ssh-keygen-ed25519",

@@ -19,7 +19,7 @@
       ],
       "tags": ["setup", "initialization"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/init"
     },
     {
       "id": "terraform-plan",
@@ -34,7 +34,7 @@
       ],
       "tags": ["planning", "execution"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/plan"
     },
     {
       "id": "terraform-apply",
@@ -49,7 +49,7 @@
       ],
       "tags": ["execution", "deployment"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/apply"
     },
     {
       "id": "terraform-destroy",
@@ -64,7 +64,7 @@
       ],
       "tags": ["cleanup", "destructive"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/destroy"
     },
     {
       "id": "terraform-validate",
@@ -79,7 +79,7 @@
       ],
       "tags": ["validation", "testing"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/validate"
     },
     {
       "id": "terraform-fmt",
@@ -94,7 +94,7 @@
       ],
       "tags": ["formatting", "style"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/fmt"
     },
     {
       "id": "terraform-import",
@@ -109,7 +109,7 @@
       ],
       "tags": ["state", "import"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/import"
     },
     {
       "id": "terraform-state-list",
@@ -124,7 +124,7 @@
       ],
       "tags": ["state", "introspection"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/list"
     },
     {
       "id": "terraform-state-show",
@@ -139,7 +139,7 @@
       ],
       "tags": ["state", "introspection"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/show"
     },
     {
       "id": "terraform-state-rm",
@@ -154,7 +154,7 @@
       ],
       "tags": ["state", "manipulation"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/rm"
     },
     {
       "id": "terraform-workspace-list",
@@ -169,7 +169,7 @@
       ],
       "tags": ["workspace", "management"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/list"
     },
     {
       "id": "terraform-workspace-new",
@@ -184,7 +184,7 @@
       ],
       "tags": ["workspace", "management"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/new"
     },
     {
       "id": "terraform-workspace-select",
@@ -199,7 +199,7 @@
       ],
       "tags": ["workspace", "management"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/select"
     },
     {
       "id": "terraform-variables",
@@ -214,7 +214,7 @@
       ],
       "tags": ["variables", "input"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/language/values/variables"
     },
     {
       "id": "terraform-modules",
@@ -229,7 +229,7 @@
       ],
       "tags": ["modules", "reusability"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/language/modules"
     },
     {
       "id": "terraform-output",
@@ -244,7 +244,7 @@
       ],
       "tags": ["outputs", "results"],
       "source": "curated",
-      "source_url": null
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands/output"
     },
     {
       "id": "terraform-show",
