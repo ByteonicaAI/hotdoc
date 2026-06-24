@@ -11,7 +11,12 @@
       "title": "Fetch a URL",
       "syntax": "curl <url>",
       "description": "Perform an HTTP GET and print the response body to stdout.",
-      "examples": [{ "description": "Fetch example.com", "code": "curl https://example.com" }],
+      "examples": [
+        {
+          "description": "Fetch example.com",
+          "code": "curl https://example.com"
+        }
+      ],
       "tags": ["get", "fetch", "request"],
       "source": "curated",
       "source_url": null
@@ -42,9 +47,9 @@
           "code": "curl -o index.html https://example.com"
         }
       ],
-      "tags": ["output", "save", "download", "file"],
-      "source": "curated",
-      "source_url": null
+      "tags": ["output", "save", "download", "file", "curl"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
     },
     {
       "id": "curl-follow-redirects",
@@ -67,7 +72,10 @@
       "syntax": "curl -k <url>",
       "description": "Skip TLS certificate verification. Use only for local debugging — never in production.",
       "examples": [
-        { "description": "Curl a self-signed dev server", "code": "curl -k https://localhost:8443" }
+        {
+          "description": "Curl a self-signed dev server",
+          "code": "curl -k https://localhost:8443"
+        }
       ],
       "tags": ["insecure", "tls", "ssl", "self-signed"],
       "source": "curated",
@@ -154,7 +162,10 @@
       "syntax": "curl -v <url>",
       "description": "Verbose mode prints the request line, headers, TLS handshake, and response status. Use --trace for a full hex dump.",
       "examples": [
-        { "description": "Debug a failing request", "code": "curl -v https://api.example.com/me" }
+        {
+          "description": "Debug a failing request",
+          "code": "curl -v https://api.example.com/me"
+        }
       ],
       "tags": ["verbose", "debug", "trace"],
       "source": "curated",
@@ -219,6 +230,396 @@
       "tags": ["resolve", "dns", "override", "host"],
       "source": "curated",
       "source_url": null
+    },
+    {
+      "id": "curl-compressed",
+      "title": "Request and decompress gzip/brotli content",
+      "syntax": "curl --compressed <url>",
+      "description": "Request compressed response and decompress it automatically. Adds Accept-Encoding header.",
+      "examples": [
+        {
+          "description": "Fetch compressed content and auto-decompress",
+          "code": "curl --compressed https://api.example.com/data | jq"
+        }
+      ],
+      "tags": ["compressed", "gzip", "brotli"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-form",
+      "title": "Send multipart/form-data",
+      "syntax": "curl -F <name=value> <url>",
+      "description": "Upload files or send multipart form data. Use -F for each field. For files, use -F name=@path/to/file.",
+      "examples": [
+        {
+          "description": "Upload a file in a form",
+          "code": "curl -F name=John -F photo=@image.jpg https://api.example.com/upload"
+        }
+      ],
+      "tags": ["form", "multipart", "upload"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-output-no-rename",
+      "title": "Download with remote filename",
+      "syntax": "curl -O <url>",
+      "description": "Write the response body to a file using the remote filename.",
+      "examples": [
+        {
+          "description": "Download and save with original filename",
+          "code": "curl -O https://example.com/file.tar.gz"
+        }
+      ],
+      "tags": ["remote-name", "download", "filename"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-request-target",
+      "title": "Override the request target",
+      "syntax": "curl --request-target <path> <url>",
+      "description": "Use a custom path in the HTTP request line. Useful for HTTP/2 and special routing scenarios.",
+      "examples": [
+        {
+          "description": "Send request with a custom path",
+          "code": "curl --request-target /api/v2/resource https://example.com"
+        }
+      ],
+      "tags": ["request", "target", "path"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-location-trusted",
+      "title": "Follow redirects and resend auth on cross-domain",
+      "syntax": "curl --location-trusted <url>",
+      "description": "Follow redirects and allow sending credentials (user:pass, bearer tokens) to redirect hosts, not just the original domain.",
+      "examples": [
+        {
+          "description": "Follow redirects and keep auth headers",
+          "code": "curl --location-trusted -u user:pass https://api.example.com/endpoint"
+        }
+      ],
+      "tags": ["location", "redirect", "auth"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-bearer",
+      "title": "Send a bearer token",
+      "syntax": "curl -H 'Authorization: Bearer <token>' <url>",
+      "description": "Add an OAuth2/JWT bearer token to the request. Alternative shorthand: curl --oauth2-bearer.",
+      "examples": [
+        {
+          "description": "Authenticate with a bearer token",
+          "code": "curl -H 'Authorization: Bearer eyJhbGc...' https://api.example.com/me"
+        }
+      ],
+      "tags": ["bearer", "auth", "token", "oauth"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "curl-json-post",
+      "title": "POST JSON",
+      "syntax": "curl -H 'Content-Type: application/json' -d <json> <url>",
+      "description": "Send a JSON request body.",
+      "examples": [
+        {
+          "description": "Post JSON to an API",
+          "code": "curl -H 'Content-Type: application/json' -d '{\"name\":\"hotdoc\"}' https://api.example.com/items"
+        }
+      ],
+      "tags": ["json", "post", "api"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-fail",
+      "title": "Fail on HTTP errors",
+      "syntax": "curl --fail <url>",
+      "description": "Return a non-zero exit code for HTTP response errors.",
+      "examples": [
+        {
+          "description": "Fail a CI health check on 500",
+          "code": "curl --fail https://example.com/health"
+        }
+      ],
+      "tags": ["http", "error", "ci"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-retry",
+      "title": "Retry transient failures",
+      "syntax": "curl --retry <n> <url>",
+      "description": "Retry failed transfers before giving up.",
+      "examples": [
+        {
+          "description": "Retry an API call",
+          "code": "curl --retry 5 --retry-delay 2 https://api.example.com/health"
+        }
+      ],
+      "tags": ["retry", "network", "resilience"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-connect-timeout",
+      "title": "Set connect timeout",
+      "syntax": "curl --connect-timeout <seconds> <url>",
+      "description": "Limit how long curl waits while establishing a connection.",
+      "examples": [
+        {
+          "description": "Give up quickly on connect",
+          "code": "curl --connect-timeout 3 https://example.com"
+        }
+      ],
+      "tags": ["timeout", "connect", "network"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-resume",
+      "title": "Resume a download",
+      "syntax": "curl -C - -O <url>",
+      "description": "Continue a partially downloaded file.",
+      "examples": [
+        {
+          "description": "Resume a large file",
+          "code": "curl -C - -O https://example.com/archive.tar.gz"
+        }
+      ],
+      "tags": ["download", "resume", "file"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-proxy",
+      "title": "Use a proxy",
+      "syntax": "curl -x <proxy-url> <url>",
+      "description": "Route the request through an HTTP, HTTPS, or SOCKS proxy.",
+      "examples": [
+        {
+          "description": "Use local HTTP proxy",
+          "code": "curl -x http://127.0.0.1:8080 https://example.com"
+        }
+      ],
+      "tags": ["proxy", "network"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-cacert",
+      "title": "Use a custom CA certificate",
+      "syntax": "curl --cacert <file> <url>",
+      "description": "Verify TLS with a specific CA certificate bundle.",
+      "examples": [
+        {
+          "description": "Trust local CA",
+          "code": "curl --cacert ./ca.pem https://internal.example.com"
+        }
+      ],
+      "tags": ["tls", "certificate", "ca"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-client-cert",
+      "title": "Use a client certificate",
+      "syntax": "curl --cert <cert> --key <key> <url>",
+      "description": "Authenticate to a TLS endpoint with a client certificate and key.",
+      "examples": [
+        {
+          "description": "Call mTLS endpoint",
+          "code": "curl --cert client.pem --key client.key https://mtls.example.com"
+        }
+      ],
+      "tags": ["tls", "mtls", "certificate"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-http2",
+      "title": "Force HTTP/2",
+      "syntax": "curl --http2 <url>",
+      "description": "Ask curl to use HTTP/2 for the transfer.",
+      "examples": [
+        {
+          "description": "Request over HTTP/2",
+          "code": "curl --http2 https://example.com"
+        }
+      ],
+      "tags": ["http2", "protocol"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-write-out",
+      "title": "Print response metrics",
+      "syntax": "curl -w <format> <url>",
+      "description": "Write timing, status, and transfer metadata after a request.",
+      "examples": [
+        {
+          "description": "Print status and total time",
+          "code": "curl -s -o /dev/null -w '%{http_code} %{time_total}\\n' https://example.com"
+        }
+      ],
+      "tags": ["metrics", "timing", "status"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-data-urlencode",
+      "title": "URL-encode query data",
+      "syntax": "curl -G --data-urlencode <name=value> <url>",
+      "description": "Append URL-encoded data as query parameters.",
+      "examples": [
+        {
+          "description": "Search with encoded query",
+          "code": "curl -G --data-urlencode 'q=hello world' https://example.com/search"
+        }
+      ],
+      "tags": ["query", "urlencode", "get"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-upload-file",
+      "title": "Upload a file",
+      "syntax": "curl -T <file> <url>",
+      "description": "Upload a local file to a server URL.",
+      "examples": [
+        {
+          "description": "Upload over PUT",
+          "code": "curl -T ./artifact.zip https://uploads.example.com/artifact.zip"
+        }
+      ],
+      "tags": ["upload", "put", "file"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-head-request",
+      "title": "Send HEAD request",
+      "syntax": "curl -I <url>",
+      "description": "Fetch response headers using an HTTP HEAD request.",
+      "examples": [
+        {
+          "description": "Check response headers",
+          "code": "curl -I https://example.com"
+        }
+      ],
+      "tags": ["headers", "head", "http"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-put-json",
+      "title": "PUT JSON request",
+      "syntax": "curl -X PUT -H 'Content-Type: application/json' -d '<json>' <url>",
+      "description": "Send a PUT request with a JSON body.",
+      "examples": [
+        {
+          "description": "Update user JSON",
+          "code": "curl -X PUT -H 'Content-Type: application/json' -d '{\"name\":\"Ada\"}' https://api.example.com/users/1"
+        }
+      ],
+      "tags": ["put", "json", "http"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-delete",
+      "title": "DELETE request",
+      "syntax": "curl -X DELETE <url>",
+      "description": "Send an HTTP DELETE request.",
+      "examples": [
+        {
+          "description": "Delete a resource",
+          "code": "curl -X DELETE https://api.example.com/items/42"
+        }
+      ],
+      "tags": ["delete", "http", "api"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-remote-name",
+      "title": "Save with remote filename",
+      "syntax": "curl -O <url>",
+      "description": "Write output to a local file named like the remote file.",
+      "examples": [
+        {
+          "description": "Download tarball with remote name",
+          "code": "curl -O https://example.com/archive.tar.gz"
+        }
+      ],
+      "tags": ["download", "file", "remote-name"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-netrc",
+      "title": "Use .netrc credentials",
+      "syntax": "curl --netrc <url>",
+      "description": "Read login credentials from the user's .netrc file.",
+      "examples": [
+        {
+          "description": "Call API using .netrc",
+          "code": "curl --netrc https://api.example.com/me"
+        }
+      ],
+      "tags": ["auth", "netrc", "credentials"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-unix-socket",
+      "title": "Connect through Unix socket",
+      "syntax": "curl --unix-socket <path> <url>",
+      "description": "Send HTTP requests over a Unix domain socket.",
+      "examples": [
+        {
+          "description": "Call Docker API socket",
+          "code": "curl --unix-socket /var/run/docker.sock http://localhost/version"
+        }
+      ],
+      "tags": ["unix socket", "http", "local"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-url-query",
+      "title": "Append query parameters",
+      "syntax": "curl --url-query <name=value> <url>",
+      "description": "Add query parameters to the request URL without hand-encoding the final URL.",
+      "examples": [
+        {
+          "description": "Search with query parameter",
+          "code": "curl --url-query q=hotdoc https://api.example.com/search"
+        }
+      ],
+      "tags": ["query", "url", "encoding"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
+    },
+    {
+      "id": "curl-http3",
+      "title": "Use HTTP/3",
+      "syntax": "curl --http3 <url>",
+      "description": "Attempt an HTTP/3 transfer.",
+      "examples": [
+        {
+          "description": "Request over HTTP/3",
+          "code": "curl --http3 https://example.com"
+        }
+      ],
+      "tags": ["http3", "protocol", "network"],
+      "source": "official",
+      "source_url": "https://curl.se/docs/manpage.html"
     }
   ]
 }

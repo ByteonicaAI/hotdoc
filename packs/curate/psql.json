@@ -1,0 +1,610 @@
+{
+  "id": "psql",
+  "name": "psql",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (PostgreSQL 18 psql and common SQL; verified against official docs)",
+  "license": "MIT",
+  "homepage": "https://www.postgresql.org/docs/current/app-psql.html",
+  "entries": [
+    {
+      "id": "psql-connect",
+      "title": "connect to database",
+      "syntax": "psql dbname, psql -U user -h host dbname, psql -U user -d dbname -h localhost -p 5432",
+      "description": "Connect to a PostgreSQL database.",
+      "examples": [
+        {
+          "description": "connect with credentials",
+          "code": "psql -U postgres -h localhost -d mydb"
+        }
+      ],
+      "tags": ["connection", "authentication"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-list-databases",
+      "title": "\\l list databases",
+      "syntax": "\\l, \\l+",
+      "description": "Show all databases in the server.",
+      "examples": [
+        {
+          "description": "list with details",
+          "code": "\\l+"
+        }
+      ],
+      "tags": ["inspection", "databases"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-list-tables",
+      "title": "\\dt describe tables",
+      "syntax": "\\dt, \\dt pattern, \\dt+",
+      "description": "List all tables in the current database.",
+      "examples": [
+        {
+          "description": "list with details",
+          "code": "\\dt+"
+        }
+      ],
+      "tags": ["inspection", "tables"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-describe-table",
+      "title": "\\d table description",
+      "syntax": "\\d tablename, \\d+ tablename",
+      "description": "Show columns, types, and constraints of a table.",
+      "examples": [
+        {
+          "description": "describe with details",
+          "code": "\\d+ users"
+        }
+      ],
+      "tags": ["inspection", "schema"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-list-functions",
+      "title": "\\df list functions",
+      "syntax": "\\df, \\df pattern",
+      "description": "List all functions in the database.",
+      "examples": [
+        {
+          "description": "list functions",
+          "code": "\\df my_*"
+        }
+      ],
+      "tags": ["inspection", "functions"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-select",
+      "title": "SELECT query",
+      "syntax": "SELECT columns FROM table WHERE condition;",
+      "description": "Query data from one or more tables.",
+      "examples": [
+        {
+          "description": "select with filter",
+          "code": "SELECT id, name, email FROM users WHERE status='active' LIMIT 10;"
+        }
+      ],
+      "tags": ["queries", "data-retrieval"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-insert",
+      "title": "INSERT data",
+      "syntax": "INSERT INTO table (col1, col2) VALUES (val1, val2);",
+      "description": "Add new rows to a table.",
+      "examples": [
+        {
+          "description": "insert new record",
+          "code": "INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');"
+        }
+      ],
+      "tags": ["queries", "data-modification"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-update",
+      "title": "UPDATE data",
+      "syntax": "UPDATE table SET col1=val1 WHERE condition;",
+      "description": "Modify existing rows in a table.",
+      "examples": [
+        {
+          "description": "update with condition",
+          "code": "UPDATE users SET status='inactive' WHERE last_login < NOW() - INTERVAL '90 days';"
+        }
+      ],
+      "tags": ["queries", "data-modification"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-delete",
+      "title": "DELETE data",
+      "syntax": "DELETE FROM table WHERE condition;",
+      "description": "Remove rows from a table.",
+      "examples": [
+        {
+          "description": "delete with condition",
+          "code": "DELETE FROM logs WHERE timestamp < NOW() - INTERVAL '1 year';"
+        }
+      ],
+      "tags": ["queries", "data-modification"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-create-table",
+      "title": "CREATE TABLE",
+      "syntax": "CREATE TABLE name (col type, col type, ...);",
+      "description": "Create a new table with columns and constraints.",
+      "examples": [
+        {
+          "description": "create table with constraints",
+          "code": "CREATE TABLE users (\n  id SERIAL PRIMARY KEY,\n  name VARCHAR(255) NOT NULL,\n  email VARCHAR(255) UNIQUE,\n  created_at TIMESTAMP DEFAULT NOW()\n);"
+        }
+      ],
+      "tags": ["schema", "table-creation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-alter-table",
+      "title": "ALTER TABLE",
+      "syntax": "ALTER TABLE table ADD COLUMN col type; ALTER TABLE table DROP COLUMN col;",
+      "description": "Modify table structure.",
+      "examples": [
+        {
+          "description": "add column",
+          "code": "ALTER TABLE users ADD COLUMN phone VARCHAR(20);"
+        }
+      ],
+      "tags": ["schema", "modification"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-create-index",
+      "title": "CREATE INDEX",
+      "syntax": "CREATE INDEX idx_name ON table (column);",
+      "description": "Create index for faster queries.",
+      "examples": [
+        {
+          "description": "create index",
+          "code": "CREATE INDEX idx_email ON users (email);"
+        }
+      ],
+      "tags": ["schema", "optimization"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-join",
+      "title": "JOIN tables",
+      "syntax": "SELECT ... FROM table1 JOIN table2 ON table1.id = table2.id;",
+      "description": "Combine rows from multiple tables.",
+      "examples": [
+        {
+          "description": "join with condition",
+          "code": "SELECT u.name, o.order_id FROM users u LEFT JOIN orders o ON u.id = o.user_id;"
+        }
+      ],
+      "tags": ["queries", "joins"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-aggregate",
+      "title": "aggregate functions",
+      "syntax": "COUNT, SUM, AVG, MIN, MAX, GROUP BY",
+      "description": "Calculate aggregate values across rows.",
+      "examples": [
+        {
+          "description": "count and group",
+          "code": "SELECT status, COUNT(*) as count FROM users GROUP BY status;"
+        }
+      ],
+      "tags": ["queries", "aggregation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-copy",
+      "title": "COPY import/export",
+      "syntax": "COPY table FROM 'file'; COPY table TO 'file'; \\copy",
+      "description": "Bulk import or export data to/from files.",
+      "examples": [
+        {
+          "description": "copy from CSV",
+          "code": "\\copy users FROM 'users.csv' WITH (FORMAT csv, HEADER true);"
+        }
+      ],
+      "tags": ["import-export", "data-transfer"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-transaction",
+      "title": "transactions",
+      "syntax": "BEGIN; ... COMMIT; or ROLLBACK;",
+      "description": "Group queries into atomic transactions.",
+      "examples": [
+        {
+          "description": "transaction with rollback",
+          "code": "BEGIN;\nINSERT INTO accounts SET balance=balance-100 WHERE id=1;\nINSERT INTO accounts SET balance=balance+100 WHERE id=2;\nCOMMIT;"
+        }
+      ],
+      "tags": ["transactions", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "psql-change-database",
+      "title": "Connect to another database",
+      "syntax": "\\c <database>",
+      "description": "Switch the current psql session to another database.",
+      "examples": [
+        {
+          "description": "Connect to appdb",
+          "code": "\\c appdb"
+        }
+      ],
+      "tags": ["meta", "connect", "database"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-list-schemas",
+      "title": "List schemas",
+      "syntax": "\\dn, \\dn+",
+      "description": "Show schemas in the current database.",
+      "examples": [
+        {
+          "description": "List schemas with details",
+          "code": "\\dn+"
+        }
+      ],
+      "tags": ["meta", "schema", "list"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-list-indexes",
+      "title": "List indexes",
+      "syntax": "\\di, \\di+",
+      "description": "Show indexes in the current database.",
+      "examples": [
+        {
+          "description": "List indexes with details",
+          "code": "\\di+"
+        }
+      ],
+      "tags": ["meta", "index", "list"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-list-roles",
+      "title": "List roles",
+      "syntax": "\\du, \\du+",
+      "description": "Show database roles and attributes.",
+      "examples": [
+        {
+          "description": "List roles",
+          "code": "\\du+"
+        }
+      ],
+      "tags": ["meta", "roles", "users"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-expanded",
+      "title": "Toggle expanded output",
+      "syntax": "\\x",
+      "description": "Toggle expanded table output for wide rows.",
+      "examples": [
+        {
+          "description": "Enable expanded display",
+          "code": "\\x on"
+        }
+      ],
+      "tags": ["meta", "output", "wide"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-timing",
+      "title": "Toggle query timing",
+      "syntax": "\\timing",
+      "description": "Show elapsed execution time after each query.",
+      "examples": [
+        {
+          "description": "Enable timing",
+          "code": "\\timing on"
+        }
+      ],
+      "tags": ["meta", "timing", "performance"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-input-file",
+      "title": "Run SQL file",
+      "syntax": "\\i <file>",
+      "description": "Read and execute commands from a SQL file.",
+      "examples": [
+        {
+          "description": "Run migration file",
+          "code": "\\i migrations/001_init.sql"
+        }
+      ],
+      "tags": ["meta", "file", "script"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-output-file",
+      "title": "Write query output to file",
+      "syntax": "\\o <file>",
+      "description": "Send subsequent query output to a file until reset.",
+      "examples": [
+        {
+          "description": "Write output to CSV-ish file",
+          "code": "\\o report.txt"
+        }
+      ],
+      "tags": ["meta", "output", "file"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-watch",
+      "title": "Repeat query",
+      "syntax": "\\watch <seconds>",
+      "description": "Repeat the current query buffer at an interval.",
+      "examples": [
+        {
+          "description": "Watch active sessions",
+          "code": "SELECT count(*) FROM pg_stat_activity; \\watch 2"
+        }
+      ],
+      "tags": ["meta", "watch", "monitor"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-set-variable",
+      "title": "Set psql variable",
+      "syntax": "\\set <name> <value>",
+      "description": "Define a psql variable for later interpolation.",
+      "examples": [
+        {
+          "description": "Set user id variable",
+          "code": "\\set user_id 42"
+        }
+      ],
+      "tags": ["meta", "variable", "script"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-explain-analyze",
+      "title": "Explain and run query",
+      "syntax": "EXPLAIN (ANALYZE, BUFFERS) <query>;",
+      "description": "Run a query and show its execution plan with timing and buffer stats.",
+      "examples": [
+        {
+          "description": "Analyze slow lookup",
+          "code": "EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM users WHERE id = 42;"
+        }
+      ],
+      "tags": ["sql", "performance", "plan"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-create-database",
+      "title": "Create database",
+      "syntax": "CREATE DATABASE <name>;",
+      "description": "Create a new PostgreSQL database.",
+      "examples": [
+        {
+          "description": "Create app database",
+          "code": "CREATE DATABASE appdb;"
+        }
+      ],
+      "tags": ["sql", "database", "create"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-create-role",
+      "title": "Create login role",
+      "syntax": "CREATE ROLE <name> WITH LOGIN PASSWORD <password>;",
+      "description": "Create a database role that can log in.",
+      "examples": [
+        {
+          "description": "Create app user",
+          "code": "CREATE ROLE app_user WITH LOGIN PASSWORD 'change-me';"
+        }
+      ],
+      "tags": ["sql", "role", "user"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-grant",
+      "title": "Grant privileges",
+      "syntax": "GRANT <privileges> ON <object> TO <role>;",
+      "description": "Grant database privileges to a role.",
+      "examples": [
+        {
+          "description": "Grant table reads",
+          "code": "GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_user;"
+        }
+      ],
+      "tags": ["sql", "grant", "permissions"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-vacuum-analyze",
+      "title": "Vacuum and analyze table",
+      "syntax": "VACUUM (ANALYZE) <table>;",
+      "description": "Reclaim storage where possible and refresh planner statistics.",
+      "examples": [
+        {
+          "description": "Vacuum users table",
+          "code": "VACUUM (ANALYZE) users;"
+        }
+      ],
+      "tags": ["sql", "maintenance", "performance"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-quit",
+      "title": "Quit psql",
+      "syntax": "\\q",
+      "description": "Exit the psql session.",
+      "examples": [
+        {
+          "description": "Quit interactive session",
+          "code": "\\q"
+        }
+      ],
+      "tags": ["meta", "quit", "exit"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-conninfo",
+      "title": "Show current connection",
+      "syntax": "\\conninfo",
+      "description": "Display information about the current database connection.",
+      "examples": [
+        {
+          "description": "Show server and database connection",
+          "code": "\\conninfo"
+        }
+      ],
+      "tags": ["meta-command", "connection", "info"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-describe-table-verbose",
+      "title": "Describe table with details",
+      "syntax": "\\d+ <table>",
+      "description": "Show table columns, indexes, storage, and additional details.",
+      "examples": [
+        {
+          "description": "Describe users table in detail",
+          "code": "\\d+ users"
+        }
+      ],
+      "tags": ["meta-command", "describe", "table"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-expanded-auto",
+      "title": "Auto expanded display",
+      "syntax": "\\x auto",
+      "description": "Automatically switch to expanded display when output is too wide.",
+      "examples": [
+        {
+          "description": "Enable automatic expanded output",
+          "code": "\\x auto"
+        }
+      ],
+      "tags": ["output", "expanded", "display"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-pager-off",
+      "title": "Disable pager",
+      "syntax": "\\pset pager off",
+      "description": "Turn off pager use for query output.",
+      "examples": [
+        {
+          "description": "Stop paging long output",
+          "code": "\\pset pager off"
+        }
+      ],
+      "tags": ["output", "pager", "display"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-gexec",
+      "title": "Execute generated SQL",
+      "syntax": "\\gexec",
+      "description": "Send each column of each row from the current query output as SQL to execute.",
+      "examples": [
+        {
+          "description": "Vacuum matching tables",
+          "code": "SELECT 'VACUUM ANALYZE ' || quote_ident(tablename) || ';' FROM pg_tables WHERE schemaname = 'public';\n\\gexec"
+        }
+      ],
+      "tags": ["meta-command", "dynamic sql", "execute"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-password",
+      "title": "Change role password",
+      "syntax": "\\password [<username>]",
+      "description": "Prompt securely for a new password for a role.",
+      "examples": [
+        {
+          "description": "Change current role password",
+          "code": "\\password"
+        }
+      ],
+      "tags": ["role", "password", "security"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-errverbose",
+      "title": "Show last error verbosely",
+      "syntax": "\\errverbose",
+      "description": "Display the most recent server error at maximum verbosity.",
+      "examples": [
+        {
+          "description": "Inspect last failed query error",
+          "code": "\\errverbose"
+        }
+      ],
+      "tags": ["error", "debug", "meta-command"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    },
+    {
+      "id": "psql-setenv",
+      "title": "Set environment variable",
+      "syntax": "\\setenv <name> <value>",
+      "description": "Set an environment variable from within psql.",
+      "examples": [
+        {
+          "description": "Set editor for psql",
+          "code": "\\setenv PSQL_EDITOR vim"
+        }
+      ],
+      "tags": ["environment", "meta-command", "config"],
+      "source": "official",
+      "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
+    }
+  ]
+}

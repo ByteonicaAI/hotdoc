@@ -12,34 +12,30 @@
       "syntax": "kubectl get pods",
       "description": "List pods in the current namespace. Add -A for all namespaces, -n <ns> for a specific one, -o wide for extra columns.",
       "examples": [
-        { "description": "List pods in the current namespace", "code": "kubectl get pods" },
+        {
+          "description": "List pods in the current namespace",
+          "code": "kubectl get pods"
+        },
         {
           "description": "List pods across all namespaces with node info",
           "code": "kubectl get pods -A -o wide"
         }
       ],
-      "tags": ["get", "pods", "list"],
-      "source": "curated",
-      "source_url": null
-    },
-    {
-      "id": "kubectl-get-pods-official",
-      "title": "List pods (official Kubernetes reference)",
-      "syntax": "kubectl get pods",
-      "description": "Reference form from the Kubernetes docs — exactly matches `kubectl get pods` with default output. Mirrors the official kubectl-reference for canonical behavior.",
-      "examples": [
-        { "description": "List pods in the current namespace", "code": "kubectl get pods" }
-      ],
-      "tags": ["get", "pods", "list", "reference", "official"],
+      "tags": ["get", "pods", "list", "kubectl"],
       "source": "official",
-      "source_url": "https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get"
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-get-deployments",
       "title": "List deployments",
       "syntax": "kubectl get deployments",
       "description": "List deployments in the current namespace.",
-      "examples": [{ "description": "List deployments", "code": "kubectl get deployments" }],
+      "examples": [
+        {
+          "description": "List deployments",
+          "code": "kubectl get deployments"
+        }
+      ],
       "tags": ["get", "deployments", "list"],
       "source": "curated",
       "source_url": null
@@ -49,7 +45,12 @@
       "title": "List services",
       "syntax": "kubectl get services",
       "description": "List services in the current namespace.",
-      "examples": [{ "description": "List services", "code": "kubectl get services" }],
+      "examples": [
+        {
+          "description": "List services",
+          "code": "kubectl get services"
+        }
+      ],
       "tags": ["get", "services", "list"],
       "source": "curated",
       "source_url": null
@@ -60,7 +61,10 @@
       "syntax": "kubectl describe pod <pod>",
       "description": "Show detailed info about a pod including events (useful when a pod is stuck Pending or CrashLooping).",
       "examples": [
-        { "description": "Describe pod web-abc123", "code": "kubectl describe pod web-abc123" }
+        {
+          "description": "Describe pod web-abc123",
+          "code": "kubectl describe pod web-abc123"
+        }
       ],
       "tags": ["describe", "pod", "debug"],
       "source": "curated",
@@ -71,10 +75,15 @@
       "title": "Show pod logs",
       "syntax": "kubectl logs <pod>",
       "description": "Print container logs. Add -f to follow, --tail N for last N lines, -c <container> for multi-container pods.",
-      "examples": [{ "description": "Follow logs of pod web", "code": "kubectl logs -f web" }],
-      "tags": ["logs", "tail", "follow"],
-      "source": "curated",
-      "source_url": null
+      "examples": [
+        {
+          "description": "Show logs for pod web",
+          "code": "kubectl logs web"
+        }
+      ],
+      "tags": ["logs", "pod", "containers", "kubectl"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     },
     {
       "id": "kubectl-exec",
@@ -82,7 +91,10 @@
       "syntax": "kubectl exec -it <pod> -- <command>",
       "description": "Execute a command inside a pod's container. Use `bash` or `sh` for an interactive shell.",
       "examples": [
-        { "description": "Open a shell in pod web", "code": "kubectl exec -it web -- bash" }
+        {
+          "description": "Open a shell in pod web",
+          "code": "kubectl exec -it web -- bash"
+        }
       ],
       "tags": ["exec", "shell", "interactive"],
       "source": "curated",
@@ -94,7 +106,10 @@
       "syntax": "kubectl apply -f <file>",
       "description": "Create or update resources from a YAML/JSON manifest. Idempotent — safe to re-run.",
       "examples": [
-        { "description": "Apply manifest.yaml", "code": "kubectl apply -f manifest.yaml" }
+        {
+          "description": "Apply manifest.yaml",
+          "code": "kubectl apply -f manifest.yaml"
+        }
       ],
       "tags": ["apply", "manifest", "yaml"],
       "source": "curated",
@@ -121,7 +136,10 @@
       "syntax": "kubectl delete pod <pod>",
       "description": "Delete a pod by name. Pods managed by a Deployment are recreated.",
       "examples": [
-        { "description": "Delete pod web-abc123", "code": "kubectl delete pod web-abc123" }
+        {
+          "description": "Delete pod web-abc123",
+          "code": "kubectl delete pod web-abc123"
+        }
       ],
       "tags": ["delete", "pod"],
       "source": "curated",
@@ -133,7 +151,10 @@
       "syntax": "kubectl delete deployment <name>",
       "description": "Delete a deployment and its managed ReplicaSets and Pods.",
       "examples": [
-        { "description": "Delete deployment web", "code": "kubectl delete deployment web" }
+        {
+          "description": "Delete deployment web",
+          "code": "kubectl delete deployment web"
+        }
       ],
       "tags": ["delete", "deployment"],
       "source": "curated",
@@ -190,7 +211,10 @@
       "syntax": "kubectl config current-context",
       "description": "Print the name of the kubeconfig context kubectl is currently using.",
       "examples": [
-        { "description": "Show current context", "code": "kubectl config current-context" }
+        {
+          "description": "Show current context",
+          "code": "kubectl config current-context"
+        }
       ],
       "tags": ["config", "context", "kubeconfig"],
       "source": "curated",
@@ -202,7 +226,10 @@
       "syntax": "kubectl config use-context <context>",
       "description": "Set the active context. Affects every subsequent kubectl call.",
       "examples": [
-        { "description": "Switch to the prod context", "code": "kubectl config use-context prod" }
+        {
+          "description": "Switch to the prod context",
+          "code": "kubectl config use-context prod"
+        }
       ],
       "tags": ["config", "context", "switch"],
       "source": "curated",
@@ -213,7 +240,12 @@
       "title": "List kubeconfig contexts",
       "syntax": "kubectl config get-contexts",
       "description": "List all contexts in kubeconfig with the current one marked.",
-      "examples": [{ "description": "List contexts", "code": "kubectl config get-contexts" }],
+      "examples": [
+        {
+          "description": "List contexts",
+          "code": "kubectl config get-contexts"
+        }
+      ],
       "tags": ["config", "contexts", "list"],
       "source": "curated",
       "source_url": null
@@ -238,10 +270,525 @@
       "title": "Show pod CPU/memory usage",
       "syntax": "kubectl top pods",
       "description": "Show CPU and memory consumption per pod. Requires metrics-server.",
-      "examples": [{ "description": "Show pod usage", "code": "kubectl top pods" }],
+      "examples": [
+        {
+          "description": "Show pod usage",
+          "code": "kubectl top pods"
+        }
+      ],
       "tags": ["top", "metrics", "cpu", "memory"],
       "source": "curated",
       "source_url": null
+    },
+    {
+      "id": "kubectl-get-events",
+      "title": "List events in the cluster",
+      "syntax": "kubectl get events",
+      "description": "Show recent cluster events (pod failures, scheduling decisions, etc). Useful for debugging issues.",
+      "examples": [
+        {
+          "description": "View cluster events sorted by time",
+          "code": "kubectl get events -A --sort-by='.lastTimestamp'"
+        }
+      ],
+      "tags": ["events", "debug", "troubleshoot"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-patch",
+      "title": "Update a resource field",
+      "syntax": "kubectl patch <resource> <name> -p <patch>",
+      "description": "Apply a JSON/strategic merge patch to update a resource without replacing it.",
+      "examples": [
+        {
+          "description": "Update a pod's label",
+          "code": "kubectl patch pod web -p '{\"metadata\":{\"labels\":{\"env\":\"prod\"}}}'"
+        }
+      ],
+      "tags": ["patch", "update", "edit"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-set-image",
+      "title": "Update a container image in a deployment",
+      "syntax": "kubectl set image deployment/<name> <container>=<image>",
+      "description": "Change the image of a container in a deployment, triggering a rolling update.",
+      "examples": [
+        {
+          "description": "Update web deployment's image",
+          "code": "kubectl set image deployment/web web=myapp:v2.0"
+        }
+      ],
+      "tags": ["set", "image", "update", "deployment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-get-configmap",
+      "title": "Get configmaps",
+      "syntax": "kubectl get configmap",
+      "description": "List configmaps in the current namespace. Use -o yaml to view contents.",
+      "examples": [
+        {
+          "description": "List and view a configmap's data",
+          "code": "kubectl get configmap app-config -o yaml"
+        }
+      ],
+      "tags": ["configmap", "get", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-get-secret",
+      "title": "Get secrets",
+      "syntax": "kubectl get secret",
+      "description": "List secrets in the current namespace. Secrets are base64-encoded; use -o yaml to decode.",
+      "examples": [
+        {
+          "description": "View a secret's data",
+          "code": "kubectl get secret db-creds -o jsonpath='{.data.password}' | base64 -d"
+        }
+      ],
+      "tags": ["secret", "get", "sensitive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-explain",
+      "title": "Explain API resource fields",
+      "syntax": "kubectl explain <resource>",
+      "description": "Show documentation for a Kubernetes resource type, including field descriptions and types.",
+      "examples": [
+        {
+          "description": "Learn about Pod fields",
+          "code": "kubectl explain pod.spec"
+        }
+      ],
+      "tags": ["explain", "docs", "api"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-cordon",
+      "title": "Mark a node as unschedulable",
+      "syntax": "kubectl cordon <node>",
+      "description": "Prevent new pods from being scheduled on a node. Existing pods are not evicted.",
+      "examples": [
+        {
+          "description": "Cordon a node for maintenance",
+          "code": "kubectl cordon node-1"
+        }
+      ],
+      "tags": ["cordon", "node", "maintenance"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-drain",
+      "title": "Safely drain a node before maintenance",
+      "syntax": "kubectl drain <node>",
+      "description": "Evict all pods from a node gracefully, marking it as unschedulable. Use before node maintenance.",
+      "examples": [
+        {
+          "description": "Drain and prepare node for shutdown",
+          "code": "kubectl drain node-1 --ignore-daemonsets"
+        }
+      ],
+      "tags": ["drain", "node", "evict", "maintenance"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "kubectl-get-all",
+      "title": "Get common resources",
+      "syntax": "kubectl get all",
+      "description": "List common namespaced workload and service resources.",
+      "examples": [
+        {
+          "description": "Show all common resources",
+          "code": "kubectl get all -n default"
+        }
+      ],
+      "tags": ["get", "resources", "namespace"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-get-nodes",
+      "title": "List nodes",
+      "syntax": "kubectl get nodes",
+      "description": "List cluster nodes and their readiness status.",
+      "examples": [
+        {
+          "description": "Show nodes with more detail",
+          "code": "kubectl get nodes -o wide"
+        }
+      ],
+      "tags": ["nodes", "cluster", "get"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-get-ingress",
+      "title": "List ingresses",
+      "syntax": "kubectl get ingress",
+      "description": "List ingress resources in a namespace.",
+      "examples": [
+        {
+          "description": "Show ingress resources",
+          "code": "kubectl get ingress -n app"
+        }
+      ],
+      "tags": ["ingress", "network", "get"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-get-namespaces",
+      "title": "List namespaces",
+      "syntax": "kubectl get namespaces",
+      "description": "List all namespaces in the cluster.",
+      "examples": [
+        {
+          "description": "Show namespaces",
+          "code": "kubectl get ns"
+        }
+      ],
+      "tags": ["namespace", "get", "cluster"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-create-namespace",
+      "title": "Create namespace",
+      "syntax": "kubectl create namespace <name>",
+      "description": "Create a namespace resource.",
+      "examples": [
+        {
+          "description": "Create app namespace",
+          "code": "kubectl create namespace app"
+        }
+      ],
+      "tags": ["namespace", "create"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-config-set-namespace",
+      "title": "Set default namespace",
+      "syntax": "kubectl config set-context --current --namespace=<name>",
+      "description": "Set the current context's default namespace.",
+      "examples": [
+        {
+          "description": "Use app namespace by default",
+          "code": "kubectl config set-context --current --namespace=app"
+        }
+      ],
+      "tags": ["context", "namespace", "config"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-delete-file",
+      "title": "Delete resources from file",
+      "syntax": "kubectl delete -f <file>",
+      "description": "Delete resources declared in one or more manifests.",
+      "examples": [
+        {
+          "description": "Delete a manifest",
+          "code": "kubectl delete -f deployment.yaml"
+        }
+      ],
+      "tags": ["delete", "manifest", "file"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-rollout-undo",
+      "title": "Undo rollout",
+      "syntax": "kubectl rollout undo deployment/<name>",
+      "description": "Roll back a deployment to the previous revision.",
+      "examples": [
+        {
+          "description": "Roll back api deployment",
+          "code": "kubectl rollout undo deployment/api"
+        }
+      ],
+      "tags": ["rollout", "undo", "deployment"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-rollout-history",
+      "title": "Show rollout history",
+      "syntax": "kubectl rollout history deployment/<name>",
+      "description": "Show revision history for a deployment rollout.",
+      "examples": [
+        {
+          "description": "Show api rollout history",
+          "code": "kubectl rollout history deployment/api"
+        }
+      ],
+      "tags": ["rollout", "history", "deployment"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-logs-follow",
+      "title": "Follow pod logs",
+      "syntax": "kubectl logs -f <pod>",
+      "description": "Stream logs from a pod until interrupted.",
+      "examples": [
+        {
+          "description": "Follow api pod logs",
+          "code": "kubectl logs -f api-7d9c"
+        }
+      ],
+      "tags": ["logs", "follow", "pod"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-logs-previous",
+      "title": "Show previous container logs",
+      "syntax": "kubectl logs <pod> --previous",
+      "description": "Show logs from a previously terminated container in a pod.",
+      "examples": [
+        {
+          "description": "Inspect crashed container logs",
+          "code": "kubectl logs api-7d9c --previous"
+        }
+      ],
+      "tags": ["logs", "crash", "previous"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-cp",
+      "title": "Copy files to or from pod",
+      "syntax": "kubectl cp <src> <pod>:<dest>",
+      "description": "Copy files between local filesystem and a container in a pod.",
+      "examples": [
+        {
+          "description": "Copy logs out of pod",
+          "code": "kubectl cp app/api-7d9c:/tmp/report.txt ./report.txt"
+        }
+      ],
+      "tags": ["copy", "pod", "files"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-auth-can-i",
+      "title": "Check RBAC permission",
+      "syntax": "kubectl auth can-i <verb> <resource>",
+      "description": "Check whether the current user can perform an action.",
+      "examples": [
+        {
+          "description": "Can I delete pods?",
+          "code": "kubectl auth can-i delete pods -n app"
+        }
+      ],
+      "tags": ["auth", "rbac", "permission"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-api-resources",
+      "title": "List API resources",
+      "syntax": "kubectl api-resources",
+      "description": "Print supported API resources and their short names.",
+      "examples": [
+        {
+          "description": "List namespaced resources",
+          "code": "kubectl api-resources --namespaced=true"
+        }
+      ],
+      "tags": ["api", "resources", "discovery"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-edit",
+      "title": "Edit a resource",
+      "syntax": "kubectl edit <resource>/<name>",
+      "description": "Open a live resource in an editor and apply changes on save.",
+      "examples": [
+        {
+          "description": "Edit deployment",
+          "code": "kubectl edit deployment/api"
+        }
+      ],
+      "tags": ["edit", "resource", "live"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-label",
+      "title": "Add or update labels",
+      "syntax": "kubectl label <resource> <name> <key>=<value>",
+      "description": "Add, update, or remove labels on resources.",
+      "examples": [
+        {
+          "description": "Label a node",
+          "code": "kubectl label node worker-1 disk=ssd"
+        }
+      ],
+      "tags": ["label", "metadata", "selector"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-annotate",
+      "title": "Add or update annotations",
+      "syntax": "kubectl annotate <resource> <name> <key>=<value>",
+      "description": "Add, update, or remove annotations on resources.",
+      "examples": [
+        {
+          "description": "Annotate deployment",
+          "code": "kubectl annotate deployment/api owner=platform"
+        }
+      ],
+      "tags": ["annotate", "metadata"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-wait",
+      "title": "Wait for a condition",
+      "syntax": "kubectl wait --for=condition=<condition> <resource>",
+      "description": "Wait until resources meet a named condition.",
+      "examples": [
+        {
+          "description": "Wait for deployment availability",
+          "code": "kubectl wait --for=condition=available deployment/api --timeout=120s"
+        }
+      ],
+      "tags": ["wait", "condition", "rollout"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/"
+    },
+    {
+      "id": "kubectl-get-output",
+      "title": "Get resources as YAML or JSON",
+      "syntax": "kubectl get <resource> <name> -o yaml|json",
+      "description": "Print Kubernetes resources in machine-readable output formats.",
+      "examples": [
+        {
+          "description": "Dump deployment YAML",
+          "code": "kubectl get deployment api -o yaml"
+        }
+      ],
+      "tags": ["get", "yaml", "json", "output"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-get-selector",
+      "title": "Get resources by label selector",
+      "syntax": "kubectl get <resource> -l <key>=<value>",
+      "description": "Filter listed resources with a label selector.",
+      "examples": [
+        {
+          "description": "List pods for app api",
+          "code": "kubectl get pods -l app=api"
+        }
+      ],
+      "tags": ["get", "labels", "selector"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-create-deployment",
+      "title": "Create a deployment",
+      "syntax": "kubectl create deployment <name> --image=<image>",
+      "description": "Create a Deployment object from an image.",
+      "examples": [
+        {
+          "description": "Create nginx deployment",
+          "code": "kubectl create deployment nginx --image=nginx"
+        }
+      ],
+      "tags": ["create", "deployment", "workload"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-expose",
+      "title": "Expose a workload as service",
+      "syntax": "kubectl expose deployment <name> --port=<port> --target-port=<port>",
+      "description": "Create a Service for a deployment, pod, or other resource.",
+      "examples": [
+        {
+          "description": "Expose API deployment",
+          "code": "kubectl expose deployment api --port=80 --target-port=8080"
+        }
+      ],
+      "tags": ["service", "expose", "network"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-run",
+      "title": "Run a temporary pod",
+      "syntax": "kubectl run <name> --image=<image> --rm -it -- <command>",
+      "description": "Create and run a pod, often used for temporary diagnostics.",
+      "examples": [
+        {
+          "description": "Start an interactive busybox shell",
+          "code": "kubectl run tmp-shell --image=busybox --rm -it -- sh"
+        }
+      ],
+      "tags": ["run", "pod", "debug"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-diff",
+      "title": "Preview applied changes",
+      "syntax": "kubectl diff -f <file-or-dir>",
+      "description": "Show server-side differences that would be applied to live resources.",
+      "examples": [
+        {
+          "description": "Preview manifest changes",
+          "code": "kubectl diff -f k8s/"
+        }
+      ],
+      "tags": ["diff", "apply", "preview"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-debug",
+      "title": "Debug a pod or node",
+      "syntax": "kubectl debug <target> -it --image=<image>",
+      "description": "Create debugging containers or copies for troubleshooting pods and nodes.",
+      "examples": [
+        {
+          "description": "Debug a pod with busybox",
+          "code": "kubectl debug pod/api-0 -it --image=busybox"
+        }
+      ],
+      "tags": ["debug", "troubleshoot", "pod"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
+    },
+    {
+      "id": "kubectl-create-secret-generic",
+      "title": "Create generic secret",
+      "syntax": "kubectl create secret generic <name> --from-literal=<key>=<value>",
+      "description": "Create a Secret from literal values, files, or environment files.",
+      "examples": [
+        {
+          "description": "Create database password secret",
+          "code": "kubectl create secret generic db --from-literal=password=secret"
+        }
+      ],
+      "tags": ["secret", "create", "config"],
+      "source": "official",
+      "source_url": "https://kubernetes.io/docs/reference/kubectl/quick-reference/"
     }
   ]
 }

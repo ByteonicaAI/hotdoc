@@ -1,0 +1,595 @@
+{
+  "id": "aws-cli",
+  "name": "aws-cli",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (AWS CLI v2 common workflows; verified against official reference)",
+  "license": "MIT",
+  "homepage": "https://docs.aws.amazon.com/cli/latest/reference/",
+  "entries": [
+    {
+      "id": "aws-s3-ls",
+      "title": "s3 ls list",
+      "syntax": "aws s3 ls, aws s3 ls s3://bucket/, aws s3 ls s3://bucket/prefix --recursive",
+      "description": "List S3 buckets or objects in a bucket.",
+      "examples": [
+        {
+          "description": "list bucket contents recursively",
+          "code": "aws s3 ls s3://my-bucket/logs/ --recursive"
+        }
+      ],
+      "tags": ["s3", "listing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-s3-cp",
+      "title": "s3 cp copy",
+      "syntax": "aws s3 cp file s3://bucket/, aws s3 cp s3://bucket/key local_file, aws s3 cp --recursive",
+      "description": "Copy files to/from S3 buckets.",
+      "examples": [
+        {
+          "description": "copy directory to S3",
+          "code": "aws s3 cp local_dir s3://my-bucket/remote_dir --recursive"
+        }
+      ],
+      "tags": ["s3", "transfer"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-s3-rm",
+      "title": "s3 rm remove",
+      "syntax": "aws s3 rm s3://bucket/key, aws s3 rm s3://bucket --recursive",
+      "description": "Delete objects from S3 buckets.",
+      "examples": [
+        {
+          "description": "remove objects with prefix",
+          "code": "aws s3 rm s3://my-bucket/logs/ --recursive --exclude \"*.txt\""
+        }
+      ],
+      "tags": ["s3", "deletion"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-ec2-describe",
+      "title": "ec2 describe instances",
+      "syntax": "aws ec2 describe-instances, aws ec2 describe-instances --filters Name=state.name,Values=running",
+      "description": "List and filter EC2 instances.",
+      "examples": [
+        {
+          "description": "describe running instances",
+          "code": "aws ec2 describe-instances --filters Name=instance-state-name,Values=running"
+        }
+      ],
+      "tags": ["ec2", "instances"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-lambda-invoke",
+      "title": "lambda invoke",
+      "syntax": "aws lambda invoke --function-name name --payload json outfile",
+      "description": "Invoke a Lambda function synchronously.",
+      "examples": [
+        {
+          "description": "invoke with payload",
+          "code": "aws lambda invoke --function-name my-function --payload '{\"key\":\"value\"}' response.json"
+        }
+      ],
+      "tags": ["lambda", "functions"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-iam-create-user",
+      "title": "iam create-user",
+      "syntax": "aws iam create-user --user-name name",
+      "description": "Create a new IAM user.",
+      "examples": [
+        {
+          "description": "create user",
+          "code": "aws iam create-user --user-name alice"
+        }
+      ],
+      "tags": ["iam", "users"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-iam-attach-policy",
+      "title": "iam attach-user-policy",
+      "syntax": "aws iam attach-user-policy --user-name name --policy-arn arn",
+      "description": "Attach a policy to an IAM user.",
+      "examples": [
+        {
+          "description": "attach policy to user",
+          "code": "aws iam attach-user-policy --user-name alice --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+        }
+      ],
+      "tags": ["iam", "policies"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-dynamodb-scan",
+      "title": "dynamodb scan",
+      "syntax": "aws dynamodb scan --table-name table, aws dynamodb scan --table-name table --filter-expression",
+      "description": "Scan a DynamoDB table for items.",
+      "examples": [
+        {
+          "description": "scan table with filter",
+          "code": "aws dynamodb scan --table-name users --filter-expression 'age > :val' --expression-attribute-values '{\":val\":{\"N\":\"18\"}}'"
+        }
+      ],
+      "tags": ["dynamodb", "tables"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-dynamodb-query",
+      "title": "dynamodb query",
+      "syntax": "aws dynamodb query --table-name table --key-condition-expression",
+      "description": "Query a DynamoDB table by partition key.",
+      "examples": [
+        {
+          "description": "query table",
+          "code": "aws dynamodb query --table-name users --key-condition-expression 'id = :id' --expression-attribute-values '{\":id\":{\"S\":\"user123\"}}'"
+        }
+      ],
+      "tags": ["dynamodb", "tables"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-cloudformation-deploy",
+      "title": "cloudformation deploy",
+      "syntax": "aws cloudformation deploy --template-file template.json --stack-name name",
+      "description": "Deploy a CloudFormation stack.",
+      "examples": [
+        {
+          "description": "deploy stack",
+          "code": "aws cloudformation deploy --template-file infra.json --stack-name my-stack --capabilities CAPABILITY_IAM"
+        }
+      ],
+      "tags": ["cloudformation", "infrastructure"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-cloudformation-describe",
+      "title": "cloudformation describe-stacks",
+      "syntax": "aws cloudformation describe-stacks --stack-name name",
+      "description": "Get information about a CloudFormation stack.",
+      "examples": [
+        {
+          "description": "describe stack",
+          "code": "aws cloudformation describe-stacks --stack-name my-stack"
+        }
+      ],
+      "tags": ["cloudformation", "infrastructure"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-rds-describe",
+      "title": "rds describe-db-instances",
+      "syntax": "aws rds describe-db-instances, aws rds describe-db-instances --db-instance-identifier name",
+      "description": "List RDS database instances.",
+      "examples": [
+        {
+          "description": "describe database",
+          "code": "aws rds describe-db-instances --db-instance-identifier my-database"
+        }
+      ],
+      "tags": ["rds", "databases"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-logs-describe",
+      "title": "logs describe-log-groups",
+      "syntax": "aws logs describe-log-groups, aws logs describe-log-streams --log-group-name name",
+      "description": "List CloudWatch log groups and streams.",
+      "examples": [
+        {
+          "description": "list log streams",
+          "code": "aws logs describe-log-streams --log-group-name /aws/lambda/my-function"
+        }
+      ],
+      "tags": ["cloudwatch", "logging"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-logs-filter",
+      "title": "logs filter-log-events",
+      "syntax": "aws logs filter-log-events --log-group-name name --filter-pattern pattern",
+      "description": "Search logs in a log group.",
+      "examples": [
+        {
+          "description": "filter logs for errors",
+          "code": "aws logs filter-log-events --log-group-name /app/logs --filter-pattern 'ERROR'"
+        }
+      ],
+      "tags": ["cloudwatch", "logging"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-cli-configure",
+      "title": "configure credentials",
+      "syntax": "aws configure, aws configure --profile profile_name",
+      "description": "Set up AWS credentials and region.",
+      "examples": [
+        {
+          "description": "configure with profile",
+          "code": "aws configure --profile my-profile"
+        }
+      ],
+      "tags": ["config", "authentication"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "aws-sts-get-caller-identity",
+      "title": "Show current AWS identity",
+      "syntax": "aws sts get-caller-identity",
+      "description": "Return the account, user ID, and ARN for the active credentials.",
+      "examples": [
+        {
+          "description": "Verify active credentials",
+          "code": "aws sts get-caller-identity"
+        }
+      ],
+      "tags": ["sts", "identity", "auth"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-s3-sync",
+      "title": "Sync S3 prefixes",
+      "syntax": "aws s3 sync <src> <dest>",
+      "description": "Recursively copy new and changed files between local paths and S3 prefixes.",
+      "examples": [
+        {
+          "description": "Sync build assets to S3",
+          "code": "aws s3 sync ./dist s3://my-bucket/dist --delete"
+        }
+      ],
+      "tags": ["s3", "sync", "files"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-s3-mb",
+      "title": "Create S3 bucket",
+      "syntax": "aws s3 mb s3://<bucket>",
+      "description": "Create an S3 bucket using the high-level s3 command.",
+      "examples": [
+        {
+          "description": "Create a bucket",
+          "code": "aws s3 mb s3://my-hotdoc-bucket"
+        }
+      ],
+      "tags": ["s3", "bucket", "create"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-s3-presign",
+      "title": "Create a presigned S3 URL",
+      "syntax": "aws s3 presign s3://<bucket>/<key>",
+      "description": "Generate a temporary signed URL for an S3 object.",
+      "examples": [
+        {
+          "description": "Presign an object for one hour",
+          "code": "aws s3 presign s3://my-bucket/report.pdf --expires-in 3600"
+        }
+      ],
+      "tags": ["s3", "presign", "url"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ec2-start-instances",
+      "title": "Start EC2 instances",
+      "syntax": "aws ec2 start-instances --instance-ids <ids>",
+      "description": "Start one or more stopped EC2 instances.",
+      "examples": [
+        {
+          "description": "Start one instance",
+          "code": "aws ec2 start-instances --instance-ids i-0123456789abcdef0"
+        }
+      ],
+      "tags": ["ec2", "instance", "start"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ec2-stop-instances",
+      "title": "Stop EC2 instances",
+      "syntax": "aws ec2 stop-instances --instance-ids <ids>",
+      "description": "Stop one or more running EC2 instances.",
+      "examples": [
+        {
+          "description": "Stop one instance",
+          "code": "aws ec2 stop-instances --instance-ids i-0123456789abcdef0"
+        }
+      ],
+      "tags": ["ec2", "instance", "stop"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ec2-describe-security-groups",
+      "title": "Describe security groups",
+      "syntax": "aws ec2 describe-security-groups",
+      "description": "List EC2 security groups and their ingress/egress rules.",
+      "examples": [
+        {
+          "description": "Find groups by name",
+          "code": "aws ec2 describe-security-groups --group-names web"
+        }
+      ],
+      "tags": ["ec2", "security group", "network"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ecr-login",
+      "title": "Log Docker into ECR",
+      "syntax": "aws ecr get-login-password | docker login --username AWS --password-stdin <registry>",
+      "description": "Get an ECR auth token and pass it to Docker login.",
+      "examples": [
+        {
+          "description": "Authenticate Docker to ECR",
+          "code": "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com"
+        }
+      ],
+      "tags": ["ecr", "docker", "auth"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ecs-update-service",
+      "title": "Update ECS service",
+      "syntax": "aws ecs update-service --cluster <cluster> --service <service>",
+      "description": "Modify or force a new deployment of an ECS service.",
+      "examples": [
+        {
+          "description": "Force ECS redeploy",
+          "code": "aws ecs update-service --cluster prod --service api --force-new-deployment"
+        }
+      ],
+      "tags": ["ecs", "service", "deploy"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-secretsmanager-get-secret-value",
+      "title": "Read a secret",
+      "syntax": "aws secretsmanager get-secret-value --secret-id <id>",
+      "description": "Retrieve the current value for an AWS Secrets Manager secret.",
+      "examples": [
+        {
+          "description": "Get a secret string",
+          "code": "aws secretsmanager get-secret-value --secret-id prod/db --query SecretString --output text"
+        }
+      ],
+      "tags": ["secretsmanager", "secret", "read"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ssm-get-parameter",
+      "title": "Read SSM parameter",
+      "syntax": "aws ssm get-parameter --name <name>",
+      "description": "Retrieve a Systems Manager Parameter Store value.",
+      "examples": [
+        {
+          "description": "Get decrypted secure string",
+          "code": "aws ssm get-parameter --name /prod/db/password --with-decryption"
+        }
+      ],
+      "tags": ["ssm", "parameter", "secret"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-ssm-start-session",
+      "title": "Start SSM shell session",
+      "syntax": "aws ssm start-session --target <instance-id>",
+      "description": "Open an interactive Session Manager shell to a managed instance.",
+      "examples": [
+        {
+          "description": "Connect to an instance without SSH",
+          "code": "aws ssm start-session --target i-0123456789abcdef0"
+        }
+      ],
+      "tags": ["ssm", "session", "shell"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-lambda-update-function-code",
+      "title": "Update Lambda code",
+      "syntax": "aws lambda update-function-code --function-name <name> --zip-file <fileb://zip>",
+      "description": "Upload new deployment package bytes for a Lambda function.",
+      "examples": [
+        {
+          "description": "Deploy local zip",
+          "code": "aws lambda update-function-code --function-name api --zip-file fileb://function.zip"
+        }
+      ],
+      "tags": ["lambda", "deploy", "zip"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-cloudfront-create-invalidation",
+      "title": "Invalidate CloudFront paths",
+      "syntax": "aws cloudfront create-invalidation --distribution-id <id> --paths <paths>",
+      "description": "Create an invalidation request for cached CloudFront objects.",
+      "examples": [
+        {
+          "description": "Invalidate all paths",
+          "code": "aws cloudfront create-invalidation --distribution-id E123456789 --paths '/*'"
+        }
+      ],
+      "tags": ["cloudfront", "cache", "invalidate"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-sqs-send-message",
+      "title": "Send SQS message",
+      "syntax": "aws sqs send-message --queue-url <url> --message-body <body>",
+      "description": "Send a message to an SQS queue.",
+      "examples": [
+        {
+          "description": "Send a JSON message",
+          "code": "aws sqs send-message --queue-url https://sqs.us-east-1.amazonaws.com/123/q --message-body '{\"ok\":true}'"
+        }
+      ],
+      "tags": ["sqs", "queue", "message"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-sns-publish",
+      "title": "Publish SNS message",
+      "syntax": "aws sns publish --topic-arn <arn> --message <text>",
+      "description": "Publish a message to an SNS topic.",
+      "examples": [
+        {
+          "description": "Publish deployment notice",
+          "code": "aws sns publish --topic-arn arn:aws:sns:us-east-1:123:deploys --message 'deploy complete'"
+        }
+      ],
+      "tags": ["sns", "publish", "topic"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-configure-sso",
+      "title": "Configure IAM Identity Center",
+      "syntax": "aws configure sso",
+      "description": "Create an AWS CLI profile that authenticates through IAM Identity Center.",
+      "examples": [
+        {
+          "description": "Start SSO profile setup",
+          "code": "aws configure sso"
+        }
+      ],
+      "tags": ["sso", "configure", "profile"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-sso-login",
+      "title": "Log in with SSO profile",
+      "syntax": "aws sso login --profile <profile>",
+      "description": "Authenticate a configured IAM Identity Center profile.",
+      "examples": [
+        {
+          "description": "Log in to dev profile",
+          "code": "aws sso login --profile dev"
+        }
+      ],
+      "tags": ["sso", "login", "profile"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-profile-region",
+      "title": "Use profile and region",
+      "syntax": "aws --profile <profile> --region <region> <service> <operation>",
+      "description": "Run any AWS CLI command against a specific profile and region.",
+      "examples": [
+        {
+          "description": "List S3 buckets in us-east-1 profile",
+          "code": "aws --profile dev --region us-east-1 s3api list-buckets"
+        }
+      ],
+      "tags": ["profile", "region", "global options"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "id": "aws-eks-update-kubeconfig",
+      "title": "Update kubeconfig for EKS",
+      "syntax": "aws eks update-kubeconfig --name <cluster> --region <region>",
+      "description": "Add or update kubeconfig entries for an Amazon EKS cluster.",
+      "examples": [
+        {
+          "description": "Configure kubectl for prod cluster",
+          "code": "aws eks update-kubeconfig --name prod --region us-east-1"
+        }
+      ],
+      "tags": ["eks", "kubeconfig", "kubernetes"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/eks/update-kubeconfig.html"
+    },
+    {
+      "id": "aws-ecr-list-images",
+      "title": "List ECR images",
+      "syntax": "aws ecr list-images --repository-name <name>",
+      "description": "List image IDs in an Amazon ECR repository.",
+      "examples": [
+        {
+          "description": "List API repository images",
+          "code": "aws ecr list-images --repository-name api"
+        }
+      ],
+      "tags": ["ecr", "images", "registry"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ecr/list-images.html"
+    },
+    {
+      "id": "aws-logs-tail",
+      "title": "Tail CloudWatch logs",
+      "syntax": "aws logs tail <log-group> --follow",
+      "description": "Stream CloudWatch Logs events from a log group.",
+      "examples": [
+        {
+          "description": "Follow Lambda log group",
+          "code": "aws logs tail /aws/lambda/api --follow"
+        }
+      ],
+      "tags": ["logs", "cloudwatch", "tail"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/tail.html"
+    },
+    {
+      "id": "aws-ecs-execute-command",
+      "title": "Open shell in ECS task",
+      "syntax": "aws ecs execute-command --cluster <cluster> --task <task> --container <container> --interactive --command <command>",
+      "description": "Run an interactive command inside a container in an ECS task.",
+      "examples": [
+        {
+          "description": "Open shell in app container",
+          "code": "aws ecs execute-command --cluster prod --task abc123 --container app --interactive --command /bin/sh"
+        }
+      ],
+      "tags": ["ecs", "exec", "container"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ecs/execute-command.html"
+    },
+    {
+      "id": "aws-s3api-list-buckets",
+      "title": "List S3 buckets via API",
+      "syntax": "aws s3api list-buckets",
+      "description": "Call the S3 API operation to list buckets for the account.",
+      "examples": [
+        {
+          "description": "List bucket names as JSON",
+          "code": "aws s3api list-buckets --query 'Buckets[].Name'"
+        }
+      ],
+      "tags": ["s3api", "buckets", "json"],
+      "source": "official",
+      "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3api/list-buckets.html"
+    }
+  ]
+}

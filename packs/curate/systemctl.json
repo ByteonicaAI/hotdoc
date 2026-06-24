@@ -1,0 +1,550 @@
+{
+  "id": "systemctl",
+  "name": "systemctl",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (systemd systemctl service operations; verified against current manpage)",
+  "license": "MIT",
+  "homepage": "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+  "entries": [
+    {
+      "id": "systemctl-start",
+      "title": "start service",
+      "syntax": "systemctl start name, sudo systemctl start name",
+      "description": "Start a stopped service immediately.",
+      "examples": [
+        {
+          "description": "start nginx service",
+          "code": "sudo systemctl start nginx"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-stop",
+      "title": "stop service",
+      "syntax": "systemctl stop name",
+      "description": "Stop a running service.",
+      "examples": [
+        {
+          "description": "stop postgresql",
+          "code": "sudo systemctl stop postgresql"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-restart",
+      "title": "restart service",
+      "syntax": "systemctl restart name",
+      "description": "Stop and restart a service.",
+      "examples": [
+        {
+          "description": "restart apache2",
+          "code": "sudo systemctl restart apache2"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-reload",
+      "title": "reload service",
+      "syntax": "systemctl reload name",
+      "description": "Reload configuration without stopping the service.",
+      "examples": [
+        {
+          "description": "reload nginx config",
+          "code": "sudo systemctl reload nginx"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-enable",
+      "title": "enable service",
+      "syntax": "systemctl enable name",
+      "description": "Set service to start automatically on boot.",
+      "examples": [
+        {
+          "description": "enable docker to start on boot",
+          "code": "sudo systemctl enable docker"
+        }
+      ],
+      "tags": ["services", "boot"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-disable",
+      "title": "disable service",
+      "syntax": "systemctl disable name",
+      "description": "Prevent service from starting automatically on boot.",
+      "examples": [
+        {
+          "description": "disable bluetooth service",
+          "code": "sudo systemctl disable bluetooth"
+        }
+      ],
+      "tags": ["services", "boot"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-status",
+      "title": "check service status",
+      "syntax": "systemctl status name",
+      "description": "Show service status, uptime, and recent logs.",
+      "examples": [
+        {
+          "description": "check mysql status",
+          "code": "systemctl status mysql"
+        }
+      ],
+      "tags": ["services", "monitoring"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-is-active",
+      "title": "is-active",
+      "syntax": "systemctl is-active name",
+      "description": "Check if service is currently running (exit code 0 or 1).",
+      "examples": [
+        {
+          "description": "check if ssh is active",
+          "code": "systemctl is-active ssh && echo \"Running\" || echo \"Stopped\""
+        }
+      ],
+      "tags": ["services", "monitoring"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-is-enabled",
+      "title": "is-enabled",
+      "syntax": "systemctl is-enabled name",
+      "description": "Check if service is enabled to start on boot.",
+      "examples": [
+        {
+          "description": "check if service is enabled",
+          "code": "systemctl is-enabled postgresql"
+        }
+      ],
+      "tags": ["services", "boot"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-daemon-reload",
+      "title": "daemon-reload",
+      "syntax": "systemctl daemon-reload",
+      "description": "Reload systemd configuration after modifying unit files.",
+      "examples": [
+        {
+          "description": "reload systemd after creating service",
+          "code": "sudo systemctl daemon-reload"
+        }
+      ],
+      "tags": ["system", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-list-units",
+      "title": "list services",
+      "syntax": "systemctl list-units, systemctl list-units --type=service",
+      "description": "Show all loaded units or filter by type.",
+      "examples": [
+        {
+          "description": "list all running services",
+          "code": "systemctl list-units --type=service --state=running"
+        }
+      ],
+      "tags": ["services", "listing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-show",
+      "title": "show unit properties",
+      "syntax": "systemctl show name, systemctl show name -p property",
+      "description": "Display detailed properties and configuration of a unit.",
+      "examples": [
+        {
+          "description": "show service properties",
+          "code": "systemctl show nginx -p ExecStart"
+        }
+      ],
+      "tags": ["services", "properties"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-mask",
+      "title": "mask service",
+      "syntax": "systemctl mask name",
+      "description": "Prevent a service from being started manually or automatically.",
+      "examples": [
+        {
+          "description": "mask a service",
+          "code": "sudo systemctl mask removable-media-automount"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-unmask",
+      "title": "unmask service",
+      "syntax": "systemctl unmask name",
+      "description": "Re-enable a previously masked service.",
+      "examples": [
+        {
+          "description": "unmask service",
+          "code": "sudo systemctl unmask removable-media-automount"
+        }
+      ],
+      "tags": ["services", "control"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-journal",
+      "title": "view service logs",
+      "syntax": "journalctl -u name, journalctl -u name -f",
+      "description": "Show service logs using journalctl.",
+      "examples": [
+        {
+          "description": "follow service logs",
+          "code": "sudo journalctl -u nginx -f"
+        }
+      ],
+      "tags": ["services", "logging"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "systemctl-enable-now",
+      "title": "Enable and start unit",
+      "syntax": "systemctl enable --now <unit>",
+      "description": "Enable a unit for boot and start it immediately.",
+      "examples": [
+        {
+          "description": "Enable and start nginx",
+          "code": "sudo systemctl enable --now nginx.service"
+        }
+      ],
+      "tags": ["enable", "start", "service"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-disable-now",
+      "title": "Disable and stop unit",
+      "syntax": "systemctl disable --now <unit>",
+      "description": "Disable a unit at boot and stop it immediately.",
+      "examples": [
+        {
+          "description": "Disable and stop nginx",
+          "code": "sudo systemctl disable --now nginx.service"
+        }
+      ],
+      "tags": ["disable", "stop", "service"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-list-unit-files",
+      "title": "List installed unit files",
+      "syntax": "systemctl list-unit-files",
+      "description": "Show installed unit files and enablement state.",
+      "examples": [
+        {
+          "description": "List service unit files",
+          "code": "systemctl list-unit-files --type=service"
+        }
+      ],
+      "tags": ["list", "unit files", "enablement"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-list-timers",
+      "title": "List timers",
+      "syntax": "systemctl list-timers",
+      "description": "Show active timer units ordered by next run time.",
+      "examples": [
+        {
+          "description": "Show all timers",
+          "code": "systemctl list-timers --all"
+        }
+      ],
+      "tags": ["timer", "list", "schedule"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-cat",
+      "title": "Show unit file",
+      "syntax": "systemctl cat <unit>",
+      "description": "Print the unit file and drop-ins systemd is using.",
+      "examples": [
+        {
+          "description": "Show nginx unit",
+          "code": "systemctl cat nginx.service"
+        }
+      ],
+      "tags": ["unit", "config", "inspect"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-edit",
+      "title": "Edit unit override",
+      "syntax": "systemctl edit <unit>",
+      "description": "Create or edit a drop-in override for a unit.",
+      "examples": [
+        {
+          "description": "Override nginx service",
+          "code": "sudo systemctl edit nginx.service"
+        }
+      ],
+      "tags": ["unit", "override", "edit"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-reset-failed",
+      "title": "Clear failed state",
+      "syntax": "systemctl reset-failed <unit>",
+      "description": "Reset failed status for units.",
+      "examples": [
+        {
+          "description": "Clear failed nginx status",
+          "code": "sudo systemctl reset-failed nginx.service"
+        }
+      ],
+      "tags": ["failed", "reset", "status"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-reload-or-restart",
+      "title": "Reload or restart unit",
+      "syntax": "systemctl reload-or-restart <unit>",
+      "description": "Reload a unit if supported, otherwise restart it.",
+      "examples": [
+        {
+          "description": "Apply nginx config",
+          "code": "sudo systemctl reload-or-restart nginx.service"
+        }
+      ],
+      "tags": ["reload", "restart", "service"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-try-restart",
+      "title": "Restart only if active",
+      "syntax": "systemctl try-restart <unit>",
+      "description": "Restart a unit only when it is already running.",
+      "examples": [
+        {
+          "description": "Try restart app service",
+          "code": "sudo systemctl try-restart app.service"
+        }
+      ],
+      "tags": ["restart", "active", "service"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-user",
+      "title": "Control user services",
+      "syntax": "systemctl --user <command> <unit>",
+      "description": "Manage units for the current user service manager.",
+      "examples": [
+        {
+          "description": "Restart a user service",
+          "code": "systemctl --user restart pipewire.service"
+        }
+      ],
+      "tags": ["user", "service", "session"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-list-dependencies",
+      "title": "Show dependencies",
+      "syntax": "systemctl list-dependencies <unit>",
+      "description": "Show units required or wanted by a unit.",
+      "examples": [
+        {
+          "description": "Inspect multi-user target",
+          "code": "systemctl list-dependencies multi-user.target"
+        }
+      ],
+      "tags": ["dependencies", "unit", "inspect"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-set-property",
+      "title": "Set runtime property",
+      "syntax": "systemctl set-property <unit> <property=value>",
+      "description": "Change unit resource control properties at runtime.",
+      "examples": [
+        {
+          "description": "Limit service memory",
+          "code": "sudo systemctl set-property app.service MemoryMax=1G"
+        }
+      ],
+      "tags": ["resource", "cgroup", "property"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-reboot",
+      "title": "Reboot system",
+      "syntax": "systemctl reboot",
+      "description": "Shut down and reboot the system.",
+      "examples": [
+        {
+          "description": "Reboot through systemd",
+          "code": "sudo systemctl reboot"
+        }
+      ],
+      "tags": ["system", "reboot", "power"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-list-sockets",
+      "title": "List socket units",
+      "syntax": "systemctl list-sockets",
+      "description": "Show socket units and what they activate.",
+      "examples": [
+        {
+          "description": "List listening sockets",
+          "code": "systemctl list-sockets"
+        }
+      ],
+      "tags": ["sockets", "units", "list"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-list-jobs",
+      "title": "List pending jobs",
+      "syntax": "systemctl list-jobs",
+      "description": "Show queued jobs known to systemd.",
+      "examples": [
+        {
+          "description": "Check pending unit jobs",
+          "code": "systemctl list-jobs"
+        }
+      ],
+      "tags": ["jobs", "queue", "debug"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-get-default",
+      "title": "Show default target",
+      "syntax": "systemctl get-default",
+      "description": "Print the default target used at boot.",
+      "examples": [
+        {
+          "description": "Show boot target",
+          "code": "systemctl get-default"
+        }
+      ],
+      "tags": ["target", "boot", "default"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-set-default",
+      "title": "Set default target",
+      "syntax": "systemctl set-default <target>",
+      "description": "Set the default target used for future boots.",
+      "examples": [
+        {
+          "description": "Boot to graphical target",
+          "code": "sudo systemctl set-default graphical.target"
+        }
+      ],
+      "tags": ["target", "boot", "default"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-isolate",
+      "title": "Switch to target now",
+      "syntax": "systemctl isolate <target>",
+      "description": "Start one target and stop units not needed by it.",
+      "examples": [
+        {
+          "description": "Switch to rescue target",
+          "code": "sudo systemctl isolate rescue.target"
+        }
+      ],
+      "tags": ["target", "isolate", "rescue"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-poweroff",
+      "title": "Power off system",
+      "syntax": "systemctl poweroff",
+      "description": "Shut down and power off the system.",
+      "examples": [
+        {
+          "description": "Power off now",
+          "code": "sudo systemctl poweroff"
+        }
+      ],
+      "tags": ["power", "shutdown"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-suspend",
+      "title": "Suspend system",
+      "syntax": "systemctl suspend",
+      "description": "Suspend the system.",
+      "examples": [
+        {
+          "description": "Suspend laptop",
+          "code": "systemctl suspend"
+        }
+      ],
+      "tags": ["power", "sleep", "suspend"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    },
+    {
+      "id": "systemctl-show-environment",
+      "title": "Show manager environment",
+      "syntax": "systemctl show-environment",
+      "description": "Print the systemd manager environment block.",
+      "examples": [
+        {
+          "description": "Inspect manager environment",
+          "code": "systemctl show-environment"
+        }
+      ],
+      "tags": ["environment", "manager", "debug"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
+    }
+  ]
+}

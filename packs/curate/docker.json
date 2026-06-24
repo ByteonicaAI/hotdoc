@@ -11,7 +11,12 @@
       "title": "List running containers",
       "syntax": "docker ps",
       "description": "List currently running containers. Add -a to include stopped ones.",
-      "examples": [{ "description": "Show running containers", "code": "docker ps" }],
+      "examples": [
+        {
+          "description": "Show running containers",
+          "code": "docker ps"
+        }
+      ],
       "tags": ["ps", "list", "running"],
       "source": "curated",
       "source_url": null
@@ -22,7 +27,10 @@
       "syntax": "docker ps -a",
       "description": "List all containers including stopped ones.",
       "examples": [
-        { "description": "Show every container regardless of state", "code": "docker ps -a" }
+        {
+          "description": "Show every container regardless of state",
+          "code": "docker ps -a"
+        }
       ],
       "tags": ["ps", "list", "all", "stopped"],
       "source": "curated",
@@ -33,7 +41,12 @@
       "title": "List local images",
       "syntax": "docker images",
       "description": "List images cached locally.",
-      "examples": [{ "description": "Show local images", "code": "docker images" }],
+      "examples": [
+        {
+          "description": "Show local images",
+          "code": "docker images"
+        }
+      ],
       "tags": ["images", "list", "local"],
       "source": "curated",
       "source_url": null
@@ -74,7 +87,10 @@
       "syntax": "docker exec -it <container> <command>",
       "description": "Execute a command in a running container. Use `bash` or `sh` for an interactive shell.",
       "examples": [
-        { "description": "Open a shell in container web", "code": "docker exec -it web bash" }
+        {
+          "description": "Open a shell in container web",
+          "code": "docker exec -it web bash"
+        }
       ],
       "tags": ["exec", "shell", "interactive"],
       "source": "curated",
@@ -85,7 +101,12 @@
       "title": "Show container logs",
       "syntax": "docker logs <container>",
       "description": "Fetch logs from a container. Add -f to follow, --tail N for last N lines.",
-      "examples": [{ "description": "Follow logs of container web", "code": "docker logs -f web" }],
+      "examples": [
+        {
+          "description": "Follow logs of container web",
+          "code": "docker logs -f web"
+        }
+      ],
       "tags": ["logs", "tail", "follow"],
       "source": "curated",
       "source_url": null
@@ -96,7 +117,10 @@
       "syntax": "docker logs --tail <n> <container>",
       "description": "Print the last N log lines without following.",
       "examples": [
-        { "description": "Last 100 lines of web's logs", "code": "docker logs --tail 100 web" }
+        {
+          "description": "Last 100 lines of web's logs",
+          "code": "docker logs --tail 100 web"
+        }
       ],
       "tags": ["logs", "tail", "history"],
       "source": "curated",
@@ -107,7 +131,12 @@
       "title": "Stop a running container",
       "syntax": "docker stop <container>",
       "description": "Send SIGTERM then SIGKILL after a grace period. Use docker kill to skip the grace period.",
-      "examples": [{ "description": "Stop container web", "code": "docker stop web" }],
+      "examples": [
+        {
+          "description": "Stop container web",
+          "code": "docker stop web"
+        }
+      ],
       "tags": ["stop", "shutdown"],
       "source": "curated",
       "source_url": null
@@ -117,7 +146,12 @@
       "title": "Start an existing stopped container",
       "syntax": "docker start <container>",
       "description": "Start a previously created or stopped container.",
-      "examples": [{ "description": "Start container web", "code": "docker start web" }],
+      "examples": [
+        {
+          "description": "Start container web",
+          "code": "docker start web"
+        }
+      ],
       "tags": ["start", "resume"],
       "source": "curated",
       "source_url": null
@@ -127,7 +161,12 @@
       "title": "Remove a stopped container",
       "syntax": "docker rm <container>",
       "description": "Remove a stopped container. Use -f to force-remove a running one.",
-      "examples": [{ "description": "Remove container web", "code": "docker rm web" }],
+      "examples": [
+        {
+          "description": "Remove container web",
+          "code": "docker rm web"
+        }
+      ],
       "tags": ["rm", "remove", "cleanup"],
       "source": "curated",
       "source_url": null
@@ -137,7 +176,12 @@
       "title": "Remove a local image",
       "syntax": "docker rmi <image>",
       "description": "Remove an image from local cache. Use -f to force.",
-      "examples": [{ "description": "Remove the nginx image", "code": "docker rmi nginx" }],
+      "examples": [
+        {
+          "description": "Remove the nginx image",
+          "code": "docker rmi nginx"
+        }
+      ],
       "tags": ["rmi", "remove", "image", "cleanup"],
       "source": "curated",
       "source_url": null
@@ -147,7 +191,12 @@
       "title": "Pull an image from a registry",
       "syntax": "docker pull <image>",
       "description": "Download an image from a registry (Docker Hub by default).",
-      "examples": [{ "description": "Pull the latest alpine image", "code": "docker pull alpine" }],
+      "examples": [
+        {
+          "description": "Pull the latest alpine image",
+          "code": "docker pull alpine"
+        }
+      ],
       "tags": ["pull", "download", "registry"],
       "source": "curated",
       "source_url": null
@@ -163,9 +212,9 @@
           "code": "docker build -t myapp:latest ."
         }
       ],
-      "tags": ["build", "dockerfile", "image"],
-      "source": "curated",
-      "source_url": null
+      "tags": ["build", "dockerfile", "image", "docker"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/buildx/build/"
     },
     {
       "id": "docker-system-prune",
@@ -173,7 +222,10 @@
       "syntax": "docker system prune",
       "description": "Free disk by removing all unused Docker objects. Add --volumes to also remove unused volumes.",
       "examples": [
-        { "description": "Prune everything unused", "code": "docker system prune -a --volumes" }
+        {
+          "description": "Prune everything unused",
+          "code": "docker system prune -a --volumes"
+        }
       ],
       "tags": ["prune", "cleanup", "disk"],
       "source": "curated",
@@ -184,7 +236,12 @@
       "title": "Show low-level info on a container or image",
       "syntax": "docker inspect <object>",
       "description": "Return JSON with full configuration and runtime state of a container, image, or volume.",
-      "examples": [{ "description": "Inspect container web", "code": "docker inspect web" }],
+      "examples": [
+        {
+          "description": "Inspect container web",
+          "code": "docker inspect web"
+        }
+      ],
       "tags": ["inspect", "debug", "json"],
       "source": "curated",
       "source_url": null
@@ -194,7 +251,12 @@
       "title": "List Docker networks",
       "syntax": "docker network ls",
       "description": "List all networks visible to the Docker daemon.",
-      "examples": [{ "description": "List networks", "code": "docker network ls" }],
+      "examples": [
+        {
+          "description": "List networks",
+          "code": "docker network ls"
+        }
+      ],
       "tags": ["network", "list"],
       "source": "curated",
       "source_url": null
@@ -204,10 +266,465 @@
       "title": "List Docker volumes",
       "syntax": "docker volume ls",
       "description": "List all named volumes.",
-      "examples": [{ "description": "List volumes", "code": "docker volume ls" }],
+      "examples": [
+        {
+          "description": "List volumes",
+          "code": "docker volume ls"
+        }
+      ],
       "tags": ["volume", "list"],
       "source": "curated",
       "source_url": null
+    },
+    {
+      "id": "docker-tag",
+      "title": "Create a tag (alias) for an image",
+      "syntax": "docker tag <source-image> <target-image>",
+      "description": "Create a new tag (alias) for an existing image. Useful for versioning and pushing to registries.",
+      "examples": [
+        {
+          "description": "Tag an image for registry push",
+          "code": "docker tag myapp:latest gcr.io/myproject/myapp:v1.0"
+        }
+      ],
+      "tags": ["tag", "image", "registry"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-push",
+      "title": "Push an image to a registry",
+      "syntax": "docker push <image>",
+      "description": "Upload an image to a Docker registry (Docker Hub by default, or specify a custom registry in the image name).",
+      "examples": [
+        {
+          "description": "Push an image to a private registry",
+          "code": "docker push myregistry.azurecr.io/myapp:latest"
+        }
+      ],
+      "tags": ["push", "registry", "upload"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-save",
+      "title": "Save image to a tar archive",
+      "syntax": "docker save <image> -o <file.tar>",
+      "description": "Export one or more images to a tar file. Useful for transferring images without a registry.",
+      "examples": [
+        {
+          "description": "Save image to a tar file",
+          "code": "docker save myapp:latest -o myapp.tar"
+        }
+      ],
+      "tags": ["save", "export", "archive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-load",
+      "title": "Load image from a tar archive",
+      "syntax": "docker load -i <file.tar>",
+      "description": "Import one or more images from a tar file created by docker save.",
+      "examples": [
+        {
+          "description": "Load image from tar file",
+          "code": "docker load -i myapp.tar"
+        }
+      ],
+      "tags": ["load", "import", "archive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-rename",
+      "title": "Rename a container",
+      "syntax": "docker rename <old-name> <new-name>",
+      "description": "Change the name of an existing container (running or stopped).",
+      "examples": [
+        {
+          "description": "Rename a container",
+          "code": "docker rename old-web new-web"
+        }
+      ],
+      "tags": ["rename", "container"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-update",
+      "title": "Update container runtime configuration",
+      "syntax": "docker update <container>",
+      "description": "Modify container settings (memory, cpu, restart policy, etc) without recreating. Must stop container first.",
+      "examples": [
+        {
+          "description": "Increase memory limit for a container",
+          "code": "docker update --memory 2g myapp"
+        }
+      ],
+      "tags": ["update", "config", "resources"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-attach",
+      "title": "Attach to a running container's output",
+      "syntax": "docker attach <container>",
+      "description": "Connect to stdin/stdout/stderr of a running container. Ctrl+P then Ctrl+Q to detach.",
+      "examples": [
+        {
+          "description": "Attach to container logs",
+          "code": "docker attach myapp"
+        }
+      ],
+      "tags": ["attach", "logs", "interactive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-history",
+      "title": "Show image layer history",
+      "syntax": "docker history <image>",
+      "description": "Display the build history of an image, showing each layer and the command that created it.",
+      "examples": [
+        {
+          "description": "View image build history",
+          "code": "docker history myapp:latest"
+        }
+      ],
+      "tags": ["history", "image", "layers"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "docker-run-port",
+      "title": "Run with port mapping",
+      "syntax": "docker run -p <host>:<container> <image>",
+      "description": "Start a container and publish a container port on the host.",
+      "examples": [
+        {
+          "description": "Run nginx on local port 8080",
+          "code": "docker run --rm -p 8080:80 nginx"
+        }
+      ],
+      "tags": ["run", "port", "publish"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-run-env",
+      "title": "Run with environment variables",
+      "syntax": "docker run -e <key=value> <image>",
+      "description": "Pass environment variables into a new container.",
+      "examples": [
+        {
+          "description": "Run Postgres with password",
+          "code": "docker run --rm -e POSTGRES_PASSWORD=secret postgres"
+        }
+      ],
+      "tags": ["run", "env", "container"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-restart",
+      "title": "Restart a container",
+      "syntax": "docker restart <container>",
+      "description": "Stop and start one or more containers.",
+      "examples": [
+        {
+          "description": "Restart a web container",
+          "code": "docker restart web"
+        }
+      ],
+      "tags": ["restart", "container"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-kill",
+      "title": "Kill a container",
+      "syntax": "docker kill <container>",
+      "description": "Send a signal to a running container, SIGKILL by default.",
+      "examples": [
+        {
+          "description": "Force-stop a stuck container",
+          "code": "docker kill web"
+        }
+      ],
+      "tags": ["kill", "signal", "container"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-stats",
+      "title": "Show live container stats",
+      "syntax": "docker stats",
+      "description": "Display live CPU, memory, network, and block IO usage for containers.",
+      "examples": [
+        {
+          "description": "Show stats for all running containers",
+          "code": "docker stats"
+        }
+      ],
+      "tags": ["stats", "monitor", "resources"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-cp",
+      "title": "Copy files to or from a container",
+      "syntax": "docker cp <src> <container>:<dest>",
+      "description": "Copy files between the local filesystem and a container.",
+      "examples": [
+        {
+          "description": "Copy nginx config out",
+          "code": "docker cp web:/etc/nginx/nginx.conf ./nginx.conf"
+        }
+      ],
+      "tags": ["copy", "container", "files"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-container-prune",
+      "title": "Remove stopped containers",
+      "syntax": "docker container prune",
+      "description": "Delete all stopped containers after confirmation.",
+      "examples": [
+        {
+          "description": "Clean stopped containers",
+          "code": "docker container prune"
+        }
+      ],
+      "tags": ["cleanup", "container", "prune"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-image-prune",
+      "title": "Remove unused images",
+      "syntax": "docker image prune -a",
+      "description": "Delete unused images; with -a, delete all images not referenced by containers.",
+      "examples": [
+        {
+          "description": "Clean dangling and unused images",
+          "code": "docker image prune -a"
+        }
+      ],
+      "tags": ["cleanup", "image", "prune"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-login",
+      "title": "Log in to a registry",
+      "syntax": "docker login <registry>",
+      "description": "Authenticate Docker CLI to a registry.",
+      "examples": [
+        {
+          "description": "Log in to Docker Hub",
+          "code": "docker login"
+        }
+      ],
+      "tags": ["registry", "auth", "login"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-info",
+      "title": "Show Docker system info",
+      "syntax": "docker info",
+      "description": "Display server, storage driver, runtime, and resource information.",
+      "examples": [
+        {
+          "description": "Inspect daemon state",
+          "code": "docker info"
+        }
+      ],
+      "tags": ["info", "daemon", "debug"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-context-use",
+      "title": "Switch Docker context",
+      "syntax": "docker context use <context>",
+      "description": "Switch the active Docker endpoint context.",
+      "examples": [
+        {
+          "description": "Use desktop-linux context",
+          "code": "docker context use desktop-linux"
+        }
+      ],
+      "tags": ["context", "remote", "switch"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-up",
+      "title": "Start Compose services",
+      "syntax": "docker compose up -d",
+      "description": "Create and start services from a Compose file in detached mode.",
+      "examples": [
+        {
+          "description": "Start the app stack",
+          "code": "docker compose up -d"
+        }
+      ],
+      "tags": ["compose", "services", "up"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-down",
+      "title": "Stop Compose services",
+      "syntax": "docker compose down",
+      "description": "Stop and remove Compose containers, networks, and default resources.",
+      "examples": [
+        {
+          "description": "Stop the app stack",
+          "code": "docker compose down"
+        }
+      ],
+      "tags": ["compose", "services", "down"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-logs",
+      "title": "Tail Compose logs",
+      "syntax": "docker compose logs -f <service>",
+      "description": "Follow logs for Compose services.",
+      "examples": [
+        {
+          "description": "Follow API logs",
+          "code": "docker compose logs -f api"
+        }
+      ],
+      "tags": ["compose", "logs", "follow"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-run-name",
+      "title": "Run container with a name",
+      "syntax": "docker run --name <name> <image>",
+      "description": "Assign a name to a new container so later commands can address it predictably.",
+      "examples": [
+        {
+          "description": "Run nginx named web",
+          "code": "docker run --name web -d nginx"
+        }
+      ],
+      "tags": ["run", "name", "container"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-run-volume",
+      "title": "Mount a host directory",
+      "syntax": "docker run -v <host-path>:<container-path> <image>",
+      "description": "Bind-mount a host path into a container.",
+      "examples": [
+        {
+          "description": "Mount current directory into Node container",
+          "code": "docker run --rm -v \"$PWD\":/app -w /app node:22 npm test"
+        }
+      ],
+      "tags": ["run", "volume", "bind mount"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-network-create",
+      "title": "Create a network",
+      "syntax": "docker network create <name>",
+      "description": "Create a user-defined Docker network for containers to communicate by name.",
+      "examples": [
+        {
+          "description": "Create app network",
+          "code": "docker network create app-net"
+        }
+      ],
+      "tags": ["network", "create"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-volume-create",
+      "title": "Create a volume",
+      "syntax": "docker volume create <name>",
+      "description": "Create a named volume managed by Docker.",
+      "examples": [
+        {
+          "description": "Create database volume",
+          "code": "docker volume create pgdata"
+        }
+      ],
+      "tags": ["volume", "create", "storage"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-ps",
+      "title": "List Compose containers",
+      "syntax": "docker compose ps",
+      "description": "Show containers for the current Compose project.",
+      "examples": [
+        {
+          "description": "Show running Compose services",
+          "code": "docker compose ps"
+        }
+      ],
+      "tags": ["compose", "ps", "services"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-exec",
+      "title": "Run command in Compose service",
+      "syntax": "docker compose exec <service> <command>",
+      "description": "Execute a command in a running Compose service container.",
+      "examples": [
+        {
+          "description": "Open shell in API service",
+          "code": "docker compose exec api sh"
+        }
+      ],
+      "tags": ["compose", "exec", "shell"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-compose-build",
+      "title": "Compose build services",
+      "syntax": "docker compose build [<service>]",
+      "description": "Build or rebuild images for services in a Compose file.",
+      "examples": [
+        {
+          "description": "Rebuild API service",
+          "code": "docker compose build api"
+        }
+      ],
+      "tags": ["compose", "services", "image"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
+    },
+    {
+      "id": "docker-buildx-build-platform",
+      "title": "Buildx multi-platform image",
+      "syntax": "docker buildx build --platform <platforms> -t <image> <context>",
+      "description": "Build an image for one or more target platforms with Buildx.",
+      "examples": [
+        {
+          "description": "Build amd64 and arm64 image",
+          "code": "docker buildx build --platform linux/amd64,linux/arm64 -t owner/app:latest ."
+        }
+      ],
+      "tags": ["buildx", "platform", "image"],
+      "source": "official",
+      "source_url": "https://docs.docker.com/reference/cli/docker/"
     }
   ]
 }

@@ -1,0 +1,640 @@
+{
+  "id": "jq",
+  "name": "jq",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (jq 1.8 filters and CLI flags; verified against official manual)",
+  "license": "MIT",
+  "homepage": "https://jqlang.org/manual/",
+  "entries": [
+    {
+      "id": "jq-select",
+      "title": "select filter",
+      "syntax": "select(condition), .[] | select(condition)",
+      "description": "Filter objects or array elements based on conditions.",
+      "examples": [
+        {
+          "description": "select objects with age > 18",
+          "code": "echo '[{\"name\":\"Alice\",\"age\":25},{\"name\":\"Bob\",\"age\":16}]' | jq '.[] | select(.age > 18)'"
+        }
+      ],
+      "tags": ["filtering", "conditions"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-map",
+      "title": "map function",
+      "syntax": "map(expression), [.[] | expression]",
+      "description": "Transform each element in an array using an expression.",
+      "examples": [
+        {
+          "description": "extract field from all objects",
+          "code": "echo '[{\"id\":1,\"name\":\"A\"},{\"id\":2,\"name\":\"B\"}]' | jq 'map(.name)'"
+        }
+      ],
+      "tags": ["transformation", "arrays"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-keys",
+      "title": "keys function",
+      "syntax": "keys, keys_unsorted",
+      "description": "Get object keys or array indices as a sorted array.",
+      "examples": [
+        {
+          "description": "get object keys",
+          "code": "echo '{\"name\":\"Alice\",\"age\":25}' | jq 'keys'"
+        }
+      ],
+      "tags": ["objects", "introspection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-values",
+      "title": "values function",
+      "syntax": "values, .[]",
+      "description": "Get all values from an object or array.",
+      "examples": [
+        {
+          "description": "get all object values",
+          "code": "echo '{\"a\":1,\"b\":2,\"c\":3}' | jq '.[]'"
+        }
+      ],
+      "tags": ["objects", "arrays"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-group-by",
+      "title": "group_by function",
+      "syntax": "group_by(expression)",
+      "description": "Group array elements by the result of an expression.",
+      "examples": [
+        {
+          "description": "group by department",
+          "code": "echo '[{\"dept\":\"sales\",\"name\":\"A\"},{\"dept\":\"it\",\"name\":\"B\"},{\"dept\":\"sales\",\"name\":\"C\"}]' | jq 'group_by(.dept)'"
+        }
+      ],
+      "tags": ["grouping", "transformation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-sort-by",
+      "title": "sort_by function",
+      "syntax": "sort_by(expression), reverse",
+      "description": "Sort array elements by the result of an expression.",
+      "examples": [
+        {
+          "description": "sort by age descending",
+          "code": "echo '[{\"name\":\"A\",\"age\":25},{\"name\":\"B\",\"age\":20}]' | jq 'sort_by(.age) | reverse'"
+        }
+      ],
+      "tags": ["sorting", "transformation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-unique",
+      "title": "unique function",
+      "syntax": "unique, unique_by(expression)",
+      "description": "Remove duplicate elements from an array.",
+      "examples": [
+        {
+          "description": "unique by id",
+          "code": "echo '[{\"id\":1,\"v\":\"a\"},{\"id\":2,\"v\":\"b\"},{\"id\":1,\"v\":\"c\"}]' | jq 'unique_by(.id)'"
+        }
+      ],
+      "tags": ["deduplication", "transformation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-add",
+      "title": "add function",
+      "syntax": "add, .[0] + .[1] + ...",
+      "description": "Combine/sum array elements or concatenate strings.",
+      "examples": [
+        {
+          "description": "sum array of numbers",
+          "code": "echo '[1,2,3,4,5]' | jq 'add'"
+        }
+      ],
+      "tags": ["aggregation", "arithmetic"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-join",
+      "title": "join function",
+      "syntax": "join(separator)",
+      "description": "Concatenate array strings with a separator.",
+      "examples": [
+        {
+          "description": "join with comma",
+          "code": "echo '[\"apple\",\"banana\",\"cherry\"]' | jq 'join(\",\")'"
+        }
+      ],
+      "tags": ["strings", "arrays"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-split",
+      "title": "split function",
+      "syntax": "split(separator), split(pattern; flags)",
+      "description": "Split a string into an array by separator or regex.",
+      "examples": [
+        {
+          "description": "split by comma",
+          "code": "echo '\"apple,banana,cherry\"' | jq 'split(\",\")'"
+        }
+      ],
+      "tags": ["strings", "arrays"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-has",
+      "title": "has function",
+      "syntax": "has(key), in(object)",
+      "description": "Check if an object has a key or array has an index.",
+      "examples": [
+        {
+          "description": "check for key existence",
+          "code": "echo '{\"name\":\"Alice\",\"age\":25}' | jq 'has(\"age\")'"
+        }
+      ],
+      "tags": ["objects", "testing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-contains",
+      "title": "contains function",
+      "syntax": "contains(value), inside(value), startswith, endswith",
+      "description": "Test if string/array contains a substring or element.",
+      "examples": [
+        {
+          "description": "check substring",
+          "code": "echo '\"hello world\"' | jq 'contains(\"world\")'"
+        }
+      ],
+      "tags": ["strings", "testing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-type",
+      "title": "type function",
+      "syntax": "type",
+      "description": "Get the type of a value (string, number, array, object, etc).",
+      "examples": [
+        {
+          "description": "check value types",
+          "code": "echo '[1, \"str\", [], {}]' | jq '.[] | type'"
+        }
+      ],
+      "tags": ["introspection", "testing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-length",
+      "title": "length function",
+      "syntax": "length",
+      "description": "Get length of string, array, or object.",
+      "examples": [
+        {
+          "description": "string and array length",
+          "code": "echo '{\"str\": \"hello\", \"arr\": [1,2,3]}' | jq '.str | length, .arr | length'"
+        }
+      ],
+      "tags": ["measurement", "strings", "arrays"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-reduce",
+      "title": "reduce function",
+      "syntax": "reduce expr as $var (init; update)",
+      "description": "Iterate and accumulate values using a custom reducer.",
+      "examples": [
+        {
+          "description": "sum with reduce",
+          "code": "echo '[1,2,3,4,5]' | jq 'reduce .[] as $x (0; . + $x)'"
+        }
+      ],
+      "tags": ["aggregation", "iteration"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-path",
+      "title": "path and getpath",
+      "syntax": "path(expr), getpath(patharray), delpaths(paths)",
+      "description": "Get or manipulate paths through nested structures.",
+      "examples": [
+        {
+          "description": "get path to nested value",
+          "code": "echo '{\"a\":{\"b\":{\"c\":1}}}' | jq 'path(.a.b.c)'"
+        }
+      ],
+      "tags": ["introspection", "navigation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "jq-identity",
+      "title": "Pretty-print JSON",
+      "syntax": "jq '.'",
+      "description": "Read JSON and emit it formatted without changing the value.",
+      "examples": [
+        {
+          "description": "Pretty-print a file",
+          "code": "jq '.' package.json"
+        }
+      ],
+      "tags": ["pretty", "identity", "json"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-field",
+      "title": "Read object field",
+      "syntax": "jq '.field'",
+      "description": "Extract one field from each input object.",
+      "examples": [
+        {
+          "description": "Read package name",
+          "code": "jq '.name' package.json"
+        }
+      ],
+      "tags": ["field", "object", "extract"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-raw-output",
+      "title": "Print raw strings",
+      "syntax": "jq -r '.field'",
+      "description": "Output strings without JSON quoting.",
+      "examples": [
+        {
+          "description": "Print package name without quotes",
+          "code": "jq -r '.name' package.json"
+        }
+      ],
+      "tags": ["raw", "string", "output"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-slurp",
+      "title": "Slurp inputs into an array",
+      "syntax": "jq -s '<filter>'",
+      "description": "Read all JSON inputs into one array before filtering.",
+      "examples": [
+        {
+          "description": "Merge JSON lines into an array",
+          "code": "jq -s '.' events.jsonl"
+        }
+      ],
+      "tags": ["slurp", "array", "inputs"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-compact",
+      "title": "Compact output",
+      "syntax": "jq -c '<filter>'",
+      "description": "Emit each JSON value on one compact line.",
+      "examples": [
+        {
+          "description": "Compact objects",
+          "code": "jq -c '.[]' data.json"
+        }
+      ],
+      "tags": ["compact", "jsonl", "output"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-arg",
+      "title": "Pass a string variable",
+      "syntax": "jq --arg name <value> '<filter>'",
+      "description": "Bind a shell string as a jq variable.",
+      "examples": [
+        {
+          "description": "Filter by name",
+          "code": "jq --arg name api '.[] | select(.name == $name)' services.json"
+        }
+      ],
+      "tags": ["variable", "arg", "shell"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-argjson",
+      "title": "Pass a JSON variable",
+      "syntax": "jq --argjson name <json> '<filter>'",
+      "description": "Bind JSON text as a jq variable.",
+      "examples": [
+        {
+          "description": "Filter by numeric threshold",
+          "code": "jq --argjson min 10 '.[] | select(.count >= $min)' data.json"
+        }
+      ],
+      "tags": ["variable", "json", "arg"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-to-entries",
+      "title": "Convert object to entries",
+      "syntax": "to_entries, from_entries",
+      "description": "Convert objects to key/value arrays and back.",
+      "examples": [
+        {
+          "description": "Edit object keys",
+          "code": "jq 'to_entries | map(.key |= ascii_downcase) | from_entries' data.json"
+        }
+      ],
+      "tags": ["object", "entries", "keys"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-del",
+      "title": "Delete fields or paths",
+      "syntax": "del(<path>)",
+      "description": "Remove fields, array elements, or nested paths.",
+      "examples": [
+        {
+          "description": "Remove secrets before printing",
+          "code": "jq 'del(.password, .token)' config.json"
+        }
+      ],
+      "tags": ["delete", "redact", "path"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-with-entries",
+      "title": "Map object entries",
+      "syntax": "with_entries(<filter>)",
+      "description": "Transform each key/value pair in an object.",
+      "examples": [
+        {
+          "description": "Prefix all keys",
+          "code": "jq 'with_entries(.key = \"app_\" + .key)' data.json"
+        }
+      ],
+      "tags": ["object", "transform", "entries"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-if-then-else",
+      "title": "Conditional filter",
+      "syntax": "if <cond> then <a> else <b> end",
+      "description": "Choose an output based on a condition.",
+      "examples": [
+        {
+          "description": "Classify status",
+          "code": "jq 'if .ok then \"healthy\" else \"down\" end' status.json"
+        }
+      ],
+      "tags": ["if", "condition", "branch"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-try-catch",
+      "title": "Handle filter errors",
+      "syntax": "try <expr> catch <expr>",
+      "description": "Catch errors from a filter and return a fallback.",
+      "examples": [
+        {
+          "description": "Safely parse optional JSON",
+          "code": "jq 'try fromjson catch null' values.json"
+        }
+      ],
+      "tags": ["try", "catch", "error"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-recurse",
+      "title": "Recursive descent",
+      "syntax": "recurse, ..",
+      "description": "Walk nested structures recursively.",
+      "examples": [
+        {
+          "description": "Find all id fields",
+          "code": "jq '.. | objects | .id? // empty' data.json"
+        }
+      ],
+      "tags": ["recursive", "nested", "search"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-flatten",
+      "title": "Flatten arrays",
+      "syntax": "flatten, flatten(<depth>)",
+      "description": "Flatten nested arrays fully or to a given depth.",
+      "examples": [
+        {
+          "description": "Flatten one level",
+          "code": "jq 'flatten(1)' arrays.json"
+        }
+      ],
+      "tags": ["array", "flatten"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-json-convert",
+      "title": "Convert strings and JSON",
+      "syntax": "tojson, fromjson",
+      "description": "Encode values as JSON strings or parse JSON strings into values.",
+      "examples": [
+        {
+          "description": "Parse JSON stored as a string",
+          "code": "jq '.payload | fromjson' event.json"
+        }
+      ],
+      "tags": ["json", "string", "parse"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-number-string",
+      "title": "Convert numbers and strings",
+      "syntax": "tonumber, tostring",
+      "description": "Convert values between numeric and string representations.",
+      "examples": [
+        {
+          "description": "Convert string count to number",
+          "code": "jq '.count |= tonumber' data.json"
+        }
+      ],
+      "tags": ["number", "string", "convert"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-null-input",
+      "title": "Build JSON from scratch",
+      "syntax": "jq -n '<filter>'",
+      "description": "Run the filter once with null input instead of reading JSON input.",
+      "examples": [
+        {
+          "description": "Create small JSON object",
+          "code": "jq -n --arg name hotdoc '{name: $name}'"
+        }
+      ],
+      "tags": ["input", "generate", "json"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-raw-input",
+      "title": "Read raw text",
+      "syntax": "jq -R '<filter>'",
+      "description": "Read each input line as a string instead of parsing JSON.",
+      "examples": [
+        {
+          "description": "Wrap lines as JSON strings",
+          "code": "printf 'a\\nb\\n' | jq -R '.'"
+        }
+      ],
+      "tags": ["raw", "text", "input"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-exit-status",
+      "title": "Use filter result as exit status",
+      "syntax": "jq -e '<filter>'",
+      "description": "Set exit status based on whether the final output is false or null.",
+      "examples": [
+        {
+          "description": "Fail if enabled is not true",
+          "code": "jq -e '.enabled == true' config.json"
+        }
+      ],
+      "tags": ["exit", "status", "ci"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-sort-keys",
+      "title": "Sort object keys",
+      "syntax": "jq -S '<filter>'",
+      "description": "Output object keys in sorted order.",
+      "examples": [
+        {
+          "description": "Normalize JSON key order",
+          "code": "jq -S . package.json"
+        }
+      ],
+      "tags": ["sort", "keys", "format"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-array-index-slice",
+      "title": "Index or slice arrays",
+      "syntax": ".[<index>], .[<start>:<end>]",
+      "description": "Select one array item or a slice of an array or string.",
+      "examples": [
+        {
+          "description": "First three items",
+          "code": "jq '.[0:3]' data.json"
+        }
+      ],
+      "tags": ["array", "index", "slice"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-optional",
+      "title": "Optional field access",
+      "syntax": ".foo?",
+      "description": "Access fields without errors when the input is not an object.",
+      "examples": [
+        {
+          "description": "Read optional names",
+          "code": "jq '.items[]?.name?' data.json"
+        }
+      ],
+      "tags": ["optional", "field", "safe"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-alternative",
+      "title": "Default fallback value",
+      "syntax": "<expr> // <fallback>",
+      "description": "Return the left value unless it is null or false, otherwise return the fallback.",
+      "examples": [
+        {
+          "description": "Default missing port",
+          "code": "jq '.port // 8080' config.json"
+        }
+      ],
+      "tags": ["default", "fallback", "null"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-update-assignment",
+      "title": "Update values in place",
+      "syntax": "<path> |= <filter>",
+      "description": "Apply a filter to update a value at a path.",
+      "examples": [
+        {
+          "description": "Increment version",
+          "code": "jq '.version |= . + 1' package.json"
+        }
+      ],
+      "tags": ["assignment", "update", "modify"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-any-all",
+      "title": "Check any or all items",
+      "syntax": "any(<expr>; <cond>), all(<expr>; <cond>)",
+      "description": "Return booleans based on whether any or all generated values satisfy a condition.",
+      "examples": [
+        {
+          "description": "Check all containers are ready",
+          "code": "jq 'all(.items[].status.containerStatuses[]?; .ready)' pods.json"
+        }
+      ],
+      "tags": ["boolean", "array", "condition"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    },
+    {
+      "id": "jq-regex-capture",
+      "title": "Extract regex captures",
+      "syntax": "capture(<regex>)",
+      "description": "Match a string and return named capture groups as an object.",
+      "examples": [
+        {
+          "description": "Capture version parts",
+          "code": "jq -r '.tag | capture(\"^v(?<major>[0-9]+)\\\\.(?<minor>[0-9]+)$\")' release.json"
+        }
+      ],
+      "tags": ["regex", "capture", "strings"],
+      "source": "official",
+      "source_url": "https://jqlang.org/manual/"
+    }
+  ]
+}

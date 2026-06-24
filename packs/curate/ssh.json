@@ -1,0 +1,550 @@
+{
+  "id": "ssh",
+  "name": "ssh",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (OpenSSH client workflows; verified against OpenBSD manuals)",
+  "license": "MIT",
+  "homepage": "https://www.openssh.com/",
+  "entries": [
+    {
+      "id": "ssh-key-generation",
+      "title": "ssh-keygen",
+      "syntax": "ssh-keygen -t type -C comment -f keyfile",
+      "description": "Generate SSH public/private key pairs for authentication.",
+      "examples": [
+        {
+          "description": "generate ed25519 key",
+          "code": "ssh-keygen -t ed25519 -C \"user@example.com\" -f ~/.ssh/id_ed25519"
+        }
+      ],
+      "tags": ["keys", "authentication"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-copy-id",
+      "title": "ssh-copy-id",
+      "syntax": "ssh-copy-id -i keyfile user@host, ssh-copy-id -p port user@host",
+      "description": "Copy your public key to a remote host's authorized_keys.",
+      "examples": [
+        {
+          "description": "copy key to remote",
+          "code": "ssh-copy-id -i ~/.ssh/id_ed25519.pub -p 2222 user@example.com"
+        }
+      ],
+      "tags": ["keys", "setup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-keyscan",
+      "title": "ssh-keyscan",
+      "syntax": "ssh-keyscan hostname, ssh-keyscan -p port hostname",
+      "description": "Retrieve public keys from a host and add to known_hosts.",
+      "examples": [
+        {
+          "description": "get and add host key",
+          "code": "ssh-keyscan -p 22 github.com >> ~/.ssh/known_hosts"
+        }
+      ],
+      "tags": ["keys", "hosts"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-config",
+      "title": "SSH config file",
+      "syntax": "~/.ssh/config with Host, HostName, User, Port, IdentityFile",
+      "description": "Configure SSH connection defaults and aliases in ~/.ssh/config.",
+      "examples": [
+        {
+          "description": "config entries",
+          "code": "Host myserver\n    HostName example.com\n    User alice\n    Port 2222\n    IdentityFile ~/.ssh/id_ed25519"
+        }
+      ],
+      "tags": ["config", "setup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-connect",
+      "title": "ssh connection",
+      "syntax": "ssh user@host, ssh -p port user@host",
+      "description": "Connect to a remote host via SSH.",
+      "examples": [
+        {
+          "description": "connect to server",
+          "code": "ssh -p 2222 user@example.com"
+        }
+      ],
+      "tags": ["connection", "remote"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-scp",
+      "title": "scp (secure copy)",
+      "syntax": "scp local user@host:remote, scp -P port -r dir user@host:path",
+      "description": "Copy files to/from remote hosts securely.",
+      "examples": [
+        {
+          "description": "copy file to remote",
+          "code": "scp -P 2222 file.txt user@example.com:/home/user/"
+        }
+      ],
+      "tags": ["file-transfer", "remote"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-tunneling",
+      "title": "SSH tunneling",
+      "syntax": "ssh -L local:remote, ssh -R remote:local, ssh -D port",
+      "description": "Forward ports or create SOCKS proxy through SSH.",
+      "examples": [
+        {
+          "description": "local port forwarding",
+          "code": "ssh -L 3306:localhost:3306 user@example.com"
+        }
+      ],
+      "tags": ["tunneling", "forwarding"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-agent",
+      "title": "ssh-agent",
+      "syntax": "eval $(ssh-agent), ssh-add keyfile, ssh-add -l",
+      "description": "Manage SSH keys in memory and avoid repeated password prompts.",
+      "examples": [
+        {
+          "description": "start agent and add key",
+          "code": "eval $(ssh-agent); ssh-add ~/.ssh/id_ed25519"
+        }
+      ],
+      "tags": ["authentication", "keys"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-port",
+      "title": "-p port flag",
+      "syntax": "ssh -p port user@host, scp -P port file user@host:path",
+      "description": "Specify custom SSH port (scp uses -P uppercase).",
+      "examples": [
+        {
+          "description": "connect on custom port",
+          "code": "ssh -p 2222 user@example.com"
+        }
+      ],
+      "tags": ["ports", "connection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-identity",
+      "title": "-i identity file",
+      "syntax": "ssh -i keyfile user@host, scp -i keyfile file user@host:path",
+      "description": "Specify the private key file to use for authentication.",
+      "examples": [
+        {
+          "description": "use specific key",
+          "code": "ssh -i ~/.ssh/custom_key user@example.com"
+        }
+      ],
+      "tags": ["keys", "authentication"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-proxy-jump",
+      "title": "ProxyJump",
+      "syntax": "ssh -J jumphost user@target, ProxyJump in config",
+      "description": "Connect through intermediate hosts (jump hosts).",
+      "examples": [
+        {
+          "description": "jump through bastion host",
+          "code": "ssh -J bastion.example.com user@internal.example.com"
+        }
+      ],
+      "tags": ["tunneling", "jump"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-verbose",
+      "title": "verbose output",
+      "syntax": "ssh -v, ssh -vv, ssh -vvv",
+      "description": "Enable verbose logging for debugging SSH connections.",
+      "examples": [
+        {
+          "description": "debug connection",
+          "code": "ssh -vvv user@example.com"
+        }
+      ],
+      "tags": ["debugging", "logs"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-batch-mode",
+      "title": "batch mode (-n flag)",
+      "syntax": "ssh -n command",
+      "description": "Run command non-interactively (useful in scripts).",
+      "examples": [
+        {
+          "description": "run command in batch",
+          "code": "ssh -n user@example.com \"ls -la\" < /dev/null"
+        }
+      ],
+      "tags": ["scripting", "automation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-command-execution",
+      "title": "remote command execution",
+      "syntax": "ssh user@host 'command'",
+      "description": "Execute commands on remote host without interactive shell.",
+      "examples": [
+        {
+          "description": "run command remotely",
+          "code": "ssh user@example.com 'grep pattern file.txt | wc -l'"
+        }
+      ],
+      "tags": ["remote", "commands"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-sftp",
+      "title": "SFTP (SSH file transfer)",
+      "syntax": "sftp user@host, sftp -P port user@host",
+      "description": "Interactive file transfer protocol over SSH.",
+      "examples": [
+        {
+          "description": "sftp session",
+          "code": "sftp -P 2222 user@example.com"
+        }
+      ],
+      "tags": ["file-transfer", "remote"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "ssh-keygen-ed25519",
+      "title": "Generate Ed25519 key",
+      "syntax": "ssh-keygen -t ed25519 -C <comment>",
+      "description": "Create a modern Ed25519 SSH key pair.",
+      "examples": [
+        {
+          "description": "Generate GitHub key",
+          "code": "ssh-keygen -t ed25519 -C \"me@example.com\""
+        }
+      ],
+      "tags": ["keygen", "ed25519", "key"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-add",
+      "title": "Add key to agent",
+      "syntax": "ssh-add <keyfile>",
+      "description": "Load a private key into the running SSH agent.",
+      "examples": [
+        {
+          "description": "Add default Ed25519 key",
+          "code": "ssh-add ~/.ssh/id_ed25519"
+        }
+      ],
+      "tags": ["agent", "key", "auth"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-known-hosts-remove",
+      "title": "Remove known host key",
+      "syntax": "ssh-keygen -R <host>",
+      "description": "Remove stored host keys for a hostname or address.",
+      "examples": [
+        {
+          "description": "Clear old host key",
+          "code": "ssh-keygen -R old.example.com"
+        }
+      ],
+      "tags": ["known_hosts", "host key", "remove"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-test-github",
+      "title": "Test GitHub SSH auth",
+      "syntax": "ssh -T git@github.com",
+      "description": "Open a no-shell SSH session to verify GitHub authentication.",
+      "examples": [
+        {
+          "description": "Verify GitHub SSH key",
+          "code": "ssh -T git@github.com"
+        }
+      ],
+      "tags": ["github", "auth", "test"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-option",
+      "title": "Set one SSH option",
+      "syntax": "ssh -o <key=value> user@host",
+      "description": "Override an ssh_config option on the command line.",
+      "examples": [
+        {
+          "description": "Set keepalive interval",
+          "code": "ssh -o ServerAliveInterval=30 user@example.com"
+        }
+      ],
+      "tags": ["option", "config", "keepalive"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-local-forward",
+      "title": "Local port forward only",
+      "syntax": "ssh -N -L <local>:<host>:<remote> user@host",
+      "description": "Open a local TCP tunnel without running a remote command.",
+      "examples": [
+        {
+          "description": "Forward local 5432 to remote database",
+          "code": "ssh -N -L 5432:localhost:5432 user@bastion"
+        }
+      ],
+      "tags": ["tunnel", "local", "port"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-socks-proxy",
+      "title": "Dynamic SOCKS proxy",
+      "syntax": "ssh -N -D <port> user@host",
+      "description": "Create a local SOCKS proxy through the SSH server.",
+      "examples": [
+        {
+          "description": "Create local SOCKS proxy",
+          "code": "ssh -N -D 1080 user@bastion"
+        }
+      ],
+      "tags": ["socks", "proxy", "tunnel"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-agent-forwarding",
+      "title": "Forward SSH agent",
+      "syntax": "ssh -A user@host",
+      "description": "Allow the remote host to use your local SSH agent.",
+      "examples": [
+        {
+          "description": "Connect with agent forwarding",
+          "code": "ssh -A deploy@bastion"
+        }
+      ],
+      "tags": ["agent", "forwarding", "auth"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-x11-forwarding",
+      "title": "Forward X11",
+      "syntax": "ssh -X user@host",
+      "description": "Enable X11 forwarding for remote graphical applications.",
+      "examples": [
+        {
+          "description": "Run remote xclock",
+          "code": "ssh -X user@host xclock"
+        }
+      ],
+      "tags": ["x11", "forwarding", "gui"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-control-master",
+      "title": "Reuse SSH connections",
+      "syntax": "ssh -o ControlMaster=auto -o ControlPath=<path> -o ControlPersist=<time> user@host",
+      "description": "Share one underlying SSH connection across later sessions.",
+      "examples": [
+        {
+          "description": "Open reusable control connection",
+          "code": "ssh -o ControlMaster=auto -o ControlPath=~/.ssh/cm-%r@%h:%p -o ControlPersist=10m user@host"
+        }
+      ],
+      "tags": ["multiplex", "controlmaster", "performance"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-strict-host-key-checking",
+      "title": "Control host key prompts",
+      "syntax": "ssh -o StrictHostKeyChecking=<yes|accept-new|no> user@host",
+      "description": "Choose how SSH handles unknown or changed host keys.",
+      "examples": [
+        {
+          "description": "Accept new hosts automatically",
+          "code": "ssh -o StrictHostKeyChecking=accept-new user@host"
+        }
+      ],
+      "tags": ["host key", "security", "config"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-compression",
+      "title": "Enable compression",
+      "syntax": "ssh -C user@host",
+      "description": "Compress SSH traffic.",
+      "examples": [
+        {
+          "description": "Connect with compression",
+          "code": "ssh -C user@host"
+        }
+      ],
+      "tags": ["compression", "network"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-config-test",
+      "title": "Print resolved config",
+      "syntax": "ssh -G <host>",
+      "description": "Print effective SSH configuration for a host and exit.",
+      "examples": [
+        {
+          "description": "Inspect resolved bastion config",
+          "code": "ssh -G bastion | rg '^(hostname|user|port) '"
+        }
+      ],
+      "tags": ["config", "debug", "inspect"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-config-include",
+      "title": "Include SSH config files",
+      "syntax": "Include <path>",
+      "description": "Include additional ssh_config files from a client config.",
+      "examples": [
+        {
+          "description": "Include per-project config snippets",
+          "code": "Include ~/.ssh/config.d/*"
+        }
+      ],
+      "tags": ["config", "include"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-config-match",
+      "title": "Conditional SSH config",
+      "syntax": "Match <criteria>",
+      "description": "Apply configuration only when Match criteria are satisfied.",
+      "examples": [
+        {
+          "description": "Apply settings for one user",
+          "code": "Match user deploy\n    ForwardAgent no"
+        }
+      ],
+      "tags": ["config", "match", "conditional"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-server-alive",
+      "title": "Keep SSH connection alive",
+      "syntax": "ssh -o ServerAliveInterval=<seconds> <host>",
+      "description": "Send periodic keepalive messages through the encrypted channel.",
+      "examples": [
+        {
+          "description": "Keep session alive every 30 seconds",
+          "code": "ssh -o ServerAliveInterval=30 prod"
+        }
+      ],
+      "tags": ["keepalive", "connection", "option"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-exit-on-forward-failure",
+      "title": "Fail if tunnel cannot bind",
+      "syntax": "ssh -o ExitOnForwardFailure=yes -L <local>:<host>:<remote> <host>",
+      "description": "Exit if requested port forwarding cannot be established.",
+      "examples": [
+        {
+          "description": "Require local tunnel to bind",
+          "code": "ssh -o ExitOnForwardFailure=yes -L 5432:localhost:5432 db-host"
+        }
+      ],
+      "tags": ["tunnel", "forward", "failure"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh"
+    },
+    {
+      "id": "ssh-keygen-fingerprint",
+      "title": "Show key fingerprint",
+      "syntax": "ssh-keygen -lf <keyfile>",
+      "description": "Print the fingerprint for a public or private key file.",
+      "examples": [
+        {
+          "description": "Show public key fingerprint",
+          "code": "ssh-keygen -lf ~/.ssh/id_ed25519.pub"
+        }
+      ],
+      "tags": ["keygen", "fingerprint", "keys"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh-keygen"
+    },
+    {
+      "id": "ssh-keygen-change-passphrase",
+      "title": "Change key passphrase",
+      "syntax": "ssh-keygen -p -f <keyfile>",
+      "description": "Change or remove the passphrase on an SSH private key.",
+      "examples": [
+        {
+          "description": "Change Ed25519 key passphrase",
+          "code": "ssh-keygen -p -f ~/.ssh/id_ed25519"
+        }
+      ],
+      "tags": ["keygen", "passphrase", "keys"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/ssh-keygen"
+    },
+    {
+      "id": "scp-recursive",
+      "title": "Copy directory with scp",
+      "syntax": "scp -r <src> <host>:<dest>",
+      "description": "Recursively copy directories over SSH with scp.",
+      "examples": [
+        {
+          "description": "Copy dist directory to server",
+          "code": "scp -r dist/ deploy@example.com:/var/www/app"
+        }
+      ],
+      "tags": ["scp", "copy", "recursive"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/scp"
+    },
+    {
+      "id": "sftp-batch",
+      "title": "Run sftp batch file",
+      "syntax": "sftp -b <batchfile> <host>",
+      "description": "Run SFTP commands from a batch file.",
+      "examples": [
+        {
+          "description": "Upload files using batch commands",
+          "code": "sftp -b upload.sftp deploy@example.com"
+        }
+      ],
+      "tags": ["sftp", "batch", "files"],
+      "source": "official",
+      "source_url": "https://man.openbsd.org/sftp"
+    }
+  ]
+}

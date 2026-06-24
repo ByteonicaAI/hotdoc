@@ -1,0 +1,610 @@
+{
+  "id": "tmux",
+  "name": "tmux",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (tmux common session/window/pane workflows; verified against manpage)",
+  "license": "MIT",
+  "homepage": "https://man7.org/linux/man-pages/man1/tmux.1.html",
+  "entries": [
+    {
+      "id": "tmux-new-session",
+      "title": "new-session",
+      "syntax": "tmux new-session -s name, tmux new-session -d -s name -c /path",
+      "description": "Create a new session with optional name, working directory, and detached mode.",
+      "examples": [
+        {
+          "description": "create detached session with name and directory",
+          "code": "tmux new-session -d -s dev -c ~/projects"
+        }
+      ],
+      "tags": ["sessions", "creation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-split-window",
+      "title": "split-window",
+      "syntax": "tmux split-window -h, tmux split-window -v, tmux split-window -p percent",
+      "description": "Divide current window horizontally or vertically with optional split percentage.",
+      "examples": [
+        {
+          "description": "split window horizontally 50/50",
+          "code": "tmux split-window -h -p 50"
+        }
+      ],
+      "tags": ["windows", "panes", "layout"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-select-window",
+      "title": "select-window",
+      "syntax": "tmux select-window -t session:window, tmux select-window -t index",
+      "description": "Switch to a specific window in the current or specified session.",
+      "examples": [
+        {
+          "description": "select window 1 in session",
+          "code": "tmux select-window -t dev:1"
+        }
+      ],
+      "tags": ["windows", "navigation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-select-pane",
+      "title": "select-pane",
+      "syntax": "tmux select-pane -t index, -U -D -L -R for direction",
+      "description": "Move focus to a specific pane or navigate in a direction.",
+      "examples": [
+        {
+          "description": "select pane using direction",
+          "code": "tmux select-pane -D"
+        }
+      ],
+      "tags": ["panes", "navigation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-kill-session",
+      "title": "kill-session",
+      "syntax": "tmux kill-session -t name",
+      "description": "Terminate a session and all its windows.",
+      "examples": [
+        {
+          "description": "kill specific session",
+          "code": "tmux kill-session -t dev"
+        }
+      ],
+      "tags": ["sessions", "cleanup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-kill-window",
+      "title": "kill-window",
+      "syntax": "tmux kill-window -t session:window",
+      "description": "Close a specific window in a session.",
+      "examples": [
+        {
+          "description": "kill window 0",
+          "code": "tmux kill-window -t dev:0"
+        }
+      ],
+      "tags": ["windows", "cleanup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-list-sessions",
+      "title": "list-sessions",
+      "syntax": "tmux list-sessions, tmux ls",
+      "description": "Display all active sessions with their status.",
+      "examples": [
+        {
+          "description": "list all sessions",
+          "code": "tmux list-sessions"
+        }
+      ],
+      "tags": ["sessions", "listing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-list-windows",
+      "title": "list-windows",
+      "syntax": "tmux list-windows -t session, tmux lsw -t session",
+      "description": "Show all windows in a session.",
+      "examples": [
+        {
+          "description": "list windows in session",
+          "code": "tmux list-windows -t dev"
+        }
+      ],
+      "tags": ["windows", "listing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-bind-key",
+      "title": "bind-key",
+      "syntax": "tmux bind-key key command, tmux bind-key -n key command",
+      "description": "Create custom keybindings for tmux commands.",
+      "examples": [
+        {
+          "description": "bind key without prefix",
+          "code": "tmux bind-key -n C-b send-keys -X send-keys 'clear' Enter"
+        }
+      ],
+      "tags": ["keybindings", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-send-keys",
+      "title": "send-keys",
+      "syntax": "tmux send-keys -t target keys..., tmux send-keys Enter, C-c",
+      "description": "Send keystrokes or commands to a pane.",
+      "examples": [
+        {
+          "description": "send command and press enter",
+          "code": "tmux send-keys -t dev:0 'npm start' Enter"
+        }
+      ],
+      "tags": ["input", "automation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-copy-mode",
+      "title": "copy-mode",
+      "syntax": "tmux copy-mode -t target",
+      "description": "Enter copy mode to scroll and select text in a pane.",
+      "examples": [
+        {
+          "description": "enter copy mode in current pane",
+          "code": "tmux copy-mode"
+        }
+      ],
+      "tags": ["scrolling", "selection", "navigation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-swap-window",
+      "title": "swap-window",
+      "syntax": "tmux swap-window -s src -t dst, tmux swap-window -t src -t dst",
+      "description": "Exchange positions of two windows.",
+      "examples": [
+        {
+          "description": "swap windows 0 and 1",
+          "code": "tmux swap-window -t dev:0 -t dev:1"
+        }
+      ],
+      "tags": ["windows", "layout"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-swap-pane",
+      "title": "swap-pane",
+      "syntax": "tmux swap-pane -s src -t dst, tmux swap-pane -U -D",
+      "description": "Exchange pane locations within a window.",
+      "examples": [
+        {
+          "description": "swap pane with one above",
+          "code": "tmux swap-pane -U"
+        }
+      ],
+      "tags": ["panes", "layout"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-attach-session",
+      "title": "attach-session",
+      "syntax": "tmux attach-session -t name, tmux attach -t name",
+      "description": "Connect to an existing detached session.",
+      "examples": [
+        {
+          "description": "attach to session",
+          "code": "tmux attach-session -t dev"
+        }
+      ],
+      "tags": ["sessions", "connection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-new-window",
+      "title": "new-window",
+      "syntax": "tmux new-window -t session, tmux new-window -n name",
+      "description": "Create a new window in the current or specified session.",
+      "examples": [
+        {
+          "description": "new window with name",
+          "code": "tmux new-window -t dev -n editor"
+        }
+      ],
+      "tags": ["windows", "creation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-capture-pane",
+      "title": "capture-pane",
+      "syntax": "tmux capture-pane -t target -p, -J, -S -E lines",
+      "description": "Export pane contents to stdout or save to buffer.",
+      "examples": [
+        {
+          "description": "capture pane output",
+          "code": "tmux capture-pane -t dev:0 -p"
+        }
+      ],
+      "tags": ["panes", "output"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "tmux-detach-client",
+      "title": "Detach from session",
+      "syntax": "tmux detach-client",
+      "description": "Detach the current client from its tmux session.",
+      "examples": [
+        {
+          "description": "Detach current client",
+          "code": "tmux detach-client"
+        }
+      ],
+      "tags": ["detach", "client", "session"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-rename-session",
+      "title": "Rename session",
+      "syntax": "tmux rename-session -t <old> <new>",
+      "description": "Rename an existing tmux session.",
+      "examples": [
+        {
+          "description": "Rename dev session",
+          "code": "tmux rename-session -t old dev"
+        }
+      ],
+      "tags": ["session", "rename"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-rename-window",
+      "title": "Rename window",
+      "syntax": "tmux rename-window -t <target> <name>",
+      "description": "Rename a tmux window.",
+      "examples": [
+        {
+          "description": "Rename current window",
+          "code": "tmux rename-window api"
+        }
+      ],
+      "tags": ["window", "rename"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-move-window",
+      "title": "Move window",
+      "syntax": "tmux move-window -s <src> -t <dst>",
+      "description": "Move a window to another index or session.",
+      "examples": [
+        {
+          "description": "Move window to index 1",
+          "code": "tmux move-window -s :3 -t :1"
+        }
+      ],
+      "tags": ["window", "move", "reorder"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-resize-pane",
+      "title": "Resize pane",
+      "syntax": "tmux resize-pane -L|-R|-U|-D <cells>",
+      "description": "Resize a pane in a direction.",
+      "examples": [
+        {
+          "description": "Make pane wider",
+          "code": "tmux resize-pane -R 10"
+        }
+      ],
+      "tags": ["pane", "resize", "layout"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-choose-tree",
+      "title": "Choose session/window tree",
+      "syntax": "tmux choose-tree",
+      "description": "Open an interactive tree picker for sessions, windows, and panes.",
+      "examples": [
+        {
+          "description": "Open tree picker",
+          "code": "tmux choose-tree"
+        }
+      ],
+      "tags": ["interactive", "choose", "tree"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-source-file",
+      "title": "Reload tmux config",
+      "syntax": "tmux source-file <file>",
+      "description": "Read tmux commands from a config file.",
+      "examples": [
+        {
+          "description": "Reload ~/.tmux.conf",
+          "code": "tmux source-file ~/.tmux.conf"
+        }
+      ],
+      "tags": ["config", "reload", "source"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-set-option",
+      "title": "Set server/session option",
+      "syntax": "tmux set-option -g <option> <value>",
+      "description": "Set a tmux option globally or for a target session.",
+      "examples": [
+        {
+          "description": "Enable mouse",
+          "code": "tmux set-option -g mouse on"
+        }
+      ],
+      "tags": ["option", "config", "set"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-display-message",
+      "title": "Show a message",
+      "syntax": "tmux display-message <message>",
+      "description": "Display a message in the tmux status line.",
+      "examples": [
+        {
+          "description": "Show current pane path",
+          "code": "tmux display-message '#{pane_current_path}'"
+        }
+      ],
+      "tags": ["message", "status", "format"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-list-keys",
+      "title": "List key bindings",
+      "syntax": "tmux list-keys",
+      "description": "Print tmux key bindings.",
+      "examples": [
+        {
+          "description": "List prefix bindings",
+          "code": "tmux list-keys"
+        }
+      ],
+      "tags": ["keys", "bindings", "help"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-confirm-before",
+      "title": "Confirm before command",
+      "syntax": "tmux confirm-before <command>",
+      "description": "Prompt for confirmation before running a tmux command.",
+      "examples": [
+        {
+          "description": "Confirm killing current window",
+          "code": "tmux confirm-before 'kill-window'"
+        }
+      ],
+      "tags": ["confirm", "safety", "command"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-kill-pane",
+      "title": "Kill pane",
+      "syntax": "tmux kill-pane -t <target>",
+      "description": "Destroy a pane.",
+      "examples": [
+        {
+          "description": "Kill current pane",
+          "code": "tmux kill-pane"
+        }
+      ],
+      "tags": ["pane", "kill", "delete"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-join-pane",
+      "title": "Join pane into window",
+      "syntax": "tmux join-pane -s <src> -t <dst>",
+      "description": "Move a pane from one window into another.",
+      "examples": [
+        {
+          "description": "Move pane 2 into current window",
+          "code": "tmux join-pane -s :2"
+        }
+      ],
+      "tags": ["pane", "join", "move"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-break-pane",
+      "title": "Break pane into window",
+      "syntax": "tmux break-pane -t <target>",
+      "description": "Move a pane into its own window.",
+      "examples": [
+        {
+          "description": "Break current pane out",
+          "code": "tmux break-pane"
+        }
+      ],
+      "tags": ["pane", "window", "move"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-respawn-pane",
+      "title": "Respawn pane command",
+      "syntax": "tmux respawn-pane -k -t <target> <command>",
+      "description": "Restart a pane with a new command.",
+      "examples": [
+        {
+          "description": "Restart pane with shell",
+          "code": "tmux respawn-pane -k -t :.1 'bash'"
+        }
+      ],
+      "tags": ["pane", "restart", "command"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-pipe-pane",
+      "title": "Pipe pane output",
+      "syntax": "tmux pipe-pane -o <command>",
+      "description": "Pipe pane output to a shell command.",
+      "examples": [
+        {
+          "description": "Log current pane",
+          "code": "tmux pipe-pane -o 'cat >> tmux.log'"
+        }
+      ],
+      "tags": ["pane", "pipe", "log"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-list-panes",
+      "title": "List panes",
+      "syntax": "tmux list-panes -a",
+      "description": "List panes in a window or across all sessions.",
+      "examples": [
+        {
+          "description": "Show every pane with indexes",
+          "code": "tmux list-panes -a"
+        }
+      ],
+      "tags": ["panes", "list"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-next-window",
+      "title": "Move to next window",
+      "syntax": "tmux next-window",
+      "description": "Switch the active client to the next window.",
+      "examples": [
+        {
+          "description": "Select next window",
+          "code": "tmux next-window"
+        }
+      ],
+      "tags": ["window", "navigation"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-previous-window",
+      "title": "Move to previous window",
+      "syntax": "tmux previous-window",
+      "description": "Switch the active client to the previous window.",
+      "examples": [
+        {
+          "description": "Select previous window",
+          "code": "tmux previous-window"
+        }
+      ],
+      "tags": ["window", "navigation"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-last-window",
+      "title": "Toggle last window",
+      "syntax": "tmux last-window",
+      "description": "Switch to the previously selected window.",
+      "examples": [
+        {
+          "description": "Jump back to last window",
+          "code": "tmux last-window"
+        }
+      ],
+      "tags": ["window", "navigation"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-synchronize-panes",
+      "title": "Synchronize panes",
+      "syntax": "tmux set-window-option synchronize-panes on|off",
+      "description": "Send typed input to all panes in the current window.",
+      "examples": [
+        {
+          "description": "Turn pane synchronization on",
+          "code": "tmux set-window-option synchronize-panes on"
+        }
+      ],
+      "tags": ["panes", "broadcast", "option"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-display-popup",
+      "title": "Open popup",
+      "syntax": "tmux display-popup -E <command>",
+      "description": "Display a popup pane and optionally close it when the command exits.",
+      "examples": [
+        {
+          "description": "Open shell in popup",
+          "code": "tmux display-popup -E 'bash'"
+        }
+      ],
+      "tags": ["popup", "pane", "interactive"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-save-buffer",
+      "title": "Save buffer to file",
+      "syntax": "tmux save-buffer <file>",
+      "description": "Write the current paste buffer to a file.",
+      "examples": [
+        {
+          "description": "Save copied text",
+          "code": "tmux save-buffer /tmp/tmux-buffer.txt"
+        }
+      ],
+      "tags": ["buffer", "copy", "file"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    },
+    {
+      "id": "tmux-paste-buffer",
+      "title": "Paste buffer",
+      "syntax": "tmux paste-buffer [-t <target-pane>]",
+      "description": "Paste the current buffer into a pane.",
+      "examples": [
+        {
+          "description": "Paste into current pane",
+          "code": "tmux paste-buffer"
+        }
+      ],
+      "tags": ["buffer", "paste", "pane"],
+      "source": "official",
+      "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
+    }
+  ]
+}

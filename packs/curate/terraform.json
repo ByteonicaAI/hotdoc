@@ -1,0 +1,610 @@
+{
+  "id": "terraform",
+  "name": "terraform",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (Terraform v1.15 CLI workflows; verified against official docs)",
+  "license": "MIT",
+  "homepage": "https://developer.hashicorp.com/terraform/cli/commands",
+  "entries": [
+    {
+      "id": "terraform-init",
+      "title": "terraform init",
+      "syntax": "terraform init, terraform init -backend=false, terraform init -upgrade",
+      "description": "Initialize a Terraform working directory.",
+      "examples": [
+        {
+          "description": "initialize with backend upgrade",
+          "code": "terraform init -upgrade"
+        }
+      ],
+      "tags": ["setup", "initialization"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-plan",
+      "title": "terraform plan",
+      "syntax": "terraform plan, terraform plan -out=plan.tfplan, terraform plan -var key=value",
+      "description": "Show what changes would be applied.",
+      "examples": [
+        {
+          "description": "plan with variables",
+          "code": "terraform plan -var environment=prod -out=prod.plan"
+        }
+      ],
+      "tags": ["planning", "execution"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-apply",
+      "title": "terraform apply",
+      "syntax": "terraform apply, terraform apply plan.tfplan, terraform apply -auto-approve",
+      "description": "Apply infrastructure changes from plan or interactively.",
+      "examples": [
+        {
+          "description": "apply saved plan",
+          "code": "terraform apply prod.plan"
+        }
+      ],
+      "tags": ["execution", "deployment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-destroy",
+      "title": "terraform destroy",
+      "syntax": "terraform destroy, terraform destroy -target resource, terraform destroy -auto-approve",
+      "description": "Destroy infrastructure managed by Terraform.",
+      "examples": [
+        {
+          "description": "destroy specific resource",
+          "code": "terraform destroy -target aws_instance.example"
+        }
+      ],
+      "tags": ["cleanup", "destructive"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-validate",
+      "title": "terraform validate",
+      "syntax": "terraform validate",
+      "description": "Check syntax and consistency of configuration files.",
+      "examples": [
+        {
+          "description": "validate config",
+          "code": "terraform validate"
+        }
+      ],
+      "tags": ["validation", "testing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-fmt",
+      "title": "terraform fmt",
+      "syntax": "terraform fmt, terraform fmt -recursive, terraform fmt -check",
+      "description": "Reformat Terraform configuration files for consistency.",
+      "examples": [
+        {
+          "description": "format recursively",
+          "code": "terraform fmt -recursive ."
+        }
+      ],
+      "tags": ["formatting", "style"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-import",
+      "title": "terraform import",
+      "syntax": "terraform import resource_type.name resource_id",
+      "description": "Import existing infrastructure into Terraform state.",
+      "examples": [
+        {
+          "description": "import AWS instance",
+          "code": "terraform import aws_instance.example i-1234567890abcdef0"
+        }
+      ],
+      "tags": ["state", "import"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-state-list",
+      "title": "terraform state list",
+      "syntax": "terraform state list, terraform state list filter",
+      "description": "List all resources in state.",
+      "examples": [
+        {
+          "description": "list AWS resources",
+          "code": "terraform state list 'aws_*'"
+        }
+      ],
+      "tags": ["state", "introspection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-state-show",
+      "title": "terraform state show",
+      "syntax": "terraform state show resource_address",
+      "description": "Show detailed attributes of a resource in state.",
+      "examples": [
+        {
+          "description": "show resource details",
+          "code": "terraform state show aws_instance.example"
+        }
+      ],
+      "tags": ["state", "introspection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-state-rm",
+      "title": "terraform state rm",
+      "syntax": "terraform state rm resource_address",
+      "description": "Remove resource from state (without destroying).",
+      "examples": [
+        {
+          "description": "remove from state",
+          "code": "terraform state rm aws_instance.old"
+        }
+      ],
+      "tags": ["state", "manipulation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-workspace-list",
+      "title": "terraform workspace list",
+      "syntax": "terraform workspace list",
+      "description": "List all workspaces.",
+      "examples": [
+        {
+          "description": "list workspaces",
+          "code": "terraform workspace list"
+        }
+      ],
+      "tags": ["workspace", "management"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-workspace-new",
+      "title": "terraform workspace new",
+      "syntax": "terraform workspace new name",
+      "description": "Create a new workspace.",
+      "examples": [
+        {
+          "description": "create workspace",
+          "code": "terraform workspace new staging"
+        }
+      ],
+      "tags": ["workspace", "management"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-workspace-select",
+      "title": "terraform workspace select",
+      "syntax": "terraform workspace select name",
+      "description": "Switch to a different workspace.",
+      "examples": [
+        {
+          "description": "switch workspace",
+          "code": "terraform workspace select staging"
+        }
+      ],
+      "tags": ["workspace", "management"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-variables",
+      "title": "variables and tfvars",
+      "syntax": "terraform apply -var key=value, terraform apply -var-file vars.tfvars",
+      "description": "Pass input variables to Terraform.",
+      "examples": [
+        {
+          "description": "pass variables",
+          "code": "terraform apply -var 'region=us-west-2' -var 'instance_count=3'"
+        }
+      ],
+      "tags": ["variables", "input"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-modules",
+      "title": "module blocks",
+      "syntax": "module \"name\" { source = \"path\"; ... }",
+      "description": "Use reusable infrastructure code from modules.",
+      "examples": [
+        {
+          "description": "module usage",
+          "code": "module \"vpc\" {\n  source = \"./modules/vpc\"\n  cidr_block = \"10.0.0.0/16\"\n}"
+        }
+      ],
+      "tags": ["modules", "reusability"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-output",
+      "title": "output values",
+      "syntax": "output \"name\" { value = resource.attr }",
+      "description": "Export computed values for external use.",
+      "examples": [
+        {
+          "description": "output definition",
+          "code": "output \"instance_ip\" {\n  value = aws_instance.example.public_ip\n}"
+        }
+      ],
+      "tags": ["outputs", "results"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "terraform-show",
+      "title": "Show state or plan",
+      "syntax": "terraform show <file>",
+      "description": "Show human-readable state or saved plan contents.",
+      "examples": [
+        {
+          "description": "Show saved plan",
+          "code": "terraform show plan.tfplan"
+        }
+      ],
+      "tags": ["state", "plan", "inspect"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-show-json",
+      "title": "Show JSON state or plan",
+      "syntax": "terraform show -json <file>",
+      "description": "Emit state or saved plan as machine-readable JSON.",
+      "examples": [
+        {
+          "description": "Convert plan to JSON",
+          "code": "terraform show -json plan.tfplan"
+        }
+      ],
+      "tags": ["json", "plan", "state"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-output-json",
+      "title": "Print outputs as JSON",
+      "syntax": "terraform output -json",
+      "description": "Show root module outputs in JSON form.",
+      "examples": [
+        {
+          "description": "Read outputs for automation",
+          "code": "terraform output -json"
+        }
+      ],
+      "tags": ["output", "json", "automation"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-console",
+      "title": "Open expression console",
+      "syntax": "terraform console",
+      "description": "Evaluate Terraform expressions interactively.",
+      "examples": [
+        {
+          "description": "Inspect a local value",
+          "code": "terraform console"
+        }
+      ],
+      "tags": ["console", "expression", "debug"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-graph",
+      "title": "Generate dependency graph",
+      "syntax": "terraform graph",
+      "description": "Emit a Graphviz DOT graph of Terraform resources.",
+      "examples": [
+        {
+          "description": "Render resource graph",
+          "code": "terraform graph | dot -Tsvg > graph.svg"
+        }
+      ],
+      "tags": ["graph", "dependencies", "dot"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-get",
+      "title": "Install or update modules",
+      "syntax": "terraform get",
+      "description": "Download and update modules declared in configuration.",
+      "examples": [
+        {
+          "description": "Upgrade modules",
+          "code": "terraform get -update"
+        }
+      ],
+      "tags": ["modules", "download", "upgrade"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-providers",
+      "title": "Show required providers",
+      "syntax": "terraform providers",
+      "description": "Print provider requirements for the current configuration and state.",
+      "examples": [
+        {
+          "description": "Inspect provider tree",
+          "code": "terraform providers"
+        }
+      ],
+      "tags": ["providers", "inspect", "dependencies"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-providers-lock",
+      "title": "Create provider lock entries",
+      "syntax": "terraform providers lock",
+      "description": "Populate dependency lock file entries for provider checksums.",
+      "examples": [
+        {
+          "description": "Lock Linux provider checksums",
+          "code": "terraform providers lock -platform=linux_amd64"
+        }
+      ],
+      "tags": ["providers", "lock", "checksum"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-test",
+      "title": "Run Terraform tests",
+      "syntax": "terraform test",
+      "description": "Execute Terraform test files in the current module.",
+      "examples": [
+        {
+          "description": "Run module tests",
+          "code": "terraform test"
+        }
+      ],
+      "tags": ["test", "module", "validation"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-plan-replace",
+      "title": "Plan resource replacement",
+      "syntax": "terraform plan -replace=<resource>",
+      "description": "Plan to replace a specific resource instance.",
+      "examples": [
+        {
+          "description": "Plan replacing one instance",
+          "code": "terraform plan -replace=aws_instance.web"
+        }
+      ],
+      "tags": ["plan", "replace", "resource"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-apply-refresh-only",
+      "title": "Refresh state only",
+      "syntax": "terraform apply -refresh-only",
+      "description": "Update Terraform state to match remote objects without proposing infrastructure changes.",
+      "examples": [
+        {
+          "description": "Refresh state in place",
+          "code": "terraform apply -refresh-only"
+        }
+      ],
+      "tags": ["state", "refresh", "drift"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-state-mv",
+      "title": "Move state address",
+      "syntax": "terraform state mv <source> <dest>",
+      "description": "Rename or move an object within Terraform state.",
+      "examples": [
+        {
+          "description": "Move resource into module",
+          "code": "terraform state mv aws_instance.web module.app.aws_instance.web"
+        }
+      ],
+      "tags": ["state", "move", "refactor"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-state-pull",
+      "title": "Pull remote state",
+      "syntax": "terraform state pull",
+      "description": "Download and print the current state.",
+      "examples": [
+        {
+          "description": "Save current state",
+          "code": "terraform state pull > state.json"
+        }
+      ],
+      "tags": ["state", "remote", "backup"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-workspace-show",
+      "title": "Show current workspace",
+      "syntax": "terraform workspace show",
+      "description": "Print the name of the active workspace.",
+      "examples": [
+        {
+          "description": "Show selected workspace",
+          "code": "terraform workspace show"
+        }
+      ],
+      "tags": ["workspace", "current"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-workspace-delete",
+      "title": "Delete workspace",
+      "syntax": "terraform workspace delete <name>",
+      "description": "Delete an existing workspace that is not selected.",
+      "examples": [
+        {
+          "description": "Delete old dev workspace",
+          "code": "terraform workspace delete dev-old"
+        }
+      ],
+      "tags": ["workspace", "delete", "cleanup"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-force-unlock",
+      "title": "Release state lock",
+      "syntax": "terraform force-unlock <lock-id>",
+      "description": "Manually remove a stuck Terraform state lock.",
+      "examples": [
+        {
+          "description": "Unlock stuck state",
+          "code": "terraform force-unlock 1234abcd-12ab-34cd-56ef-1234567890ab"
+        }
+      ],
+      "tags": ["lock", "state", "recover"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-version",
+      "title": "Show Terraform version",
+      "syntax": "terraform version",
+      "description": "Print Terraform CLI version and provider selections.",
+      "examples": [
+        {
+          "description": "Show version",
+          "code": "terraform version"
+        }
+      ],
+      "tags": ["version", "cli"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-init-upgrade",
+      "title": "Upgrade modules and providers",
+      "syntax": "terraform init -upgrade",
+      "description": "Initialize the working directory and upgrade modules and provider plugins within constraints.",
+      "examples": [
+        {
+          "description": "Refresh provider and module selections",
+          "code": "terraform init -upgrade"
+        }
+      ],
+      "tags": ["init", "upgrade", "providers"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-plan-out",
+      "title": "Save a plan file",
+      "syntax": "terraform plan -out=<file>",
+      "description": "Create an execution plan and write it to a file for later apply.",
+      "examples": [
+        {
+          "description": "Save plan for review",
+          "code": "terraform plan -out=tfplan"
+        }
+      ],
+      "tags": ["plan", "apply", "file"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-apply-plan",
+      "title": "Apply saved plan",
+      "syntax": "terraform apply <plan-file>",
+      "description": "Apply the exact actions saved in a Terraform plan file.",
+      "examples": [
+        {
+          "description": "Apply reviewed plan",
+          "code": "terraform apply tfplan"
+        }
+      ],
+      "tags": ["apply", "plan", "automation"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-apply-auto-approve",
+      "title": "Apply without prompt",
+      "syntax": "terraform apply -auto-approve",
+      "description": "Apply changes without interactive approval.",
+      "examples": [
+        {
+          "description": "Apply in automation",
+          "code": "terraform apply -auto-approve"
+        }
+      ],
+      "tags": ["apply", "automation", "approve"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-plan-target",
+      "title": "Plan selected resource",
+      "syntax": "terraform plan -target=<address>",
+      "description": "Limit planning to a specific resource address and its dependencies.",
+      "examples": [
+        {
+          "description": "Plan one module resource",
+          "code": "terraform plan -target=module.api.aws_lambda_function.main"
+        }
+      ],
+      "tags": ["plan", "target", "resource"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-state-replace-provider",
+      "title": "Replace provider in state",
+      "syntax": "terraform state replace-provider <from> <to>",
+      "description": "Rewrite provider addresses in Terraform state.",
+      "examples": [
+        {
+          "description": "Move provider source address",
+          "code": "terraform state replace-provider hashicorp/aws registry.terraform.io/hashicorp/aws"
+        }
+      ],
+      "tags": ["state", "provider", "migration"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    },
+    {
+      "id": "terraform-login",
+      "title": "Log in to Terraform Cloud",
+      "syntax": "terraform login [<hostname>]",
+      "description": "Obtain and store an API token for Terraform Cloud or Enterprise.",
+      "examples": [
+        {
+          "description": "Log in to Terraform Cloud",
+          "code": "terraform login"
+        }
+      ],
+      "tags": ["login", "cloud", "credentials"],
+      "source": "official",
+      "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
+    }
+  ]
+}

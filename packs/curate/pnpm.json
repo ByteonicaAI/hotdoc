@@ -1,0 +1,580 @@
+{
+  "id": "pnpm",
+  "name": "pnpm",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (pnpm 11.x common workflows; verified against official CLI docs)",
+  "license": "MIT",
+  "homepage": "https://pnpm.io/cli/add",
+  "entries": [
+    {
+      "id": "pnpm-install",
+      "title": "install dependencies",
+      "syntax": "pnpm install, pnpm i",
+      "description": "Install all project dependencies from pnpm-lock.yaml.",
+      "examples": [
+        {
+          "description": "install dependencies",
+          "code": "pnpm install"
+        }
+      ],
+      "tags": ["dependencies", "installation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-add",
+      "title": "add package",
+      "syntax": "pnpm add package, pnpm add --save-dev package, pnpm add -D package",
+      "description": "Add a new dependency to the project.",
+      "examples": [
+        {
+          "description": "add dev dependency",
+          "code": "pnpm add -D @types/node"
+        }
+      ],
+      "tags": ["dependencies", "package-management"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-remove",
+      "title": "remove package",
+      "syntax": "pnpm remove package, pnpm rm package",
+      "description": "Remove a dependency from the project.",
+      "examples": [
+        {
+          "description": "remove package",
+          "code": "pnpm remove lodash"
+        }
+      ],
+      "tags": ["dependencies", "package-management"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-run",
+      "title": "run script",
+      "syntax": "pnpm run script_name, pnpm script_name",
+      "description": "Execute scripts defined in package.json.",
+      "examples": [
+        {
+          "description": "run build script",
+          "code": "pnpm run build"
+        }
+      ],
+      "tags": ["scripts", "execution"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-update",
+      "title": "update packages",
+      "syntax": "pnpm update, pnpm update --interactive, pnpm update package",
+      "description": "Update dependencies to newer versions.",
+      "examples": [
+        {
+          "description": "interactive update",
+          "code": "pnpm update --interactive"
+        }
+      ],
+      "tags": ["dependencies", "updates"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-list",
+      "title": "list packages",
+      "syntax": "pnpm list, pnpm ls, pnpm list --depth=0",
+      "description": "Display installed packages and their versions.",
+      "examples": [
+        {
+          "description": "list top-level packages",
+          "code": "pnpm list --depth=0"
+        }
+      ],
+      "tags": ["inspection", "packages"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-why",
+      "title": "why package",
+      "syntax": "pnpm why package",
+      "description": "Show why a package is installed and its dependents.",
+      "examples": [
+        {
+          "description": "show dependencies",
+          "code": "pnpm why lodash"
+        }
+      ],
+      "tags": ["inspection", "debugging"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-audit",
+      "title": "audit security",
+      "syntax": "pnpm audit, pnpm audit --fix",
+      "description": "Check for security vulnerabilities and fix them.",
+      "examples": [
+        {
+          "description": "audit and fix",
+          "code": "pnpm audit --fix"
+        }
+      ],
+      "tags": ["security", "vulnerability"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-publish",
+      "title": "publish package",
+      "syntax": "pnpm publish, pnpm publish --access public",
+      "description": "Publish a package to npm registry.",
+      "examples": [
+        {
+          "description": "publish publicly",
+          "code": "pnpm publish --access public"
+        }
+      ],
+      "tags": ["publishing", "npm"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-dedupe",
+      "title": "dedupe dependencies",
+      "syntax": "pnpm dedupe, pnpm dedupe --check",
+      "description": "Remove duplicate dependencies from lock file.",
+      "examples": [
+        {
+          "description": "deduplicate packages",
+          "code": "pnpm dedupe"
+        }
+      ],
+      "tags": ["optimization", "lock-file"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-link",
+      "title": "link local package",
+      "syntax": "pnpm link, pnpm link ../local-package",
+      "description": "Link local packages for development.",
+      "examples": [
+        {
+          "description": "link local package",
+          "code": "pnpm link ../my-lib"
+        }
+      ],
+      "tags": ["development", "linking"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-store",
+      "title": "store prune",
+      "syntax": "pnpm store prune",
+      "description": "Remove unreferenced packages from store.",
+      "examples": [
+        {
+          "description": "cleanup store",
+          "code": "pnpm store prune"
+        }
+      ],
+      "tags": ["cleanup", "store"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-workspace",
+      "title": "workspace commands",
+      "syntax": "pnpm -r install, pnpm --filter package run script",
+      "description": "Run commands across all workspace packages.",
+      "examples": [
+        {
+          "description": "run in all packages",
+          "code": "pnpm -r run build"
+        }
+      ],
+      "tags": ["workspace", "monorepo"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-exec",
+      "title": "exec command",
+      "syntax": "pnpm exec command, pnpm exec eslint file.js",
+      "description": "Run binary from node_modules.",
+      "examples": [
+        {
+          "description": "run linter",
+          "code": "pnpm exec eslint src/"
+        }
+      ],
+      "tags": ["execution", "binaries"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-test",
+      "title": "test script",
+      "syntax": "pnpm test, pnpm t",
+      "description": "Run test scripts defined in package.json.",
+      "examples": [
+        {
+          "description": "run tests",
+          "code": "pnpm test"
+        }
+      ],
+      "tags": ["testing", "scripts"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-filter",
+      "title": "filter workspace",
+      "syntax": "pnpm --filter package, pnpm --filter './packages/*'",
+      "description": "Select specific workspace packages for commands.",
+      "examples": [
+        {
+          "description": "filter install",
+          "code": "pnpm --filter api install"
+        }
+      ],
+      "tags": ["workspace", "filtering"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "pnpm-dlx",
+      "title": "Run package binary temporarily",
+      "syntax": "pnpm dlx <pkg>",
+      "description": "Fetch and run a package binary without adding it to the project.",
+      "examples": [
+        {
+          "description": "Create a Vite app",
+          "code": "pnpm dlx create-vite my-app"
+        }
+      ],
+      "tags": ["execute", "temporary", "package"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-create",
+      "title": "Create a project",
+      "syntax": "pnpm create <starter>",
+      "description": "Run a create-* package to scaffold a project.",
+      "examples": [
+        {
+          "description": "Create Vite project",
+          "code": "pnpm create vite my-app"
+        }
+      ],
+      "tags": ["create", "scaffold", "project"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-init",
+      "title": "Create package.json",
+      "syntax": "pnpm init",
+      "description": "Initialize a new package manifest.",
+      "examples": [
+        {
+          "description": "Initialize package",
+          "code": "pnpm init"
+        }
+      ],
+      "tags": ["init", "package", "manifest"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-import",
+      "title": "Import lockfile",
+      "syntax": "pnpm import",
+      "description": "Generate pnpm-lock.yaml from another package manager lockfile.",
+      "examples": [
+        {
+          "description": "Import from package-lock.json",
+          "code": "pnpm import"
+        }
+      ],
+      "tags": ["lockfile", "migration", "npm"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-rebuild",
+      "title": "Rebuild packages",
+      "syntax": "pnpm rebuild",
+      "description": "Run package lifecycle build scripts again.",
+      "examples": [
+        {
+          "description": "Rebuild native packages",
+          "code": "pnpm rebuild"
+        }
+      ],
+      "tags": ["rebuild", "native", "scripts"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-prune",
+      "title": "Prune dependencies",
+      "syntax": "pnpm prune",
+      "description": "Remove extraneous packages from node_modules.",
+      "examples": [
+        {
+          "description": "Prune project dependencies",
+          "code": "pnpm prune"
+        }
+      ],
+      "tags": ["cleanup", "dependencies", "node_modules"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-fetch",
+      "title": "Fetch packages offline",
+      "syntax": "pnpm fetch",
+      "description": "Fetch packages into the virtual store using the lockfile.",
+      "examples": [
+        {
+          "description": "Pre-fetch dependencies in CI",
+          "code": "pnpm fetch --prod"
+        }
+      ],
+      "tags": ["offline", "store", "ci"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-outdated",
+      "title": "Check outdated packages",
+      "syntax": "pnpm outdated",
+      "description": "List installed packages with newer versions available.",
+      "examples": [
+        {
+          "description": "Show outdated direct dependencies",
+          "code": "pnpm outdated"
+        }
+      ],
+      "tags": ["updates", "dependencies", "inspect"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-config",
+      "title": "Read or write config",
+      "syntax": "pnpm config <get|set> <key>",
+      "description": "Inspect or update pnpm configuration.",
+      "examples": [
+        {
+          "description": "Set registry",
+          "code": "pnpm config set registry https://registry.npmjs.org/"
+        }
+      ],
+      "tags": ["config", "settings", "registry"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-patch",
+      "title": "Patch a dependency",
+      "syntax": "pnpm patch <pkg>",
+      "description": "Extract a dependency for local patching.",
+      "examples": [
+        {
+          "description": "Patch lodash",
+          "code": "pnpm patch lodash"
+        }
+      ],
+      "tags": ["patch", "dependency", "fix"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-patch-commit",
+      "title": "Commit dependency patch",
+      "syntax": "pnpm patch-commit <dir>",
+      "description": "Record edits made by pnpm patch into package patches.",
+      "examples": [
+        {
+          "description": "Commit a patch directory",
+          "code": "pnpm patch-commit /tmp/pnpm-patch-abc"
+        }
+      ],
+      "tags": ["patch", "commit", "dependency"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-licenses-list",
+      "title": "List licenses",
+      "syntax": "pnpm licenses list",
+      "description": "Print package licenses in the dependency tree.",
+      "examples": [
+        {
+          "description": "Audit dependency licenses",
+          "code": "pnpm licenses list"
+        }
+      ],
+      "tags": ["licenses", "audit", "dependencies"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-env-use",
+      "title": "Manage Node version",
+      "syntax": "pnpm env use --global <version>",
+      "description": "Install and use a Node.js version through pnpm env.",
+      "examples": [
+        {
+          "description": "Use latest LTS globally",
+          "code": "pnpm env use --global lts"
+        }
+      ],
+      "tags": ["node", "version", "env"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-approve-builds",
+      "title": "Approve dependency builds",
+      "syntax": "pnpm approve-builds",
+      "description": "Choose which dependencies are allowed to run install scripts.",
+      "examples": [
+        {
+          "description": "Approve pending build scripts",
+          "code": "pnpm approve-builds"
+        }
+      ],
+      "tags": ["security", "build scripts", "approval"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-install-frozen-lockfile",
+      "title": "Install with frozen lockfile",
+      "syntax": "pnpm install --frozen-lockfile",
+      "description": "Install dependencies without allowing lockfile changes.",
+      "examples": [
+        {
+          "description": "CI-safe install",
+          "code": "pnpm install --frozen-lockfile"
+        }
+      ],
+      "tags": ["install", "ci", "lockfile"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/install"
+    },
+    {
+      "id": "pnpm-add-dev",
+      "title": "Add dev dependency",
+      "syntax": "pnpm add -D <pkg>",
+      "description": "Install a package to devDependencies.",
+      "examples": [
+        {
+          "description": "Add Vitest as dev dependency",
+          "code": "pnpm add -D vitest"
+        }
+      ],
+      "tags": ["add", "devDependency", "package"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-add-workspace-root",
+      "title": "Add dependency to workspace root",
+      "syntax": "pnpm add -w <pkg>",
+      "description": "Add a dependency to the workspace root package.",
+      "examples": [
+        {
+          "description": "Add TypeScript at workspace root",
+          "code": "pnpm add -w -D typescript"
+        }
+      ],
+      "tags": ["workspace", "root", "add"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/add"
+    },
+    {
+      "id": "pnpm-run-recursive",
+      "title": "Run script in workspace packages",
+      "syntax": "pnpm -r run <script>",
+      "description": "Run a package script in each workspace project that defines it.",
+      "examples": [
+        {
+          "description": "Build every package",
+          "code": "pnpm -r run build"
+        }
+      ],
+      "tags": ["workspace", "recursive", "scripts"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/run"
+    },
+    {
+      "id": "pnpm-run-if-present",
+      "title": "Run script if it exists",
+      "syntax": "pnpm run --if-present <script>",
+      "description": "Avoid failing when a script is missing.",
+      "examples": [
+        {
+          "description": "Run optional prepare script",
+          "code": "pnpm run --if-present prepare"
+        }
+      ],
+      "tags": ["scripts", "optional", "run"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/run"
+    },
+    {
+      "id": "pnpm-view",
+      "title": "Show package metadata",
+      "syntax": "pnpm view <pkg> [field]",
+      "description": "Print registry metadata for a package.",
+      "examples": [
+        {
+          "description": "Show latest published version",
+          "code": "pnpm view svelte version"
+        }
+      ],
+      "tags": ["registry", "metadata", "package"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/view"
+    },
+    {
+      "id": "pnpm-ignored-builds",
+      "title": "List ignored build scripts",
+      "syntax": "pnpm ignored-builds",
+      "description": "Show dependencies whose lifecycle build scripts were not approved.",
+      "examples": [
+        {
+          "description": "Inspect ignored builds",
+          "code": "pnpm ignored-builds"
+        }
+      ],
+      "tags": ["build scripts", "security", "approval"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/ignored-builds"
+    },
+    {
+      "id": "pnpm-deploy",
+      "title": "Deploy workspace package",
+      "syntax": "pnpm deploy --filter <pkg> <target-dir>",
+      "description": "Create a deployable package directory with only required files and dependencies.",
+      "examples": [
+        {
+          "description": "Deploy API package",
+          "code": "pnpm deploy --filter api dist-api"
+        }
+      ],
+      "tags": ["deploy", "workspace", "package"],
+      "source": "official",
+      "source_url": "https://pnpm.io/cli/deploy"
+    }
+  ]
+}

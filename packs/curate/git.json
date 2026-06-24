@@ -8,7 +8,7 @@
   "entries": [
     {
       "id": "git-stash",
-      "title": "Stash changes",
+      "title": "Git stash changes",
       "syntax": "git stash",
       "description": "Stash the working tree state (tracked changes) onto the stash stack.",
       "examples": [
@@ -17,16 +17,21 @@
           "code": "git stash push -m \"wip before refactor\""
         }
       ],
-      "tags": ["stash", "save", "working tree"],
-      "source": "curated",
-      "source_url": null
+      "tags": ["stash", "save", "working tree", "stsh", "git"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs/git-stash"
     },
     {
       "id": "git-stash-pop",
       "title": "Restore stashed changes",
       "syntax": "git stash pop",
       "description": "Apply the most recent stash and remove it from the stash stack.",
-      "examples": [{ "description": "Pop the top stash", "code": "git stash pop" }],
+      "examples": [
+        {
+          "description": "Pop the top stash",
+          "code": "git stash pop"
+        }
+      ],
       "tags": ["stash", "restore", "apply"],
       "source": "curated",
       "source_url": null
@@ -36,7 +41,12 @@
       "title": "List stashes",
       "syntax": "git stash list",
       "description": "List all stashes in the stash stack.",
-      "examples": [{ "description": "Show stashes with their messages", "code": "git stash list" }],
+      "examples": [
+        {
+          "description": "Show stashes with their messages",
+          "code": "git stash list"
+        }
+      ],
       "tags": ["stash", "list", "show"],
       "source": "curated",
       "source_url": null
@@ -67,9 +77,9 @@
           "code": "git reset --soft HEAD~1"
         }
       ],
-      "tags": ["reset", "soft", "uncommit", "undo"],
-      "source": "curated",
-      "source_url": null
+      "tags": ["reset", "soft", "uncommit", "undo", "last", "commit", "git"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
     },
     {
       "id": "git-checkout-b",
@@ -82,16 +92,21 @@
           "code": "git checkout -b feat/auth"
         }
       ],
-      "tags": ["branch", "create", "checkout", "new"],
-      "source": "curated",
-      "source_url": null
+      "tags": ["branch", "create", "checkout", "new", "git"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
     },
     {
       "id": "git-checkout",
       "title": "Switch to an existing branch",
       "syntax": "git checkout <branch>",
       "description": "Switch the working tree to an existing branch.",
-      "examples": [{ "description": "Switch to main", "code": "git checkout main" }],
+      "examples": [
+        {
+          "description": "Switch to main",
+          "code": "git checkout main"
+        }
+      ],
       "tags": ["branch", "switch", "checkout"],
       "source": "curated",
       "source_url": null
@@ -102,7 +117,10 @@
       "syntax": "git branch -d <branch>",
       "description": "Delete a fully-merged local branch. Use -D to force-delete an unmerged branch.",
       "examples": [
-        { "description": "Delete merged branch feat/old", "code": "git branch -d feat/old" }
+        {
+          "description": "Delete merged branch feat/old",
+          "code": "git branch -d feat/old"
+        }
       ],
       "tags": ["branch", "delete", "remove"],
       "source": "curated",
@@ -110,7 +128,7 @@
     },
     {
       "id": "git-cherry-pick",
-      "title": "Apply a commit from another branch",
+      "title": "Git cherry-pick commit",
       "syntax": "git cherry-pick <commit>",
       "description": "Apply the changes introduced by an existing commit onto the current branch.",
       "examples": [
@@ -120,8 +138,8 @@
         }
       ],
       "tags": ["cherry-pick", "apply", "commit"],
-      "source": "curated",
-      "source_url": null
+      "source": "official",
+      "source_url": "https://git-scm.com/docs/git-cherry-pick"
     },
     {
       "id": "git-log-oneline",
@@ -129,7 +147,10 @@
       "syntax": "git log --oneline -n 20",
       "description": "Print the last 20 commits as one line each (sha + subject).",
       "examples": [
-        { "description": "Last 20 commits, compact", "code": "git log --oneline -n 20" }
+        {
+          "description": "Last 20 commits, compact",
+          "code": "git log --oneline -n 20"
+        }
       ],
       "tags": ["log", "oneline", "history"],
       "source": "curated",
@@ -141,7 +162,10 @@
       "syntax": "git log --oneline --graph --all",
       "description": "Show the commit graph across all branches, one line per commit.",
       "examples": [
-        { "description": "Visualize branch topology", "code": "git log --oneline --graph --all" }
+        {
+          "description": "Visualize branch topology",
+          "code": "git log --oneline --graph --all"
+        }
       ],
       "tags": ["log", "graph", "history", "branches"],
       "source": "curated",
@@ -153,7 +177,10 @@
       "syntax": "git diff --staged",
       "description": "Show the diff of changes that are staged (added but not committed).",
       "examples": [
-        { "description": "Inspect what's about to be committed", "code": "git diff --staged" }
+        {
+          "description": "Inspect what's about to be committed",
+          "code": "git diff --staged"
+        }
       ],
       "tags": ["diff", "staged", "cached", "review"],
       "source": "curated",
@@ -164,7 +191,12 @@
       "title": "Interactive rebase to squash/edit commits",
       "syntax": "git rebase -i HEAD~<n>",
       "description": "Rebase the last n commits interactively to squash, reword, or drop.",
-      "examples": [{ "description": "Squash the last 3 commits", "code": "git rebase -i HEAD~3" }],
+      "examples": [
+        {
+          "description": "Squash the last 3 commits",
+          "code": "git rebase -i HEAD~3"
+        }
+      ],
       "tags": ["rebase", "interactive", "squash", "edit"],
       "source": "curated",
       "source_url": null
@@ -175,7 +207,10 @@
       "syntax": "git fetch --prune",
       "description": "Fetch from remotes and delete remote-tracking branches that no longer exist upstream.",
       "examples": [
-        { "description": "Clean up deleted remote branches", "code": "git fetch --prune" }
+        {
+          "description": "Clean up deleted remote branches",
+          "code": "git fetch --prune"
+        }
       ],
       "tags": ["fetch", "prune", "remote", "cleanup"],
       "source": "curated",
@@ -195,6 +230,531 @@
       "tags": ["remote", "add", "url"],
       "source": "curated",
       "source_url": null
+    },
+    {
+      "id": "git-tag",
+      "title": "Create or list tags",
+      "syntax": "git tag <tagname>",
+      "description": "Create a lightweight tag at the current commit, or list existing tags. Use -a for annotated tags with a message.",
+      "examples": [
+        {
+          "description": "Create an annotated tag for a release",
+          "code": "git tag -a v1.0.0 -m \"Release version 1.0.0\""
+        }
+      ],
+      "tags": ["tag", "release", "version"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-merge",
+      "title": "Merge a branch into the current branch",
+      "syntax": "git merge <branch>",
+      "description": "Merge another branch's commits into the current branch. Use --no-ff to force a merge commit even for fast-forwards.",
+      "examples": [
+        {
+          "description": "Merge feature branch into main with a merge commit",
+          "code": "git merge --no-ff feat/auth"
+        }
+      ],
+      "tags": ["merge", "branch", "combine"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-blame",
+      "title": "Show who changed each line",
+      "syntax": "git blame <file>",
+      "description": "Display each line with the author and commit that last modified it. Useful for finding when a bug was introduced.",
+      "examples": [
+        {
+          "description": "Show authorship for each line in app.js",
+          "code": "git blame app.js"
+        }
+      ],
+      "tags": ["blame", "history", "author"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-rebase-continue",
+      "title": "Continue after resolving rebase conflicts",
+      "syntax": "git rebase --continue",
+      "description": "Resume a rebase after you've resolved merge conflicts by staging the fixed files.",
+      "examples": [
+        {
+          "description": "Continue interactive rebase after resolving conflicts",
+          "code": "git rebase --continue"
+        }
+      ],
+      "tags": ["rebase", "continue", "conflict"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-grep",
+      "title": "Search for text in tracked files",
+      "syntax": "git grep <pattern>",
+      "description": "Search for a pattern only in tracked files (faster and more accurate than grep on the whole tree).",
+      "examples": [
+        {
+          "description": "Find all references to a function",
+          "code": "git grep \"myFunction\""
+        }
+      ],
+      "tags": ["grep", "search", "pattern"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-reflog",
+      "title": "Show reference logs (recover lost commits)",
+      "syntax": "git reflog",
+      "description": "List recent changes to HEAD. Useful for finding commits that were reset or lost.",
+      "examples": [
+        {
+          "description": "Find a commit reference after a reset",
+          "code": "git reflog"
+        }
+      ],
+      "tags": ["reflog", "recovery", "history"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-show",
+      "title": "Display commit details",
+      "syntax": "git show <commit>",
+      "description": "Show the full diff, metadata, and message for a commit. Omit <commit> to show HEAD.",
+      "examples": [
+        {
+          "description": "View the changes introduced by a specific commit",
+          "code": "git show abc1234"
+        }
+      ],
+      "tags": ["show", "diff", "commit"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-push",
+      "title": "Push commits to a remote",
+      "syntax": "git push <remote> <branch>",
+      "description": "Upload local commits to a remote repository. Use -u to set the upstream branch.",
+      "examples": [
+        {
+          "description": "Push current branch and set upstream",
+          "code": "git push -u origin feat/auth"
+        }
+      ],
+      "tags": ["push", "remote", "upload"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-pull",
+      "title": "Fetch and merge remote changes",
+      "syntax": "git pull <remote> <branch>",
+      "description": "Download and merge commits from a remote branch. Equivalent to git fetch + git merge.",
+      "examples": [
+        {
+          "description": "Pull updates from main branch",
+          "code": "git pull origin main"
+        }
+      ],
+      "tags": ["pull", "fetch", "merge", "remote"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "git-status",
+      "title": "Show working tree status",
+      "syntax": "git status",
+      "description": "Show changed, staged, untracked, and branch status.",
+      "examples": [
+        {
+          "description": "Short status output",
+          "code": "git status --short --branch"
+        }
+      ],
+      "tags": ["status", "working tree", "staged"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-add",
+      "title": "Stage files",
+      "syntax": "git add <path>",
+      "description": "Add file contents to the index for the next commit.",
+      "examples": [
+        {
+          "description": "Stage all changed files",
+          "code": "git add ."
+        }
+      ],
+      "tags": ["add", "stage", "index"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-commit",
+      "title": "Create a commit",
+      "syntax": "git commit -m <message>",
+      "description": "Record staged changes in repository history.",
+      "examples": [
+        {
+          "description": "Commit staged changes",
+          "code": "git commit -m \"Add search pack\""
+        }
+      ],
+      "tags": ["commit", "history", "snapshot"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-clone",
+      "title": "Clone a repository",
+      "syntax": "git clone <url>",
+      "description": "Create a local copy of an existing repository.",
+      "examples": [
+        {
+          "description": "Clone from GitHub",
+          "code": "git clone git@github.com:owner/repo.git"
+        }
+      ],
+      "tags": ["clone", "checkout", "remote"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-init",
+      "title": "Initialize a repository",
+      "syntax": "git init",
+      "description": "Create an empty Git repository in the current directory.",
+      "examples": [
+        {
+          "description": "Initialize current directory",
+          "code": "git init"
+        }
+      ],
+      "tags": ["init", "repository", "new"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-switch",
+      "title": "Switch branches",
+      "syntax": "git switch <branch>",
+      "description": "Switch to an existing branch using the modern branch command.",
+      "examples": [
+        {
+          "description": "Switch to main",
+          "code": "git switch main"
+        }
+      ],
+      "tags": ["branch", "switch"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-switch-create",
+      "title": "Create and switch branch",
+      "syntax": "git switch -c <branch>",
+      "description": "Create a new branch and switch to it.",
+      "examples": [
+        {
+          "description": "Create feature branch",
+          "code": "git switch -c feat/search"
+        }
+      ],
+      "tags": ["branch", "create", "switch"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-restore",
+      "title": "Restore files from HEAD",
+      "syntax": "git restore <path>",
+      "description": "Discard unstaged changes in paths by restoring them from HEAD.",
+      "examples": [
+        {
+          "description": "Restore one file",
+          "code": "git restore src/App.svelte"
+        }
+      ],
+      "tags": ["restore", "discard", "working tree"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-restore-staged",
+      "title": "Unstage files",
+      "syntax": "git restore --staged <path>",
+      "description": "Remove paths from the index while keeping working tree changes.",
+      "examples": [
+        {
+          "description": "Unstage a file",
+          "code": "git restore --staged src/App.svelte"
+        }
+      ],
+      "tags": ["unstage", "restore", "index"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-clean",
+      "title": "Remove untracked files",
+      "syntax": "git clean -fd",
+      "description": "Delete untracked files and directories from the working tree.",
+      "examples": [
+        {
+          "description": "Preview then remove untracked files",
+          "code": "git clean -fdn && git clean -fd"
+        }
+      ],
+      "tags": ["clean", "untracked", "delete"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-config",
+      "title": "Configure Git",
+      "syntax": "git config --global user.name \"Name\"",
+      "description": "Read or write Git configuration values.",
+      "examples": [
+        {
+          "description": "Set default branch name",
+          "code": "git config --global init.defaultBranch main"
+        }
+      ],
+      "tags": ["config", "setup", "global"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-branch-list",
+      "title": "List branches",
+      "syntax": "git branch -vv",
+      "description": "List local branches with upstream and latest commit information.",
+      "examples": [
+        {
+          "description": "Show verbose branch list",
+          "code": "git branch -vv"
+        }
+      ],
+      "tags": ["branch", "list", "upstream"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-remote-v",
+      "title": "List remotes",
+      "syntax": "git remote -v",
+      "description": "Show configured remotes and their fetch/push URLs.",
+      "examples": [
+        {
+          "description": "Show remote URLs",
+          "code": "git remote -v"
+        }
+      ],
+      "tags": ["remote", "origin", "url"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-push-upstream",
+      "title": "Push and set upstream",
+      "syntax": "git push -u <remote> <branch>",
+      "description": "Push a branch and set its upstream tracking branch.",
+      "examples": [
+        {
+          "description": "Push current feature branch",
+          "code": "git push -u origin feat/search"
+        }
+      ],
+      "tags": ["push", "upstream", "remote"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-pull-rebase",
+      "title": "Pull with rebase",
+      "syntax": "git pull --rebase <remote> <branch>",
+      "description": "Fetch and replay local commits on top of the upstream branch.",
+      "examples": [
+        {
+          "description": "Rebase local main on origin",
+          "code": "git pull --rebase origin main"
+        }
+      ],
+      "tags": ["pull", "rebase", "sync"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-revert",
+      "title": "Revert a commit",
+      "syntax": "git revert <commit>",
+      "description": "Create a new commit that undoes changes introduced by an earlier commit.",
+      "examples": [
+        {
+          "description": "Revert one commit",
+          "code": "git revert abc1234"
+        }
+      ],
+      "tags": ["revert", "undo", "commit"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-worktree-add",
+      "title": "Add a worktree",
+      "syntax": "git worktree add <path> <branch>",
+      "description": "Check out another branch into a separate working directory.",
+      "examples": [
+        {
+          "description": "Open a branch beside current checkout",
+          "code": "git worktree add ../repo-hotfix hotfix/login"
+        }
+      ],
+      "tags": ["worktree", "branch", "checkout"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-submodule-update",
+      "title": "Initialize submodules",
+      "syntax": "git submodule update --init --recursive",
+      "description": "Clone and update submodules recorded by the superproject.",
+      "examples": [
+        {
+          "description": "Initialize all nested submodules",
+          "code": "git submodule update --init --recursive"
+        }
+      ],
+      "tags": ["submodule", "dependency", "clone"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-diff",
+      "title": "Show unstaged changes",
+      "syntax": "git diff [<path>]",
+      "description": "Show changes in the working tree that are not staged for commit.",
+      "examples": [
+        {
+          "description": "Review one file before staging it",
+          "code": "git diff src/App.svelte"
+        }
+      ],
+      "tags": ["diff", "working tree", "review"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-diff-branch",
+      "title": "Compare two branches",
+      "syntax": "git diff <base>..<branch>",
+      "description": "Show the changes reachable from one branch compared with another branch.",
+      "examples": [
+        {
+          "description": "Review feature branch changes against main",
+          "code": "git diff main..feat/search"
+        }
+      ],
+      "tags": ["diff", "branch", "compare"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-commit-amend",
+      "title": "Amend last commit",
+      "syntax": "git commit --amend",
+      "description": "Replace the last commit with a new commit built from the current index and edited message.",
+      "examples": [
+        {
+          "description": "Add staged fixes to the last commit",
+          "code": "git add src/App.svelte && git commit --amend"
+        }
+      ],
+      "tags": ["commit", "amend", "fix"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-branch-rename",
+      "title": "Rename a branch",
+      "syntax": "git branch -m <old> <new>",
+      "description": "Rename a local branch, or rename the current branch when only the new name is provided.",
+      "examples": [
+        {
+          "description": "Rename current branch",
+          "code": "git branch -m feat/search-ui"
+        }
+      ],
+      "tags": ["branch", "rename"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-remote-set-url",
+      "title": "Change remote URL",
+      "syntax": "git remote set-url <name> <url>",
+      "description": "Update the fetch and push URL for an existing remote.",
+      "examples": [
+        {
+          "description": "Point origin at a new GitHub repo",
+          "code": "git remote set-url origin git@github.com:owner/repo.git"
+        }
+      ],
+      "tags": ["remote", "url", "origin"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-bisect",
+      "title": "Find the commit that introduced a bug",
+      "syntax": "git bisect start, git bisect bad, git bisect good <commit>",
+      "description": "Run a binary search through history by marking revisions as good or bad.",
+      "examples": [
+        {
+          "description": "Start bisecting between current bad HEAD and a known good tag",
+          "code": "git bisect start && git bisect bad && git bisect good v1.2.0"
+        }
+      ],
+      "tags": ["bisect", "debug", "history"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-ls-files",
+      "title": "List tracked files",
+      "syntax": "git ls-files [<pathspec>]",
+      "description": "List files tracked by the index, with options for staged, deleted, modified, or untracked paths.",
+      "examples": [
+        {
+          "description": "List tracked TypeScript files",
+          "code": "git ls-files '*.ts'"
+        }
+      ],
+      "tags": ["files", "tracked", "index"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
+    },
+    {
+      "id": "git-archive",
+      "title": "Create archive from repository",
+      "syntax": "git archive --format=<format> --output=<file> <tree-ish>",
+      "description": "Write a tar or zip archive containing files from a commit, tag, or branch.",
+      "examples": [
+        {
+          "description": "Create a zip archive of HEAD",
+          "code": "git archive --format=zip --output=release.zip HEAD"
+        }
+      ],
+      "tags": ["archive", "release", "export"],
+      "source": "official",
+      "source_url": "https://git-scm.com/docs"
     }
   ]
 }

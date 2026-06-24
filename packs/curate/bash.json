@@ -1,0 +1,595 @@
+{
+  "id": "bash",
+  "name": "bash",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (Bash 5.3 patterns; verified against GNU Bash manual)",
+  "license": "MIT",
+  "homepage": "https://www.gnu.org/software/bash/",
+  "entries": [
+    {
+      "id": "bash-for-loop",
+      "title": "for loop",
+      "syntax": "for var in list; do command; done",
+      "description": "Iterate over items in a list, executing commands for each iteration.",
+      "examples": [
+        {
+          "description": "loop over files in directory",
+          "code": "for file in *.txt; do echo \"Processing $file\"; done"
+        }
+      ],
+      "tags": ["loops", "iteration", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-while-loop",
+      "title": "while loop",
+      "syntax": "while condition; do command; done",
+      "description": "Execute commands repeatedly as long as a condition is true.",
+      "examples": [
+        {
+          "description": "loop while reading file lines",
+          "code": "while read line; do echo \"$line\"; done < file.txt"
+        }
+      ],
+      "tags": ["loops", "iteration", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-if-statement",
+      "title": "if statement",
+      "syntax": "if condition; then commands; fi",
+      "description": "Conditional execution of commands based on test results.",
+      "examples": [
+        {
+          "description": "check if file exists",
+          "code": "if [ -f \"file.txt\" ]; then echo \"File exists\"; fi"
+        }
+      ],
+      "tags": ["conditions", "control-flow", "testing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-function",
+      "title": "function definition",
+      "syntax": "function_name() { commands; }",
+      "description": "Define reusable code blocks that can be called with arguments.",
+      "examples": [
+        {
+          "description": "simple function with parameters",
+          "code": "greet() { echo \"Hello, $1\"; }; greet \"World\""
+        }
+      ],
+      "tags": ["functions", "reusability"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-pipe",
+      "title": "pipe operator",
+      "syntax": "command1 | command2",
+      "description": "Pass output from one command as input to another command.",
+      "examples": [
+        {
+          "description": "filter lines containing text",
+          "code": "cat file.txt | grep 'pattern' | sort"
+        }
+      ],
+      "tags": ["pipes", "chaining", "redirection"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-redirect",
+      "title": "output redirection",
+      "syntax": "command > file, command >> file, command 2>&1",
+      "description": "Redirect command output to files or combine stdout and stderr.",
+      "examples": [
+        {
+          "description": "redirect stdout and stderr to file",
+          "code": "command > output.txt 2>&1"
+        }
+      ],
+      "tags": ["redirection", "io", "output"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-variable",
+      "title": "variable assignment",
+      "syntax": "varname=value",
+      "description": "Store and retrieve data using variables throughout your script.",
+      "examples": [
+        {
+          "description": "use variables in commands",
+          "code": "name=\"Alice\"; echo \"Hello, $name\""
+        }
+      ],
+      "tags": ["variables", "data-storage"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-quoting",
+      "title": "quoting and escaping",
+      "syntax": "'single', \"double\", $variable, \\escape",
+      "description": "Control variable expansion and special character interpretation in strings.",
+      "examples": [
+        {
+          "description": "double vs single quotes",
+          "code": "echo \"Expanded: $var\" && echo 'Literal: $var'"
+        }
+      ],
+      "tags": ["quoting", "escaping", "strings"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-array",
+      "title": "array operations",
+      "syntax": "arr=(item1 item2); ${arr[0]}; ${arr[@]}",
+      "description": "Create and manipulate arrays to store multiple values.",
+      "examples": [
+        {
+          "description": "iterate over array elements",
+          "code": "arr=(\"a\" \"b\" \"c\"); for item in \"${arr[@]}\"; do echo \"$item\"; done"
+        }
+      ],
+      "tags": ["arrays", "data-structures"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-string-substitution",
+      "title": "string substitution",
+      "syntax": "${var/pattern/replacement}, ${var#pattern}, ${var%pattern}",
+      "description": "Manipulate strings by removing or replacing patterns.",
+      "examples": [
+        {
+          "description": "replace substring",
+          "code": "path=\"/home/user/file.txt\"; echo \"${path/home/tmp}\""
+        }
+      ],
+      "tags": ["strings", "substitution", "manipulation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-command-substitution",
+      "title": "command substitution",
+      "syntax": "$(command) or `command`",
+      "description": "Use command output as input to another command or as a variable value.",
+      "examples": [
+        {
+          "description": "use date in filename",
+          "code": "backup_file=\"backup_$(date +%Y%m%d).tar.gz\""
+        }
+      ],
+      "tags": ["substitution", "command-output", "dynamic"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-case-statement",
+      "title": "case statement",
+      "syntax": "case var in pattern) commands;; esac",
+      "description": "Multi-way branching based on pattern matching.",
+      "examples": [
+        {
+          "description": "match file extension",
+          "code": "case \"$file\" in *.txt) echo \"Text\" ;; *.jpg) echo \"Image\" ;; esac"
+        }
+      ],
+      "tags": ["conditions", "pattern-matching", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-arithmetic",
+      "title": "arithmetic expansion",
+      "syntax": "$(( expression )), let variable=expression",
+      "description": "Perform mathematical calculations and comparisons.",
+      "examples": [
+        {
+          "description": "increment and calculate",
+          "code": "count=0; count=$((count + 5)); echo \"Count: $count\""
+        }
+      ],
+      "tags": ["arithmetic", "math", "variables"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-test-conditions",
+      "title": "test conditions",
+      "syntax": "[ condition ], [[ condition ]]",
+      "description": "Evaluate conditions for file/string/number testing in conditionals.",
+      "examples": [
+        {
+          "description": "multiple conditions",
+          "code": "if [ -f \"file.txt\" ] && [ -s \"file.txt\" ]; then echo \"File exists and has content\"; fi"
+        }
+      ],
+      "tags": ["testing", "conditions", "operators"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-error-handling",
+      "title": "error handling",
+      "syntax": "set -e, $?, trap, ||",
+      "description": "Detect and handle errors in scripts with exit codes and error traps.",
+      "examples": [
+        {
+          "description": "exit on first error and check exit status",
+          "code": "set -e; command1 && command2 || echo \"Command failed with code $?\""
+        }
+      ],
+      "tags": ["error-handling", "exit-codes", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "bash-shebang",
+      "title": "Bash shebang",
+      "syntax": "#!/usr/bin/env bash",
+      "description": "Start a script with the user's bash found on PATH.",
+      "examples": [
+        {
+          "description": "Script header",
+          "code": "#!/usr/bin/env bash"
+        }
+      ],
+      "tags": ["script", "shebang", "portable"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-strict-mode",
+      "title": "Exit on errors and unset vars",
+      "syntax": "set -euo pipefail",
+      "description": "Make scripts stop on failed commands, unset variables, and failed pipeline elements.",
+      "examples": [
+        {
+          "description": "Enable common strict mode",
+          "code": "set -euo pipefail"
+        }
+      ],
+      "tags": ["script", "error", "strict"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-read",
+      "title": "Read input",
+      "syntax": "read -r <var>",
+      "description": "Read a line from standard input without backslash escapes.",
+      "examples": [
+        {
+          "description": "Prompt for a name",
+          "code": "read -r name"
+        }
+      ],
+      "tags": ["input", "read", "variable"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-here-doc",
+      "title": "Here document",
+      "syntax": "command <<'EOF' ... EOF",
+      "description": "Pass a multi-line literal block to a command.",
+      "examples": [
+        {
+          "description": "Write a config file",
+          "code": "cat <<'EOF' > config.ini\nname=hotdoc\nEOF"
+        }
+      ],
+      "tags": ["heredoc", "redirect", "multiline"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-here-string",
+      "title": "Here string",
+      "syntax": "command <<< <word>",
+      "description": "Redirect a single expanded string into a command's standard input.",
+      "examples": [
+        {
+          "description": "Count one string",
+          "code": "wc -c <<< \"$value\""
+        }
+      ],
+      "tags": ["herestring", "stdin", "redirect"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-process-substitution",
+      "title": "Process substitution",
+      "syntax": "command <(producer)",
+      "description": "Expose command output as a temporary file-like path.",
+      "examples": [
+        {
+          "description": "Diff sorted command output",
+          "code": "diff <(sort old.txt) <(sort new.txt)"
+        }
+      ],
+      "tags": ["process substitution", "diff", "pipe"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-trap",
+      "title": "Run cleanup on exit",
+      "syntax": "trap '<command>' EXIT",
+      "description": "Register a command to run when the shell receives a signal or exits.",
+      "examples": [
+        {
+          "description": "Clean a temp dir",
+          "code": "trap 'rm -rf \"$tmpdir\"' EXIT"
+        }
+      ],
+      "tags": ["trap", "cleanup", "signal"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-getopts",
+      "title": "Parse short options",
+      "syntax": "while getopts '<opts>' opt; do ...; done",
+      "description": "Parse POSIX-style short command-line options.",
+      "examples": [
+        {
+          "description": "Parse -f flag",
+          "code": "while getopts 'f:' opt; do case \"$opt\" in f) file=$OPTARG;; esac; done"
+        }
+      ],
+      "tags": ["options", "arguments", "script"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-parameter-default",
+      "title": "Use default parameter value",
+      "syntax": "${var:-default}",
+      "description": "Expand to a fallback value when a variable is unset or empty.",
+      "examples": [
+        {
+          "description": "Use default port",
+          "code": "port=${PORT:-3000}"
+        }
+      ],
+      "tags": ["parameter", "default", "expansion"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-associative-array",
+      "title": "Associative array",
+      "syntax": "declare -A map=([key]=value)",
+      "description": "Create a key-value associative array.",
+      "examples": [
+        {
+          "description": "Map env to URL",
+          "code": "declare -A urls=([prod]=https://example.com [dev]=http://localhost:3000)"
+        }
+      ],
+      "tags": ["array", "map", "associative"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-file-tests",
+      "title": "Test files",
+      "syntax": "[[ -f <file> ]] && [[ -d <dir> ]]",
+      "description": "Check file and directory properties in conditionals.",
+      "examples": [
+        {
+          "description": "Require config file",
+          "code": "[[ -f config.json ]] || exit 1"
+        }
+      ],
+      "tags": ["test", "file", "condition"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-sub-shell-group",
+      "title": "Group commands",
+      "syntax": "( commands ) or { commands; }",
+      "description": "Run commands in a subshell with parentheses or group them in the current shell with braces.",
+      "examples": [
+        {
+          "description": "Change dir temporarily",
+          "code": "( cd app && pnpm test )"
+        }
+      ],
+      "tags": ["group", "subshell", "scope"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-job-control",
+      "title": "Background and resume jobs",
+      "syntax": "command &; jobs; fg %<n>",
+      "description": "Run commands in the background and manage shell jobs.",
+      "examples": [
+        {
+          "description": "Run a server in background",
+          "code": "python -m http.server 8000 &"
+        }
+      ],
+      "tags": ["jobs", "background", "fg"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-shopt-globstar",
+      "title": "Enable recursive globs",
+      "syntax": "shopt -s globstar",
+      "description": "Allow ** to match files and directories recursively.",
+      "examples": [
+        {
+          "description": "List all TypeScript files",
+          "code": "shopt -s globstar; printf '%s\n' **/*.ts"
+        }
+      ],
+      "tags": ["glob", "recursive", "shopt"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-source",
+      "title": "Source another script",
+      "syntax": "source <file>",
+      "description": "Read and execute commands from a file in the current shell.",
+      "examples": [
+        {
+          "description": "Load env helpers",
+          "code": "source ./scripts/env.sh"
+        }
+      ],
+      "tags": ["source", "script", "environment"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-export",
+      "title": "Export environment variable",
+      "syntax": "export NAME=value",
+      "description": "Put a shell variable into the environment for child processes.",
+      "examples": [
+        {
+          "description": "Set production mode",
+          "code": "export NODE_ENV=production"
+        }
+      ],
+      "tags": ["environment", "variable", "export"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-set-x",
+      "title": "Trace commands",
+      "syntax": "set -x, set +x",
+      "description": "Print commands and expansions as they execute for debugging.",
+      "examples": [
+        {
+          "description": "Enable trace around one command",
+          "code": "set -x\nmake test\nset +x"
+        }
+      ],
+      "tags": ["debug", "trace", "shell"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-regex-match",
+      "title": "Regex match with [[ ]]",
+      "syntax": "[[ $value =~ <regex> ]]",
+      "description": "Test a string against an extended regular expression.",
+      "examples": [
+        {
+          "description": "Capture semantic version",
+          "code": "[[ $version =~ ^v([0-9]+)\\.([0-9]+)$ ]] && echo \"major=${BASH_REMATCH[1]}\""
+        }
+      ],
+      "tags": ["regex", "condition", "test"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-brace-expansion",
+      "title": "Brace expansion",
+      "syntax": "{a,b}, {1..5}",
+      "description": "Generate strings before other shell expansions run.",
+      "examples": [
+        {
+          "description": "Create multiple directories",
+          "code": "mkdir -p src/{api,ui,tests}"
+        }
+      ],
+      "tags": ["expansion", "brace", "paths"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-mapfile",
+      "title": "Read lines into array",
+      "syntax": "mapfile -t array < <(command)",
+      "description": "Read lines from standard input into an indexed array.",
+      "examples": [
+        {
+          "description": "Capture git files into array",
+          "code": "mapfile -t files < <(git ls-files '*.ts')"
+        }
+      ],
+      "tags": ["array", "read", "lines"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-printf",
+      "title": "Formatted output",
+      "syntax": "printf '<format>' [args...]",
+      "description": "Print formatted output without echo portability issues.",
+      "examples": [
+        {
+          "description": "Print key value",
+          "code": "printf 'name=%s\\n' \"$name\""
+        }
+      ],
+      "tags": ["print", "format", "output"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-command-v",
+      "title": "Check command exists",
+      "syntax": "command -v <name>",
+      "description": "Resolve a command name and return success when it is available.",
+      "examples": [
+        {
+          "description": "Require jq before continuing",
+          "code": "command -v jq >/dev/null || { echo 'jq missing' >&2; exit 1; }"
+        }
+      ],
+      "tags": ["command", "path", "check"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-exec-redirection",
+      "title": "Redirect whole script with exec",
+      "syntax": "exec >file 2>&1",
+      "description": "Change stdout or stderr for the current shell process.",
+      "examples": [
+        {
+          "description": "Log the rest of a script",
+          "code": "exec >build.log 2>&1"
+        }
+      ],
+      "tags": ["redirect", "logging", "exec"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    },
+    {
+      "id": "bash-wait",
+      "title": "Wait for background jobs",
+      "syntax": "wait [<job-or-pid>]",
+      "description": "Wait for asynchronous commands and return their exit status.",
+      "examples": [
+        {
+          "description": "Run two jobs and wait for both",
+          "code": "npm test &\npnpm lint &\nwait"
+        }
+      ],
+      "tags": ["jobs", "background", "parallel"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
+    }
+  ]
+}

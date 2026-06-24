@@ -1,0 +1,565 @@
+{
+  "id": "nginx",
+  "name": "nginx",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (NGINX OSS common directives and admin commands; verified against official docs)",
+  "license": "MIT",
+  "homepage": "https://nginx.org/en/docs/",
+  "entries": [
+    {
+      "id": "nginx-server-block",
+      "title": "server block",
+      "syntax": "server { listen 80; server_name domain; }",
+      "description": "Define a virtual host configuration for handling requests.",
+      "examples": [
+        {
+          "description": "basic server block",
+          "code": "server {\n    listen 80;\n    server_name example.com www.example.com;\n    root /var/www/html;\n}"
+        }
+      ],
+      "tags": ["config", "server"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-location-block",
+      "title": "location block",
+      "syntax": "location /path { ... }, location ~ regex { ... }",
+      "description": "Define rules for handling specific URL paths or patterns.",
+      "examples": [
+        {
+          "description": "location with proxy",
+          "code": "location /api/ {\n    proxy_pass http://backend;\n}"
+        }
+      ],
+      "tags": ["config", "routing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-proxy-pass",
+      "title": "proxy_pass directive",
+      "syntax": "proxy_pass http://backend, proxy_pass unix:/socket",
+      "description": "Forward requests to a backend server or upstream group.",
+      "examples": [
+        {
+          "description": "proxy to application server",
+          "code": "proxy_pass http://127.0.0.1:3000;"
+        }
+      ],
+      "tags": ["proxy", "routing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-listen",
+      "title": "listen directive",
+      "syntax": "listen port, listen port ssl, listen [::]:port ipv6only=on",
+      "description": "Specify the IP address and port the server listens on.",
+      "examples": [
+        {
+          "description": "listen on port 443 with SSL",
+          "code": "listen 443 ssl http2;\nlisten [::]:443 ssl http2;"
+        }
+      ],
+      "tags": ["config", "ports"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-ssl-certificate",
+      "title": "SSL/TLS configuration",
+      "syntax": "ssl_certificate, ssl_certificate_key, ssl_protocols, ssl_ciphers",
+      "description": "Configure HTTPS with certificates and security parameters.",
+      "examples": [
+        {
+          "description": "SSL configuration",
+          "code": "ssl_certificate /etc/ssl/cert.pem;\nssl_certificate_key /etc/ssl/key.pem;\nssl_protocols TLSv1.2 TLSv1.3;"
+        }
+      ],
+      "tags": ["ssl", "security"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-error-log",
+      "title": "error_log directive",
+      "syntax": "error_log path level",
+      "description": "Specify where to write error logs and the logging level.",
+      "examples": [
+        {
+          "description": "set error log location",
+          "code": "error_log /var/log/nginx/error.log warn;"
+        }
+      ],
+      "tags": ["logging", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-access-log",
+      "title": "access_log directive",
+      "syntax": "access_log path format",
+      "description": "Configure logging of client requests.",
+      "examples": [
+        {
+          "description": "log requests to file",
+          "code": "access_log /var/log/nginx/access.log combined;"
+        }
+      ],
+      "tags": ["logging", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-upstream",
+      "title": "upstream block",
+      "syntax": "upstream name { server ...; server ...; }",
+      "description": "Define a group of backend servers for load balancing.",
+      "examples": [
+        {
+          "description": "upstream with multiple servers",
+          "code": "upstream backend {\n    server 127.0.0.1:3000;\n    server 127.0.0.1:3001;\n    server 127.0.0.1:3002;\n}"
+        }
+      ],
+      "tags": ["load-balancing", "upstream"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-redirect",
+      "title": "redirect directive",
+      "syntax": "return 301/302 url, rewrite regex replacement",
+      "description": "Redirect requests to different URLs.",
+      "examples": [
+        {
+          "description": "redirect http to https",
+          "code": "if ($scheme != \"https\") { return 301 https://$server_name$request_uri; }"
+        }
+      ],
+      "tags": ["routing", "redirect"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-gzip",
+      "title": "gzip compression",
+      "syntax": "gzip on, gzip_types, gzip_level",
+      "description": "Enable and configure gzip compression for responses.",
+      "examples": [
+        {
+          "description": "enable gzip compression",
+          "code": "gzip on;\ngzip_types text/plain text/css application/json;\ngzip_level 6;"
+        }
+      ],
+      "tags": ["compression", "performance"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-proxy-headers",
+      "title": "proxy headers",
+      "syntax": "proxy_set_header, proxy_headers_hash_bucket_size",
+      "description": "Set HTTP headers when proxying requests to backends.",
+      "examples": [
+        {
+          "description": "set proxy headers",
+          "code": "proxy_set_header Host $host;\nproxy_set_header X-Real-IP $remote_addr;\nproxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;"
+        }
+      ],
+      "tags": ["proxy", "headers"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-http-block",
+      "title": "http block",
+      "syntax": "http { ... }",
+      "description": "Top-level block containing server and upstream definitions.",
+      "examples": [
+        {
+          "description": "http block structure",
+          "code": "http {\n    include mime.types;\n    default_type application/octet-stream;\n    server { ... }\n}"
+        }
+      ],
+      "tags": ["config", "structure"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-include",
+      "title": "include directive",
+      "syntax": "include path, include /etc/nginx/conf.d/*",
+      "description": "Include additional configuration files.",
+      "examples": [
+        {
+          "description": "include all site configs",
+          "code": "include /etc/nginx/sites-enabled/*;"
+        }
+      ],
+      "tags": ["config", "modular"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-cache",
+      "title": "caching directives",
+      "syntax": "proxy_cache, proxy_cache_valid, expires, add_header Cache-Control",
+      "description": "Configure browser and proxy caching.",
+      "examples": [
+        {
+          "description": "set cache headers",
+          "code": "expires 30d;\nadd_header Cache-Control \"public, immutable\";"
+        }
+      ],
+      "tags": ["caching", "performance"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-rate-limit",
+      "title": "rate limiting",
+      "syntax": "limit_req_zone, limit_req, limit_conn_zone",
+      "description": "Limit request rate or connection count from clients.",
+      "examples": [
+        {
+          "description": "rate limit configuration",
+          "code": "limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;\nlimit_req zone=one burst=20;"
+        }
+      ],
+      "tags": ["security", "rate-limiting"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "nginx-test-config",
+      "title": "Test configuration",
+      "syntax": "nginx -t",
+      "description": "Check NGINX configuration syntax and referenced files.",
+      "examples": [
+        {
+          "description": "Test default config",
+          "code": "sudo nginx -t"
+        }
+      ],
+      "tags": ["cli", "test", "config"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-reload",
+      "title": "Reload configuration",
+      "syntax": "nginx -s reload",
+      "description": "Reload NGINX configuration without a full stop/start.",
+      "examples": [
+        {
+          "description": "Reload after config edit",
+          "code": "sudo nginx -s reload"
+        }
+      ],
+      "tags": ["cli", "reload", "config"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-quit",
+      "title": "Gracefully stop NGINX",
+      "syntax": "nginx -s quit",
+      "description": "Ask NGINX workers to finish requests and exit.",
+      "examples": [
+        {
+          "description": "Gracefully stop daemon",
+          "code": "sudo nginx -s quit"
+        }
+      ],
+      "tags": ["cli", "stop", "graceful"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-try-files",
+      "title": "Serve fallback files",
+      "syntax": "try_files <paths> <fallback>;",
+      "description": "Check files in order and internally redirect to a fallback.",
+      "examples": [
+        {
+          "description": "Single-page app fallback",
+          "code": "try_files $uri $uri/ /index.html;"
+        }
+      ],
+      "tags": ["routing", "static", "fallback"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-root-alias",
+      "title": "Set static file path",
+      "syntax": "root <path>; alias <path>;",
+      "description": "Map request URIs to filesystem paths.",
+      "examples": [
+        {
+          "description": "Serve static assets",
+          "code": "location /assets/ { alias /srv/app/assets/; }"
+        }
+      ],
+      "tags": ["static", "root", "alias"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-index",
+      "title": "Set index files",
+      "syntax": "index <file> ...;",
+      "description": "Define files used for directory index requests.",
+      "examples": [
+        {
+          "description": "Use index.html",
+          "code": "index index.html index.htm;"
+        }
+      ],
+      "tags": ["static", "index", "files"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-client-max-body-size",
+      "title": "Limit upload size",
+      "syntax": "client_max_body_size <size>;",
+      "description": "Set the maximum accepted request body size.",
+      "examples": [
+        {
+          "description": "Allow 20 MiB uploads",
+          "code": "client_max_body_size 20m;"
+        }
+      ],
+      "tags": ["upload", "limit", "body"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-proxy-timeouts",
+      "title": "Set proxy timeouts",
+      "syntax": "proxy_connect_timeout, proxy_read_timeout, proxy_send_timeout",
+      "description": "Control upstream proxy connection and IO timeouts.",
+      "examples": [
+        {
+          "description": "Raise read timeout",
+          "code": "proxy_read_timeout 60s;"
+        }
+      ],
+      "tags": ["proxy", "timeout", "upstream"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-map",
+      "title": "Map variable values",
+      "syntax": "map <source> <variable> { ... }",
+      "description": "Create a variable based on another variable's value.",
+      "examples": [
+        {
+          "description": "Map websocket upgrade header",
+          "code": "map $http_upgrade $connection_upgrade { default upgrade; '' close; }"
+        }
+      ],
+      "tags": ["map", "variable", "routing"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-log-format",
+      "title": "Define log format",
+      "syntax": "log_format <name> '<format>';",
+      "description": "Create a named access log format.",
+      "examples": [
+        {
+          "description": "Define JSON-ish logs",
+          "code": "log_format main '$remote_addr $request $status $request_time';"
+        }
+      ],
+      "tags": ["log", "format", "access"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-add-header",
+      "title": "Add response header",
+      "syntax": "add_header <name> <value> [always];",
+      "description": "Add headers to successful responses, or to all supported responses with always.",
+      "examples": [
+        {
+          "description": "Add HSTS header",
+          "code": "add_header Strict-Transport-Security \"max-age=31536000\" always;"
+        }
+      ],
+      "tags": ["header", "security", "response"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-auth-basic",
+      "title": "Enable basic auth",
+      "syntax": "auth_basic, auth_basic_user_file",
+      "description": "Protect a location with HTTP Basic authentication.",
+      "examples": [
+        {
+          "description": "Protect admin path",
+          "code": "auth_basic \"admin\";\nauth_basic_user_file /etc/nginx/.htpasswd;"
+        }
+      ],
+      "tags": ["auth", "basic", "security"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-resolver",
+      "title": "Set DNS resolver",
+      "syntax": "resolver <address> ...;",
+      "description": "Configure DNS servers for runtime name resolution.",
+      "examples": [
+        {
+          "description": "Use local DNS resolver",
+          "code": "resolver 127.0.0.53 valid=30s;"
+        }
+      ],
+      "tags": ["dns", "resolver", "proxy"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-stream-block",
+      "title": "TCP/UDP proxy block",
+      "syntax": "stream { ... }",
+      "description": "Configure TCP and UDP proxying outside the HTTP module.",
+      "examples": [
+        {
+          "description": "Proxy PostgreSQL TCP",
+          "code": "stream { server { listen 5432; proxy_pass db:5432; } }"
+        }
+      ],
+      "tags": ["tcp", "stream", "proxy"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-dump-config",
+      "title": "Dump full config",
+      "syntax": "nginx -T",
+      "description": "Test configuration and print the complete parsed configuration.",
+      "examples": [
+        {
+          "description": "Review effective config",
+          "code": "sudo nginx -T"
+        }
+      ],
+      "tags": ["cli", "config", "debug"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-reopen-logs",
+      "title": "Reopen log files",
+      "syntax": "nginx -s reopen",
+      "description": "Tell the master process to reopen log files after rotation.",
+      "examples": [
+        {
+          "description": "Reopen logs after logrotate",
+          "code": "sudo nginx -s reopen"
+        }
+      ],
+      "tags": ["logs", "reload", "cli"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/"
+    },
+    {
+      "id": "nginx-server-name",
+      "title": "Match server names",
+      "syntax": "server_name <names>;",
+      "description": "Define host names for a virtual server.",
+      "examples": [
+        {
+          "description": "Serve a domain and www alias",
+          "code": "server_name example.com www.example.com;"
+        }
+      ],
+      "tags": ["server", "host", "virtual host"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/server_names.html"
+    },
+    {
+      "id": "nginx-default-server",
+      "title": "Default server",
+      "syntax": "listen 80 default_server;",
+      "description": "Mark a server block as the default for an address and port.",
+      "examples": [
+        {
+          "description": "Default HTTP server",
+          "code": "listen 80 default_server;"
+        }
+      ],
+      "tags": ["listen", "default", "server"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/request_processing.html"
+    },
+    {
+      "id": "nginx-stub-status",
+      "title": "Expose basic status",
+      "syntax": "stub_status;",
+      "description": "Enable a simple status page for active connections and request counters.",
+      "examples": [
+        {
+          "description": "Status endpoint location",
+          "code": "location /nginx_status {\n    stub_status;\n}"
+        }
+      ],
+      "tags": ["status", "monitoring"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_stub_status_module.html"
+    },
+    {
+      "id": "nginx-http2",
+      "title": "Enable HTTP/2",
+      "syntax": "http2 on;",
+      "description": "Enable HTTP/2 for a server using the current standalone directive.",
+      "examples": [
+        {
+          "description": "Enable HTTP/2 for TLS server",
+          "code": "listen 443 ssl;\nhttp2 on;"
+        }
+      ],
+      "tags": ["http2", "tls", "server"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_v2_module.html"
+    },
+    {
+      "id": "nginx-real-ip",
+      "title": "Trust forwarded client IP",
+      "syntax": "set_real_ip_from <cidr>; real_ip_header X-Forwarded-For;",
+      "description": "Replace client address with a trusted proxy-provided address.",
+      "examples": [
+        {
+          "description": "Trust local proxy header",
+          "code": "set_real_ip_from 10.0.0.0/8;\nreal_ip_header X-Forwarded-For;"
+        }
+      ],
+      "tags": ["proxy", "client ip", "headers"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_realip_module.html"
+    },
+    {
+      "id": "nginx-expires",
+      "title": "Set cache expiration",
+      "syntax": "expires <time>;",
+      "description": "Set Expires and Cache-Control response headers for static content.",
+      "examples": [
+        {
+          "description": "Cache assets for a week",
+          "code": "location /assets/ {\n    expires 7d;\n}"
+        }
+      ],
+      "tags": ["cache", "headers", "static"],
+      "source": "official",
+      "source_url": "https://nginx.org/en/docs/http/ngx_http_headers_module.html"
+    }
+  ]
+}

@@ -1,0 +1,535 @@
+{
+  "id": "make",
+  "name": "make",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (GNU make common rules/functions; verified against official manual)",
+  "license": "MIT",
+  "homepage": "https://www.gnu.org/software/make/",
+  "entries": [
+    {
+      "id": "make-target",
+      "title": "target definition",
+      "syntax": "target: dependencies",
+      "description": "Define a build target with prerequisites that must be satisfied first.",
+      "examples": [
+        {
+          "description": "simple target with dependencies",
+          "code": "build: main.o utils.o\n\tgcc -o build main.o utils.o"
+        }
+      ],
+      "tags": ["targets", "rules"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-recipe",
+      "title": "recipe commands",
+      "syntax": "TAB command, @command (silent), -command (continue on error)",
+      "description": "Commands to execute when a target is built, prefixed with a tab.",
+      "examples": [
+        {
+          "description": "recipe with multiple commands",
+          "code": "install:\n\t@echo \"Installing...\"\n\tcp -r src/* /usr/local/bin/\n\t-rm -f temp_files"
+        }
+      ],
+      "tags": ["recipes", "commands"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-variable",
+      "title": "variable assignment",
+      "syntax": "VAR=value, VAR:=value, VAR?=default, VAR+=append",
+      "description": "Define and use variables throughout your Makefile.",
+      "examples": [
+        {
+          "description": "variable usage",
+          "code": "CC=gcc\nCFLAGS=-Wall -O2\n$(CC) $(CFLAGS) -o program main.c"
+        }
+      ],
+      "tags": ["variables", "config"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-phony",
+      "title": ".PHONY declaration",
+      "syntax": ".PHONY: target1 target2",
+      "description": "Declare targets that don't produce files; always run when requested.",
+      "examples": [
+        {
+          "description": "declare phony targets",
+          "code": ".PHONY: clean install test help\nclean:\n\trm -rf build/ *.o"
+        }
+      ],
+      "tags": ["targets", "special"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-automatic-variables",
+      "title": "automatic variables",
+      "syntax": "$@, $<, $^, $?, $*, $+, %",
+      "description": "Variables automatically set with target and dependency information.",
+      "examples": [
+        {
+          "description": "using automatic variables",
+          "code": "%.o: %.c\n\tgcc -c $< -o $@\nprogram: $(OBJECTS)\n\tgcc $^ -o $@"
+        }
+      ],
+      "tags": ["variables", "patterns"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-pattern-rule",
+      "title": "pattern rules",
+      "syntax": "%.target: %.source, %.o: %.c",
+      "description": "Define rules that apply to groups of files with similar patterns.",
+      "examples": [
+        {
+          "description": "compile C to object files",
+          "code": "%.o: %.c\n\tgcc -c $< -o $@"
+        }
+      ],
+      "tags": ["rules", "patterns"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-conditional",
+      "title": "conditional execution",
+      "syntax": "ifeq, ifneq, ifdef, ifndef, else, endif",
+      "description": "Conditionally include or exclude rules based on variable values.",
+      "examples": [
+        {
+          "description": "conditional flag based on OS",
+          "code": "ifeq ($(OS),Linux)\nFLAGS=-O2\nelse\nFLAGS=-O3\nendif"
+        }
+      ],
+      "tags": ["conditions", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-include",
+      "title": "include files",
+      "syntax": "include file, -include file, sinclude file",
+      "description": "Include another Makefile or rules file.",
+      "examples": [
+        {
+          "description": "include another makefile",
+          "code": "include rules.mk\n-include local.mk"
+        }
+      ],
+      "tags": ["structure", "modular"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-function-call",
+      "title": "function calls",
+      "syntax": "$(function arg1,arg2), $(patsubst %,dir/%,files)",
+      "description": "Use built-in functions for string manipulation and transformation.",
+      "examples": [
+        {
+          "description": "use functions",
+          "code": "SOURCES=$(wildcard *.c)\nOBJECTS=$(patsubst %.c,%.o,$(SOURCES))"
+        }
+      ],
+      "tags": ["functions", "string-manipulation"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-wildcard",
+      "title": "wildcard patterns",
+      "syntax": "$(wildcard pattern), *.c, src/**/*.c",
+      "description": "Match files using wildcard patterns.",
+      "examples": [
+        {
+          "description": "match all C files",
+          "code": "SOURCES=$(wildcard src/*.c)\nHEADERS=$(wildcard include/*.h)"
+        }
+      ],
+      "tags": ["patterns", "file-matching"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-all",
+      "title": ".all target",
+      "syntax": ".all: target1 target2",
+      "description": "Default target that runs when make is called without arguments.",
+      "examples": [
+        {
+          "description": "default target",
+          "code": ".all: build test\n.PHONY: .all\nbuild:\n\t@echo \"Building...\"\ntest:\n\t@echo \"Testing...\""
+        }
+      ],
+      "tags": ["targets", "default"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-clean",
+      "title": "clean target",
+      "syntax": "clean:\n\trm -rf output files",
+      "description": "Remove build artifacts and temporary files.",
+      "examples": [
+        {
+          "description": "clean build artifacts",
+          "code": ".PHONY: clean\nclean:\n\trm -rf build/ *.o *.a\n\t@echo \"Cleaned\""
+        }
+      ],
+      "tags": ["cleanup", "phony"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-install",
+      "title": "install target",
+      "syntax": "install:\n\tcp build /usr/local/bin/",
+      "description": "Install built artifacts to system directories.",
+      "examples": [
+        {
+          "description": "install executable",
+          "code": ".PHONY: install\ninstall: build\n\tinstall -m 755 program /usr/local/bin/"
+        }
+      ],
+      "tags": ["installation", "phony"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-help",
+      "title": "help target",
+      "syntax": "help:\n\t@echo \"Usage:\"",
+      "description": "Document available targets and their purposes.",
+      "examples": [
+        {
+          "description": "help target",
+          "code": ".PHONY: help\nhelp:\n\t@echo \"Available targets:\"\n\t@echo \"  make build    - Compile program\"\n\t@echo \"  make test     - Run tests\"\n\t@echo \"  make clean    - Remove artifacts\""
+        }
+      ],
+      "tags": ["documentation", "phony"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-VPATH",
+      "title": "VPATH variable",
+      "syntax": "VPATH=dir1:dir2, vpath pattern dir",
+      "description": "Search for prerequisites in specified directories.",
+      "examples": [
+        {
+          "description": "search in multiple directories",
+          "code": "VPATH=src:obj:lib\nvpath %.c src\nvpath %.h include"
+        }
+      ],
+      "tags": ["search", "paths"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "make-run-target",
+      "title": "Run a target",
+      "syntax": "make <target>",
+      "description": "Build or run a named make target.",
+      "examples": [
+        {
+          "description": "Run test target",
+          "code": "make test"
+        }
+      ],
+      "tags": ["target", "build", "run"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-parallel",
+      "title": "Run jobs in parallel",
+      "syntax": "make -j<n>",
+      "description": "Run multiple recipes at the same time.",
+      "examples": [
+        {
+          "description": "Build with all cores",
+          "code": "make -j8"
+        }
+      ],
+      "tags": ["parallel", "jobs", "build"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-dry-run",
+      "title": "Preview commands",
+      "syntax": "make -n <target>",
+      "description": "Print recipes without executing them.",
+      "examples": [
+        {
+          "description": "Preview install steps",
+          "code": "make -n install"
+        }
+      ],
+      "tags": ["dry run", "preview", "debug"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-default-goal",
+      "title": "Set default target",
+      "syntax": ".DEFAULT_GOAL := <target>",
+      "description": "Choose which target runs when make is invoked without arguments.",
+      "examples": [
+        {
+          "description": "Make help the default",
+          "code": ".DEFAULT_GOAL := help"
+        }
+      ],
+      "tags": ["default", "target", "goal"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-order-only",
+      "title": "Order-only prerequisite",
+      "syntax": "target: normal | order_only",
+      "description": "Require a prerequisite to be built first without making it affect target freshness.",
+      "examples": [
+        {
+          "description": "Create build dir before object",
+          "code": "build/app.o: src/app.c | build"
+        }
+      ],
+      "tags": ["prerequisite", "order-only", "build"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-export",
+      "title": "Export variables",
+      "syntax": "export VAR := value",
+      "description": "Put a make variable into the environment of recipe commands.",
+      "examples": [
+        {
+          "description": "Export app env",
+          "code": "export NODE_ENV := production"
+        }
+      ],
+      "tags": ["variable", "environment", "export"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-shell-function",
+      "title": "Run shell in variable",
+      "syntax": "$(shell command)",
+      "description": "Expand to the output of a shell command.",
+      "examples": [
+        {
+          "description": "Capture git commit",
+          "code": "VERSION := $(shell git rev-parse --short HEAD)"
+        }
+      ],
+      "tags": ["function", "shell", "variable"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-foreach",
+      "title": "Loop over words",
+      "syntax": "$(foreach var,list,text)",
+      "description": "Expand text once for each word in a list.",
+      "examples": [
+        {
+          "description": "Prefix source files",
+          "code": "OBJECTS := $(foreach f,$(SOURCES),build/$(f:.c=.o))"
+        }
+      ],
+      "tags": ["function", "loop", "list"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-filter",
+      "title": "Filter words",
+      "syntax": "$(filter pattern...,text)",
+      "description": "Select words matching one or more patterns.",
+      "examples": [
+        {
+          "description": "Keep C sources",
+          "code": "C_SOURCES := $(filter %.c,$(SOURCES))"
+        }
+      ],
+      "tags": ["function", "filter", "list"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-call",
+      "title": "Call a user function",
+      "syntax": "$(call variable,param,...)",
+      "description": "Invoke a variable as a parameterized make function.",
+      "examples": [
+        {
+          "description": "Call helper macro",
+          "code": "define make-target\n$1:\n\t@echo $1\nendef\n$(eval $(call make-target,build))"
+        }
+      ],
+      "tags": ["macro", "call", "eval"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-recursive",
+      "title": "Run recursive make",
+      "syntax": "$(MAKE) -C <dir> <target>",
+      "description": "Invoke make in another directory while preserving make flags.",
+      "examples": [
+        {
+          "description": "Build frontend subdir",
+          "code": "$(MAKE) -C frontend build"
+        }
+      ],
+      "tags": ["recursive", "subdir", "build"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-oneshell",
+      "title": "Run recipe in one shell",
+      "syntax": ".ONESHELL:",
+      "description": "Run all lines of each recipe in a single shell instance.",
+      "examples": [
+        {
+          "description": "Use one shell for recipe state",
+          "code": ".ONESHELL:\ndeploy:\n\tcd app\n\tpnpm build"
+        }
+      ],
+      "tags": ["recipe", "shell", "state"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-directory",
+      "title": "Run make in directory",
+      "syntax": "make -C <dir> <target>",
+      "description": "Change to a directory before reading makefiles and running targets.",
+      "examples": [
+        {
+          "description": "Build frontend package",
+          "code": "make -C frontend build"
+        }
+      ],
+      "tags": ["cli", "directory", "target"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-file",
+      "title": "Use specific makefile",
+      "syntax": "make -f <file> <target>",
+      "description": "Read a specified makefile instead of the default names.",
+      "examples": [
+        {
+          "description": "Use release makefile",
+          "code": "make -f Makefile.release package"
+        }
+      ],
+      "tags": ["cli", "makefile", "target"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-keep-going",
+      "title": "Keep going after errors",
+      "syntax": "make -k <target>",
+      "description": "Continue building independent prerequisites after an error.",
+      "examples": [
+        {
+          "description": "Run as many checks as possible",
+          "code": "make -k verify"
+        }
+      ],
+      "tags": ["cli", "errors", "ci"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-always-make",
+      "title": "Force rebuilding targets",
+      "syntax": "make -B <target>",
+      "description": "Consider all targets out of date and rebuild them.",
+      "examples": [
+        {
+          "description": "Force rebuild",
+          "code": "make -B build"
+        }
+      ],
+      "tags": ["cli", "rebuild", "force"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-print-database",
+      "title": "Print make database",
+      "syntax": "make -p",
+      "description": "Print make's internal database of rules and variables.",
+      "examples": [
+        {
+          "description": "Inspect all variables and rules",
+          "code": "make -p -f /dev/null"
+        }
+      ],
+      "tags": ["debug", "database", "variables"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-command-line-variable",
+      "title": "Override variable from command line",
+      "syntax": "make VAR=value <target>",
+      "description": "Set or override a make variable for one invocation.",
+      "examples": [
+        {
+          "description": "Build with production mode",
+          "code": "make MODE=production build"
+        }
+      ],
+      "tags": ["variables", "override", "cli"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-info-warning-error",
+      "title": "Print make diagnostics",
+      "syntax": "$(info <text>), $(warning <text>), $(error <text>)",
+      "description": "Emit messages from make while parsing or expanding a makefile.",
+      "examples": [
+        {
+          "description": "Show selected compiler",
+          "code": "$(info CC=$(CC))"
+        }
+      ],
+      "tags": ["debug", "functions", "diagnostics"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    },
+    {
+      "id": "make-eval",
+      "title": "Generate makefile syntax",
+      "syntax": "$(eval <makefile-fragment>)",
+      "description": "Evaluate expanded text as makefile syntax.",
+      "examples": [
+        {
+          "description": "Generate a variable assignment",
+          "code": "$(eval BUILD_DIR := build)"
+        }
+      ],
+      "tags": ["metaprogramming", "eval", "variables"],
+      "source": "official",
+      "source_url": "https://www.gnu.org/software/make/manual/make.html"
+    }
+  ]
+}

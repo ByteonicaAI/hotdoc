@@ -1,0 +1,595 @@
+{
+  "id": "python",
+  "name": "python",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (Python 3.14 command line and everyday language patterns)",
+  "license": "MIT",
+  "homepage": "https://docs.python.org/3/",
+  "entries": [
+    {
+      "id": "python-import",
+      "title": "import statement",
+      "syntax": "import module, from module import name, from module import name as alias",
+      "description": "Load modules and functions to use in your program.",
+      "examples": [
+        {
+          "description": "import module and use alias",
+          "code": "import json as j; data = j.loads('{\"key\": \"value\"}'); print(data)"
+        }
+      ],
+      "tags": ["imports", "modules"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-if-elif-else",
+      "title": "if/elif/else conditional",
+      "syntax": "if condition: ... elif: ... else: ...",
+      "description": "Execute different blocks of code based on conditions.",
+      "examples": [
+        {
+          "description": "check variable and branch",
+          "code": "age = 20\nif age < 13:\n    print(\"Child\")\nelif age < 18:\n    print(\"Teen\")\nelse:\n    print(\"Adult\")"
+        }
+      ],
+      "tags": ["conditionals", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-for-loop",
+      "title": "for loop",
+      "syntax": "for item in iterable: ...",
+      "description": "Iterate over sequences like lists, tuples, or strings.",
+      "examples": [
+        {
+          "description": "loop with range",
+          "code": "for i in range(3):\n    print(f\"Iteration {i}\")"
+        }
+      ],
+      "tags": ["loops", "iteration"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-while-loop",
+      "title": "while loop",
+      "syntax": "while condition: ... break, continue",
+      "description": "Repeat block while condition is true; use break/continue to control flow.",
+      "examples": [
+        {
+          "description": "loop with break condition",
+          "code": "count = 0\nwhile count < 5:\n    if count == 3:\n        break\n    count += 1"
+        }
+      ],
+      "tags": ["loops", "iteration", "control-flow"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-function",
+      "title": "function definition",
+      "syntax": "def function_name(params): ... return value",
+      "description": "Define reusable code blocks with parameters and return values.",
+      "examples": [
+        {
+          "description": "function with default parameter",
+          "code": "def greet(name=\"World\"):\n    return f\"Hello, {name}!\"\n\nprint(greet()); print(greet(\"Alice\"))"
+        }
+      ],
+      "tags": ["functions", "reusability"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-class",
+      "title": "class definition",
+      "syntax": "class ClassName: __init__, self, methods",
+      "description": "Define objects with properties and methods using object-oriented programming.",
+      "examples": [
+        {
+          "description": "class with constructor and method",
+          "code": "class Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        return f\"{self.name} says woof!\"\n\ndog = Dog(\"Buddy\"); print(dog.bark())"
+        }
+      ],
+      "tags": ["classes", "oop", "objects"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-list-comprehension",
+      "title": "list comprehension",
+      "syntax": "[expression for item in iterable if condition]",
+      "description": "Create lists concisely by applying expressions to iterables.",
+      "examples": [
+        {
+          "description": "filter and transform list",
+          "code": "numbers = [1, 2, 3, 4, 5]\nsquares = [x**2 for x in numbers if x % 2 == 0]\nprint(squares)  # [4, 16]"
+        }
+      ],
+      "tags": ["comprehensions", "lists", "functional"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-dict-comprehension",
+      "title": "dictionary comprehension",
+      "syntax": "{key: value for item in iterable if condition}",
+      "description": "Create dictionaries concisely from iterables.",
+      "examples": [
+        {
+          "description": "map values to squares",
+          "code": "numbers = [1, 2, 3]\ndict_squares = {x: x**2 for x in numbers}\nprint(dict_squares)  # {1: 1, 2: 4, 3: 9}"
+        }
+      ],
+      "tags": ["comprehensions", "dictionaries", "functional"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-try-except",
+      "title": "try/except exception handling",
+      "syntax": "try: ... except ExceptionType: ... finally: ...",
+      "description": "Catch and handle errors gracefully without crashing.",
+      "examples": [
+        {
+          "description": "catch division by zero",
+          "code": "try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print(\"Cannot divide by zero\")\nfinally:\n    print(\"Done\")"
+        }
+      ],
+      "tags": ["error-handling", "exceptions"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-with-statement",
+      "title": "with statement (context manager)",
+      "syntax": "with resource as var: ...",
+      "description": "Safely manage resources like files, automatically closing them.",
+      "examples": [
+        {
+          "description": "read file with automatic closing",
+          "code": "with open(\"file.txt\", \"r\") as f:\n    content = f.read()\n    print(content)"
+        }
+      ],
+      "tags": ["context-managers", "file-io", "resources"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-lambda",
+      "title": "lambda function",
+      "syntax": "lambda args: expression",
+      "description": "Create small anonymous functions for quick operations.",
+      "examples": [
+        {
+          "description": "use lambda with map",
+          "code": "numbers = [1, 2, 3, 4]\nsquared = list(map(lambda x: x**2, numbers))\nprint(squared)"
+        }
+      ],
+      "tags": ["functions", "functional", "anonymous"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-string-formatting",
+      "title": "string formatting",
+      "syntax": "f\"string {var}\", \"string {}\".format(var), % operator",
+      "description": "Insert variables into strings using f-strings or format methods.",
+      "examples": [
+        {
+          "description": "f-string with expression",
+          "code": "name = \"Alice\"; age = 30\nprint(f\"{name} is {age} years old and will be {age+1} next year\")"
+        }
+      ],
+      "tags": ["strings", "formatting"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-slice",
+      "title": "slicing sequences",
+      "syntax": "sequence[start:stop:step]",
+      "description": "Extract portions of sequences like lists or strings.",
+      "examples": [
+        {
+          "description": "slice with step",
+          "code": "text = \"hello world\"\nprint(text[0:5])      # hello\nprint(text[::2])      # hlowrd\nprint(text[::-1])     # dlrow olleh"
+        }
+      ],
+      "tags": ["slicing", "sequences", "strings"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-enumerate",
+      "title": "enumerate function",
+      "syntax": "for index, item in enumerate(iterable): ...",
+      "description": "Get both index and value when iterating over sequences.",
+      "examples": [
+        {
+          "description": "loop with index and value",
+          "code": "colors = [\"red\", \"green\", \"blue\"]\nfor i, color in enumerate(colors):\n    print(f\"{i}: {color}\")"
+        }
+      ],
+      "tags": ["iteration", "sequences", "indexing"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-zip",
+      "title": "zip function",
+      "syntax": "for a, b in zip(iterable1, iterable2): ...",
+      "description": "Combine multiple iterables element-wise for parallel iteration.",
+      "examples": [
+        {
+          "description": "zip lists together",
+          "code": "names = [\"Alice\", \"Bob\"]\nages = [25, 30]\nfor name, age in zip(names, ages):\n    print(f\"{name}: {age}\")"
+        }
+      ],
+      "tags": ["iteration", "sequences"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "python-run-script",
+      "title": "Run a Python script",
+      "syntax": "python <script.py>",
+      "description": "Execute a Python source file.",
+      "examples": [
+        {
+          "description": "Run app script",
+          "code": "python app.py"
+        }
+      ],
+      "tags": ["cli", "script", "run"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-module",
+      "title": "Run module as script",
+      "syntax": "python -m <module>",
+      "description": "Locate a module and execute it as __main__.",
+      "examples": [
+        {
+          "description": "Run pip module",
+          "code": "python -m pip --version"
+        }
+      ],
+      "tags": ["cli", "module", "run"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-command",
+      "title": "Run inline code",
+      "syntax": "python -c <command>",
+      "description": "Execute Python code passed on the command line.",
+      "examples": [
+        {
+          "description": "Print executable path",
+          "code": "python -c \"import sys; print(sys.executable)\""
+        }
+      ],
+      "tags": ["cli", "inline", "command"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-interactive-after-script",
+      "title": "Enter REPL after script",
+      "syntax": "python -i <script.py>",
+      "description": "Run a script then enter interactive mode with its globals available.",
+      "examples": [
+        {
+          "description": "Debug app globals",
+          "code": "python -i app.py"
+        }
+      ],
+      "tags": ["cli", "interactive", "debug"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-version",
+      "title": "Show Python version",
+      "syntax": "python --version, python -VV",
+      "description": "Print Python version; -VV includes build details.",
+      "examples": [
+        {
+          "description": "Show detailed version",
+          "code": "python -VV"
+        }
+      ],
+      "tags": ["cli", "version"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-venv",
+      "title": "Create virtual environment",
+      "syntax": "python -m venv <dir>",
+      "description": "Create an isolated virtual environment directory.",
+      "examples": [
+        {
+          "description": "Create .venv",
+          "code": "python -m venv .venv"
+        }
+      ],
+      "tags": ["venv", "environment", "isolation"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-pip-install",
+      "title": "Install package with pip",
+      "syntax": "python -m pip install <package>",
+      "description": "Run pip through the selected Python interpreter.",
+      "examples": [
+        {
+          "description": "Install requests",
+          "code": "python -m pip install requests"
+        }
+      ],
+      "tags": ["pip", "package", "install"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-http-server",
+      "title": "Serve current directory",
+      "syntax": "python -m http.server <port>",
+      "description": "Start a simple static file HTTP server.",
+      "examples": [
+        {
+          "description": "Serve on port 8000",
+          "code": "python -m http.server 8000"
+        }
+      ],
+      "tags": ["stdlib", "server", "http"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-json-tool",
+      "title": "Pretty-print JSON",
+      "syntax": "python -m json.tool <file>",
+      "description": "Validate and pretty-print JSON using the standard library.",
+      "examples": [
+        {
+          "description": "Pretty-print package JSON",
+          "code": "python -m json.tool package.json"
+        }
+      ],
+      "tags": ["stdlib", "json", "pretty"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-unittest",
+      "title": "Run unittest discovery",
+      "syntax": "python -m unittest discover",
+      "description": "Discover and run unittest test cases.",
+      "examples": [
+        {
+          "description": "Run project unit tests",
+          "code": "python -m unittest discover -s tests"
+        }
+      ],
+      "tags": ["test", "unittest", "stdlib"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-pdb",
+      "title": "Run under debugger",
+      "syntax": "python -m pdb <script.py>",
+      "description": "Start the pdb debugger for a script.",
+      "examples": [
+        {
+          "description": "Debug app script",
+          "code": "python -m pdb app.py"
+        }
+      ],
+      "tags": ["debug", "pdb", "stdlib"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-timeit",
+      "title": "Benchmark a snippet",
+      "syntax": "python -m timeit <statement>",
+      "description": "Time repeated execution of a small Python statement.",
+      "examples": [
+        {
+          "description": "Benchmark list creation",
+          "code": "python -m timeit 'list(range(1000))'"
+        }
+      ],
+      "tags": ["benchmark", "timeit", "stdlib"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-compileall",
+      "title": "Compile Python files",
+      "syntax": "python -m compileall <path>",
+      "description": "Byte-compile Python source files recursively.",
+      "examples": [
+        {
+          "description": "Compile a package",
+          "code": "python -m compileall src"
+        }
+      ],
+      "tags": ["compile", "bytecode", "stdlib"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-importtime",
+      "title": "Profile imports",
+      "syntax": "python -X importtime -c <code>",
+      "description": "Show how long each import takes.",
+      "examples": [
+        {
+          "description": "Profile asyncio import",
+          "code": "python -X importtime -c 'import asyncio'"
+        }
+      ],
+      "tags": ["profile", "import", "debug"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-warnings-error",
+      "title": "Treat warnings as errors",
+      "syntax": "python -W error <script.py>",
+      "description": "Change warning handling from the command line.",
+      "examples": [
+        {
+          "description": "Fail on warnings",
+          "code": "python -W error app.py"
+        }
+      ],
+      "tags": ["warnings", "debug", "ci"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-argparse",
+      "title": "Parse CLI arguments",
+      "syntax": "argparse.ArgumentParser()",
+      "description": "Build command-line interfaces with the standard argparse module.",
+      "examples": [
+        {
+          "description": "Add a --verbose flag",
+          "code": "parser.add_argument('--verbose', action='store_true')"
+        }
+      ],
+      "tags": ["stdlib", "cli", "arguments"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/using/cmdline.html"
+    },
+    {
+      "id": "python-pip-freeze",
+      "title": "Freeze installed packages",
+      "syntax": "python -m pip freeze",
+      "description": "Print installed distributions in requirements format.",
+      "examples": [
+        {
+          "description": "Write requirements file",
+          "code": "python -m pip freeze > requirements.txt"
+        }
+      ],
+      "tags": ["pip", "requirements", "packages"],
+      "source": "official",
+      "source_url": "https://pip.pypa.io/en/stable/cli/pip_freeze/"
+    },
+    {
+      "id": "python-pip-uninstall",
+      "title": "Uninstall package",
+      "syntax": "python -m pip uninstall <package>",
+      "description": "Remove installed Python packages.",
+      "examples": [
+        {
+          "description": "Uninstall requests",
+          "code": "python -m pip uninstall requests"
+        }
+      ],
+      "tags": ["pip", "uninstall", "packages"],
+      "source": "official",
+      "source_url": "https://pip.pypa.io/en/stable/cli/pip_uninstall/"
+    },
+    {
+      "id": "python-pip-upgrade",
+      "title": "Upgrade package",
+      "syntax": "python -m pip install --upgrade <package>",
+      "description": "Install the newest compatible version of a package.",
+      "examples": [
+        {
+          "description": "Upgrade pip itself",
+          "code": "python -m pip install --upgrade pip"
+        }
+      ],
+      "tags": ["pip", "upgrade", "packages"],
+      "source": "official",
+      "source_url": "https://pip.pypa.io/en/stable/cli/pip_install/"
+    },
+    {
+      "id": "python-pathlib-read-text",
+      "title": "Read text with pathlib",
+      "syntax": "Path(<file>).read_text(encoding='utf-8')",
+      "description": "Read a whole text file using pathlib.",
+      "examples": [
+        {
+          "description": "Read config file",
+          "code": "from pathlib import Path\nconfig = Path('config.toml').read_text(encoding='utf-8')"
+        }
+      ],
+      "tags": ["pathlib", "file", "io"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/library/pathlib.html"
+    },
+    {
+      "id": "python-subprocess-run",
+      "title": "Run subprocess",
+      "syntax": "subprocess.run(args, check=True, capture_output=True, text=True)",
+      "description": "Run another program and optionally capture its output.",
+      "examples": [
+        {
+          "description": "Capture git status",
+          "code": "import subprocess\nresult = subprocess.run(['git', 'status', '--short'], check=True, capture_output=True, text=True)\nprint(result.stdout)"
+        }
+      ],
+      "tags": ["subprocess", "process", "shell"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/library/subprocess.html"
+    },
+    {
+      "id": "python-dataclass",
+      "title": "Define dataclass",
+      "syntax": "@dataclass class Name: field: type",
+      "description": "Generate common class methods for classes that mainly store data.",
+      "examples": [
+        {
+          "description": "Create typed data container",
+          "code": "from dataclasses import dataclass\n\n@dataclass\nclass User:\n    name: str\n    active: bool = True"
+        }
+      ],
+      "tags": ["dataclass", "classes", "typing"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/library/dataclasses.html"
+    },
+    {
+      "id": "python-asyncio-run",
+      "title": "Run async main",
+      "syntax": "asyncio.run(main())",
+      "description": "Run an async entry point and manage the event loop lifecycle.",
+      "examples": [
+        {
+          "description": "Run async function",
+          "code": "import asyncio\n\nasync def main():\n    await asyncio.sleep(1)\n\nasyncio.run(main())"
+        }
+      ],
+      "tags": ["asyncio", "async", "event loop"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/library/asyncio-runner.html"
+    },
+    {
+      "id": "python-logging-basicconfig",
+      "title": "Configure basic logging",
+      "syntax": "logging.basicConfig(level=logging.INFO)",
+      "description": "Configure root logging for simple scripts.",
+      "examples": [
+        {
+          "description": "Log an info message",
+          "code": "import logging\nlogging.basicConfig(level=logging.INFO)\nlogging.info('started')"
+        }
+      ],
+      "tags": ["logging", "debug", "scripts"],
+      "source": "official",
+      "source_url": "https://docs.python.org/3/library/logging.html"
+    }
+  ]
+}

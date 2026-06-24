@@ -1,0 +1,580 @@
+{
+  "id": "ripgrep",
+  "name": "ripgrep",
+  "version": "1.0.0",
+  "source": "curated for hotdoc M2 (ripgrep common search flags; verified against official guide)",
+  "license": "MIT",
+  "homepage": "https://github.com/BurntSushi/ripgrep",
+  "entries": [
+    {
+      "id": "rg-basic-search",
+      "title": "basic search",
+      "syntax": "rg pattern, rg 'pattern' path",
+      "description": "Search for a pattern in files.",
+      "examples": [
+        {
+          "description": "search for pattern",
+          "code": "rg 'TODO' src/"
+        }
+      ],
+      "tags": ["search", "basic"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-file-type",
+      "title": "-t type filter",
+      "syntax": "rg -t type pattern, rg -t python -t rust pattern",
+      "description": "Search only in files of a specific type.",
+      "examples": [
+        {
+          "description": "search only Python files",
+          "code": "rg -t python 'import' src/"
+        }
+      ],
+      "tags": ["filtering", "file-types"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-ignore-case",
+      "title": "-i case insensitive",
+      "syntax": "rg -i pattern",
+      "description": "Search ignoring case differences.",
+      "examples": [
+        {
+          "description": "case-insensitive search",
+          "code": "rg -i 'error' ."
+        }
+      ],
+      "tags": ["matching", "flags"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-word-boundary",
+      "title": "-w word boundary",
+      "syntax": "rg -w pattern",
+      "description": "Match only whole words, not substrings.",
+      "examples": [
+        {
+          "description": "match whole word",
+          "code": "rg -w 'function' ."
+        }
+      ],
+      "tags": ["matching", "boundaries"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-recursive",
+      "title": "-r recursive",
+      "syntax": "rg -r pattern, rg --replace replacement pattern",
+      "description": "Enable or use recursive search (default), or replace matches.",
+      "examples": [
+        {
+          "description": "search recursively",
+          "code": "rg 'old_name' ."
+        }
+      ],
+      "tags": ["search", "recursion"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-glob",
+      "title": "-g glob pattern",
+      "syntax": "rg -g pattern search_pattern, rg -g '!pattern' search_pattern",
+      "description": "Include or exclude files by glob pattern.",
+      "examples": [
+        {
+          "description": "search only in test files",
+          "code": "rg -g '*.test.js' 'describe' ."
+        }
+      ],
+      "tags": ["filtering", "patterns"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-count",
+      "title": "-c count",
+      "syntax": "rg -c pattern, rg --count-matches pattern",
+      "description": "Show count of matches per file instead of matches.",
+      "examples": [
+        {
+          "description": "count matches",
+          "code": "rg -c 'TODO' ."
+        }
+      ],
+      "tags": ["output", "counting"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-context",
+      "title": "-B -A context",
+      "syntax": "rg -B num -A num pattern, rg -C num pattern",
+      "description": "Show lines before/after matches.",
+      "examples": [
+        {
+          "description": "show context lines",
+          "code": "rg -B 2 -A 2 'error' ."
+        }
+      ],
+      "tags": ["output", "context"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-hidden",
+      "title": "--hidden include hidden",
+      "syntax": "rg --hidden pattern",
+      "description": "Search in hidden files and directories.",
+      "examples": [
+        {
+          "description": "search in hidden files",
+          "code": "rg --hidden 'secret' ."
+        }
+      ],
+      "tags": ["filtering", "hidden"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-no-ignore",
+      "title": "--no-ignore",
+      "syntax": "rg --no-ignore pattern, rg --no-ignore-vcs pattern",
+      "description": "Ignore .gitignore and search all files.",
+      "examples": [
+        {
+          "description": "ignore .gitignore rules",
+          "code": "rg --no-ignore 'pattern' ."
+        }
+      ],
+      "tags": ["filtering", "git"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-regex",
+      "title": "-P regex patterns",
+      "syntax": "rg -P 'regex', rg '(?P<name>...)' pattern",
+      "description": "Use Perl-compatible regular expressions.",
+      "examples": [
+        {
+          "description": "regex search",
+          "code": "rg '\\b[A-Z]+\\b' ."
+        }
+      ],
+      "tags": ["patterns", "regex"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-fixed-string",
+      "title": "-F fixed string",
+      "syntax": "rg -F literal_string",
+      "description": "Search for literal string, not regex.",
+      "examples": [
+        {
+          "description": "literal string search",
+          "code": "rg -F '$pattern' ."
+        }
+      ],
+      "tags": ["matching", "literal"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-files",
+      "title": "--files list files",
+      "syntax": "rg --files, rg --files -t type",
+      "description": "List files that would be searched.",
+      "examples": [
+        {
+          "description": "list Python files",
+          "code": "rg --files -t python src/"
+        }
+      ],
+      "tags": ["listing", "files"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-max-count",
+      "title": "-m max matches",
+      "syntax": "rg -m num pattern",
+      "description": "Stop after finding a maximum number of matches.",
+      "examples": [
+        {
+          "description": "limit results",
+          "code": "rg -m 10 'error' ."
+        }
+      ],
+      "tags": ["output", "limits"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-json-output",
+      "title": "--json output",
+      "syntax": "rg --json pattern",
+      "description": "Output results as JSON for programmatic parsing.",
+      "examples": [
+        {
+          "description": "JSON output",
+          "code": "rg --json 'pattern' . | jq '.'"
+        }
+      ],
+      "tags": ["output", "json"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "rg-line-number",
+      "title": "Show line numbers",
+      "syntax": "rg -n <pattern>",
+      "description": "Print line numbers for matches.",
+      "examples": [
+        {
+          "description": "Find TODOs with line numbers",
+          "code": "rg -n TODO src"
+        }
+      ],
+      "tags": ["line", "number", "search"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-no-heading",
+      "title": "Suppress file headings",
+      "syntax": "rg --no-heading <pattern>",
+      "description": "Print each match with its file path instead of grouped headings.",
+      "examples": [
+        {
+          "description": "Make output easier to pipe",
+          "code": "rg --no-heading TODO src"
+        }
+      ],
+      "tags": ["output", "heading", "pipe"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-vimgrep",
+      "title": "Vim-compatible output",
+      "syntax": "rg --vimgrep <pattern>",
+      "description": "Print file, line, column, and matched line for editor quickfix lists.",
+      "examples": [
+        {
+          "description": "Populate quickfix output",
+          "code": "rg --vimgrep TODO src"
+        }
+      ],
+      "tags": ["editor", "vimgrep", "quickfix"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-files-with-matches",
+      "title": "List files with matches",
+      "syntax": "rg -l <pattern>",
+      "description": "Print only file paths that contain at least one match.",
+      "examples": [
+        {
+          "description": "List files with TODOs",
+          "code": "rg -l TODO src"
+        }
+      ],
+      "tags": ["files", "matches", "list"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-files-without-match",
+      "title": "List files without matches",
+      "syntax": "rg --files-without-match <pattern>",
+      "description": "Print file paths searched that contain no matches.",
+      "examples": [
+        {
+          "description": "Find files without license header",
+          "code": "rg --files-without-match 'SPDX-License' src"
+        }
+      ],
+      "tags": ["files", "missing", "list"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-invert-match",
+      "title": "Invert matches",
+      "syntax": "rg -v <pattern>",
+      "description": "Show lines that do not match the pattern.",
+      "examples": [
+        {
+          "description": "Exclude comments",
+          "code": "rg -v '^\\s*#' config.env"
+        }
+      ],
+      "tags": ["invert", "filter", "lines"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-only-matching",
+      "title": "Print only matched text",
+      "syntax": "rg -o <pattern>",
+      "description": "Output only the matching part of each line.",
+      "examples": [
+        {
+          "description": "Extract issue IDs",
+          "code": "rg -o 'GH-[0-9]+' ."
+        }
+      ],
+      "tags": ["extract", "match", "output"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-multiline",
+      "title": "Search across lines",
+      "syntax": "rg -U <pattern>",
+      "description": "Enable matching across multiple lines.",
+      "examples": [
+        {
+          "description": "Find adjacent words across newlines",
+          "code": "rg -U 'foo\\nbar' src"
+        }
+      ],
+      "tags": ["multiline", "regex", "search"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-follow",
+      "title": "Follow symlinks",
+      "syntax": "rg -L <pattern>",
+      "description": "Follow symbolic links while searching.",
+      "examples": [
+        {
+          "description": "Search linked vendor tree",
+          "code": "rg -L 'config' vendor-link"
+        }
+      ],
+      "tags": ["symlink", "follow", "search"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-max-depth",
+      "title": "Limit directory depth",
+      "syntax": "rg --max-depth <n> <pattern>",
+      "description": "Descend only a fixed number of directory levels.",
+      "examples": [
+        {
+          "description": "Search top two levels",
+          "code": "rg --max-depth 2 TODO ."
+        }
+      ],
+      "tags": ["depth", "recursive", "limit"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-sort-path",
+      "title": "Sort output by path",
+      "syntax": "rg --sort path <pattern>",
+      "description": "Sort results by file path for stable output.",
+      "examples": [
+        {
+          "description": "Stable TODO output",
+          "code": "rg --sort path TODO src"
+        }
+      ],
+      "tags": ["sort", "stable", "output"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-search-zip",
+      "title": "Search compressed files",
+      "syntax": "rg -z <pattern>",
+      "description": "Search inside supported compressed files.",
+      "examples": [
+        {
+          "description": "Search gzipped logs",
+          "code": "rg -z ERROR logs/"
+        }
+      ],
+      "tags": ["compressed", "gzip", "logs"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-ignore-file",
+      "title": "Use extra ignore file",
+      "syntax": "rg --ignore-file <file> <pattern>",
+      "description": "Apply additional ignore patterns from a file.",
+      "examples": [
+        {
+          "description": "Use custom ignore rules",
+          "code": "rg --ignore-file .hotdocignore TODO ."
+        }
+      ],
+      "tags": ["ignore", "filter", "files"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-type-list",
+      "title": "List file types",
+      "syntax": "rg --type-list",
+      "description": "Print all built-in file type filters.",
+      "examples": [
+        {
+          "description": "Find supported type names",
+          "code": "rg --type-list"
+        }
+      ],
+      "tags": ["types", "list", "help"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-type-add",
+      "title": "Define file type",
+      "syntax": "rg --type-add '<type>:<glob>' -t <type> <pattern>",
+      "description": "Add a custom file type definition for the current search.",
+      "examples": [
+        {
+          "description": "Search Svelte files",
+          "code": "rg --type-add 'svelte:*.svelte' -t svelte '$state' src"
+        }
+      ],
+      "tags": ["types", "custom", "glob"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-unrestricted",
+      "title": "Search everything",
+      "syntax": "rg -uuu <pattern>",
+      "description": "Search hidden files, binary files, and ignored files.",
+      "examples": [
+        {
+          "description": "Search even ignored and hidden files",
+          "code": "rg -uuu 'TODO' ."
+        }
+      ],
+      "tags": ["hidden", "ignored", "binary"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-pcre2",
+      "title": "Use PCRE2 regex engine",
+      "syntax": "rg -P <pattern>",
+      "description": "Enable PCRE2 for look-around and other advanced regex features.",
+      "examples": [
+        {
+          "description": "Find foo only before bar",
+          "code": "rg -P 'foo(?=bar)'"
+        }
+      ],
+      "tags": ["regex", "pcre2", "lookaround"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-replace",
+      "title": "Replace matches in output",
+      "syntax": "rg <pattern> -r <replacement>",
+      "description": "Print matches with replacement text applied to the displayed output.",
+      "examples": [
+        {
+          "description": "Show normalized TODO labels",
+          "code": "rg 'TODO\\(([^)]+)\\)' -r 'TODO: $1'"
+        }
+      ],
+      "tags": ["replace", "output", "regex"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-passthru",
+      "title": "Print matching and non-matching lines",
+      "syntax": "rg --passthru <pattern>",
+      "description": "Print every line while highlighting matches.",
+      "examples": [
+        {
+          "description": "Highlight errors in full log",
+          "code": "rg --passthru 'ERROR' app.log"
+        }
+      ],
+      "tags": ["passthru", "highlight", "logs"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-stats",
+      "title": "Show search statistics",
+      "syntax": "rg --stats <pattern>",
+      "description": "Print aggregate search statistics after results.",
+      "examples": [
+        {
+          "description": "Count searched files and matches",
+          "code": "rg --stats 'useState' src"
+        }
+      ],
+      "tags": ["stats", "debug", "counts"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-debug",
+      "title": "Explain filtering decisions",
+      "syntax": "rg --debug <pattern>",
+      "description": "Print debug information about ignore files, globs, and search behavior.",
+      "examples": [
+        {
+          "description": "Debug why a file is skipped",
+          "code": "rg --debug 'needle' ."
+        }
+      ],
+      "tags": ["debug", "ignore", "glob"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-type-not",
+      "title": "Exclude file type",
+      "syntax": "rg --type-not <type> <pattern>",
+      "description": "Search all files except a named type.",
+      "examples": [
+        {
+          "description": "Search TODO outside Markdown",
+          "code": "rg --type-not md 'TODO'"
+        }
+      ],
+      "tags": ["type", "exclude", "filter"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    },
+    {
+      "id": "rg-preprocessor",
+      "title": "Search preprocessed input",
+      "syntax": "rg --pre <command> <pattern>",
+      "description": "Use a preprocessor command before searching each file.",
+      "examples": [
+        {
+          "description": "Search compressed files via gzip",
+          "code": "rg --pre 'gzip -cd' 'needle' logs/"
+        }
+      ],
+      "tags": ["preprocess", "search", "advanced"],
+      "source": "official",
+      "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
+    }
+  ]
+}

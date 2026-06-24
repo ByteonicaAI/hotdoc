@@ -26,7 +26,12 @@
       "title": "List pull requests",
       "syntax": "gh pr list",
       "description": "List PRs in the current repo. Add --state open|closed|merged, --author <user>, --label <label>.",
-      "examples": [{ "description": "List open PRs", "code": "gh pr list --state open" }],
+      "examples": [
+        {
+          "description": "List open PRs",
+          "code": "gh pr list --state open"
+        }
+      ],
       "tags": ["pr", "list"],
       "source": "curated",
       "source_url": null
@@ -36,7 +41,12 @@
       "title": "View a pull request",
       "syntax": "gh pr view <number>",
       "description": "Show details of a PR. Add --web to open it in the browser.",
-      "examples": [{ "description": "View PR 123 in the browser", "code": "gh pr view 123 --web" }],
+      "examples": [
+        {
+          "description": "View PR 123 in the browser",
+          "code": "gh pr view 123 --web"
+        }
+      ],
       "tags": ["pr", "view", "show"],
       "source": "curated",
       "source_url": null
@@ -46,7 +56,12 @@
       "title": "Check out a pull request locally",
       "syntax": "gh pr checkout <number>",
       "description": "Fetch the PR's branch into a local branch and check it out.",
-      "examples": [{ "description": "Check out PR 123 locally", "code": "gh pr checkout 123" }],
+      "examples": [
+        {
+          "description": "Check out PR 123 locally",
+          "code": "gh pr checkout 123"
+        }
+      ],
       "tags": ["pr", "checkout", "local"],
       "source": "curated",
       "source_url": null
@@ -56,7 +71,12 @@
       "title": "Merge a pull request",
       "syntax": "gh pr merge <number>",
       "description": "Merge the PR locally. Use --squash, --rebase, or --merge to pick the merge strategy; --auto to enable auto-merge.",
-      "examples": [{ "description": "Squash-merge PR 123", "code": "gh pr merge 123 --squash" }],
+      "examples": [
+        {
+          "description": "Squash-merge PR 123",
+          "code": "gh pr merge 123 --squash"
+        }
+      ],
       "tags": ["pr", "merge"],
       "source": "curated",
       "source_url": null
@@ -96,7 +116,12 @@
       "title": "Clone a repository",
       "syntax": "gh repo clone <repo>",
       "description": "Clone a GitHub repository. Accepts owner/repo, the full URL, or the bare name (if you have one of that name in your config).",
-      "examples": [{ "description": "Clone cli/cli", "code": "gh repo clone cli/cli" }],
+      "examples": [
+        {
+          "description": "Clone cli/cli",
+          "code": "gh repo clone cli/cli"
+        }
+      ],
       "tags": ["repo", "clone"],
       "source": "curated",
       "source_url": null
@@ -106,7 +131,12 @@
       "title": "View a repository",
       "syntax": "gh repo view <repo>",
       "description": "Show repository info. Add --web to open in the browser.",
-      "examples": [{ "description": "View current repo in browser", "code": "gh repo view --web" }],
+      "examples": [
+        {
+          "description": "View current repo in browser",
+          "code": "gh repo view --web"
+        }
+      ],
       "tags": ["repo", "view"],
       "source": "curated",
       "source_url": null
@@ -116,7 +146,12 @@
       "title": "List workflow runs",
       "syntax": "gh run list",
       "description": "List GitHub Actions workflow runs for the current repo.",
-      "examples": [{ "description": "List recent workflow runs", "code": "gh run list" }],
+      "examples": [
+        {
+          "description": "List recent workflow runs",
+          "code": "gh run list"
+        }
+      ],
       "tags": ["run", "workflow", "actions", "list"],
       "source": "curated",
       "source_url": null
@@ -141,10 +176,450 @@
       "title": "Show authentication status",
       "syntax": "gh auth status",
       "description": "Print which account is logged in and the protocol used.",
-      "examples": [{ "description": "Show auth status", "code": "gh auth status" }],
+      "examples": [
+        {
+          "description": "Show auth status",
+          "code": "gh auth status"
+        }
+      ],
       "tags": ["auth", "status", "login"],
       "source": "curated",
       "source_url": null
+    },
+    {
+      "id": "gh-auth-login",
+      "title": "Authenticate with GitHub",
+      "syntax": "gh auth login",
+      "description": "Interactive login to GitHub. Choose protocol (HTTPS/SSH), then authenticate via web or token.",
+      "examples": [
+        {
+          "description": "Start GitHub authentication flow",
+          "code": "gh auth login"
+        }
+      ],
+      "tags": ["auth", "login", "setup"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-gist-create",
+      "title": "Create a gist",
+      "syntax": "gh gist create <file>",
+      "description": "Create a public or private gist from a file. Use --private for private gists.",
+      "examples": [
+        {
+          "description": "Create a private gist from a script",
+          "code": "gh gist create --private myscript.sh"
+        }
+      ],
+      "tags": ["gist", "create", "share"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-secret-list",
+      "title": "List repository secrets",
+      "syntax": "gh secret list",
+      "description": "List all configured secrets for the current repository. Does not show their values.",
+      "examples": [
+        {
+          "description": "View all secrets in the repo",
+          "code": "gh secret list"
+        }
+      ],
+      "tags": ["secret", "list", "environment"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-release-list",
+      "title": "List releases",
+      "syntax": "gh release list",
+      "description": "List releases for the current repository. Includes tags, versions, and pre-release status.",
+      "examples": [
+        {
+          "description": "Show all releases with versions",
+          "code": "gh release list"
+        }
+      ],
+      "tags": ["release", "list", "version"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-workflow-run",
+      "title": "Trigger a workflow run",
+      "syntax": "gh workflow run <workflow-name>",
+      "description": "Manually trigger a GitHub Actions workflow. Use -f to pass input parameters.",
+      "examples": [
+        {
+          "description": "Trigger a deploy workflow with an environment parameter",
+          "code": "gh workflow run deploy.yml -f environment=prod"
+        }
+      ],
+      "tags": ["workflow", "run", "actions"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-comment-create",
+      "title": "Create a comment on an issue or PR",
+      "syntax": "gh comment create -R <repo> --body <text>",
+      "description": "Add a comment to an issue or PR. Use on a PR/issue or specify the number with --number.",
+      "examples": [
+        {
+          "description": "Add a comment to PR 123",
+          "code": "gh pr comment 123 --body \"Looks good to me!\""
+        }
+      ],
+      "tags": ["comment", "issue", "pr"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-label-list",
+      "title": "List labels in a repository",
+      "syntax": "gh label list",
+      "description": "List all available labels in the repository with their colors and descriptions.",
+      "examples": [
+        {
+          "description": "Show all labels",
+          "code": "gh label list"
+        }
+      ],
+      "tags": ["label", "list", "organization"],
+      "source": "curated",
+      "source_url": null
+    },
+    {
+      "id": "gh-pr-status",
+      "title": "Show pull request status",
+      "syntax": "gh pr status",
+      "description": "Show pull requests relevant to the current repository and user.",
+      "examples": [
+        {
+          "description": "Check local repo PR status",
+          "code": "gh pr status"
+        }
+      ],
+      "tags": ["pull request", "status", "review"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-pr-diff",
+      "title": "Show PR diff",
+      "syntax": "gh pr diff <number>",
+      "description": "View changes in a pull request.",
+      "examples": [
+        {
+          "description": "Show PR 42 diff",
+          "code": "gh pr diff 42"
+        }
+      ],
+      "tags": ["pull request", "diff", "review"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-pr-review",
+      "title": "Review a PR",
+      "syntax": "gh pr review <number> --approve",
+      "description": "Submit an approving, commenting, or changes-requested review.",
+      "examples": [
+        {
+          "description": "Approve PR 42",
+          "code": "gh pr review 42 --approve"
+        }
+      ],
+      "tags": ["pull request", "review", "approve"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-issue-view",
+      "title": "View an issue",
+      "syntax": "gh issue view <number>",
+      "description": "Display issue details, comments, labels, and metadata.",
+      "examples": [
+        {
+          "description": "View issue 123",
+          "code": "gh issue view 123"
+        }
+      ],
+      "tags": ["issue", "view", "details"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-issue-comment",
+      "title": "Comment on an issue",
+      "syntax": "gh issue comment <number> --body <text>",
+      "description": "Add a comment to an issue from the CLI.",
+      "examples": [
+        {
+          "description": "Comment on issue 123",
+          "code": "gh issue comment 123 --body \"Fixed in #456\""
+        }
+      ],
+      "tags": ["issue", "comment"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-repo-create",
+      "title": "Create a repository",
+      "syntax": "gh repo create <name>",
+      "description": "Create a GitHub repository interactively or with flags.",
+      "examples": [
+        {
+          "description": "Create a private repo",
+          "code": "gh repo create my-tool --private --source=. --push"
+        }
+      ],
+      "tags": ["repo", "create", "github"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-release-create",
+      "title": "Create a release",
+      "syntax": "gh release create <tag>",
+      "description": "Create a GitHub release for a tag and optional assets.",
+      "examples": [
+        {
+          "description": "Create a release with notes",
+          "code": "gh release create v1.0.0 --generate-notes"
+        }
+      ],
+      "tags": ["release", "tag", "publish"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-release-download",
+      "title": "Download release assets",
+      "syntax": "gh release download <tag>",
+      "description": "Download assets from a GitHub release.",
+      "examples": [
+        {
+          "description": "Download all v1.0.0 assets",
+          "code": "gh release download v1.0.0"
+        }
+      ],
+      "tags": ["release", "download", "asset"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-run-view",
+      "title": "View workflow run",
+      "syntax": "gh run view <run-id> --log",
+      "description": "Show details or logs for a GitHub Actions workflow run.",
+      "examples": [
+        {
+          "description": "View failed run logs",
+          "code": "gh run view 123456 --log-failed"
+        }
+      ],
+      "tags": ["actions", "run", "logs"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-run-rerun",
+      "title": "Rerun workflow jobs",
+      "syntax": "gh run rerun <run-id>",
+      "description": "Rerun an entire workflow run or failed jobs.",
+      "examples": [
+        {
+          "description": "Rerun failed jobs",
+          "code": "gh run rerun 123456 --failed"
+        }
+      ],
+      "tags": ["actions", "rerun", "workflow"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-workflow-list",
+      "title": "List workflows",
+      "syntax": "gh workflow list",
+      "description": "List GitHub Actions workflows in the repository.",
+      "examples": [
+        {
+          "description": "Show workflow names and states",
+          "code": "gh workflow list"
+        }
+      ],
+      "tags": ["actions", "workflow", "list"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-api",
+      "title": "Call the GitHub API",
+      "syntax": "gh api <endpoint>",
+      "description": "Make an authenticated GitHub REST or GraphQL API request.",
+      "examples": [
+        {
+          "description": "Fetch current user",
+          "code": "gh api user"
+        }
+      ],
+      "tags": ["api", "rest", "graphql"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-auth-refresh",
+      "title": "Refresh auth scopes",
+      "syntax": "gh auth refresh -s <scope>",
+      "description": "Add scopes to the current GitHub CLI authentication token.",
+      "examples": [
+        {
+          "description": "Add workflow scope",
+          "code": "gh auth refresh -s workflow"
+        }
+      ],
+      "tags": ["auth", "token", "scope"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-alias-set",
+      "title": "Create a gh alias",
+      "syntax": "gh alias set <name> <command>",
+      "description": "Define a shortcut for a GitHub CLI command.",
+      "examples": [
+        {
+          "description": "Alias pull request checkout",
+          "code": "gh alias set co 'pr checkout'"
+        }
+      ],
+      "tags": ["alias", "shortcut"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-pr-ready",
+      "title": "Mark pull request ready",
+      "syntax": "gh pr ready [<number>|<url>|<branch>]",
+      "description": "Convert a draft pull request to ready for review.",
+      "examples": [
+        {
+          "description": "Mark current branch PR ready",
+          "code": "gh pr ready"
+        }
+      ],
+      "tags": ["pr", "draft", "review"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-pr-close",
+      "title": "Close pull request",
+      "syntax": "gh pr close <number>|<url>|<branch>",
+      "description": "Close a pull request, optionally deleting its branch.",
+      "examples": [
+        {
+          "description": "Close PR and delete branch",
+          "code": "gh pr close 42 --delete-branch"
+        }
+      ],
+      "tags": ["pr", "close"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-issue-edit",
+      "title": "Edit issue fields",
+      "syntax": "gh issue edit <number> [flags]",
+      "description": "Update labels, assignees, projects, title, or body on an issue.",
+      "examples": [
+        {
+          "description": "Add labels to an issue",
+          "code": "gh issue edit 12 --add-label bug --add-label priority-high"
+        }
+      ],
+      "tags": ["issue", "edit", "label"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-repo-fork",
+      "title": "Fork a repository",
+      "syntax": "gh repo fork [<repository>] [--clone]",
+      "description": "Create a fork of a repository, optionally cloning it locally.",
+      "examples": [
+        {
+          "description": "Fork and clone current repo",
+          "code": "gh repo fork --clone"
+        }
+      ],
+      "tags": ["repo", "fork", "clone"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-repo-sync",
+      "title": "Sync fork from upstream",
+      "syntax": "gh repo sync [<repository>] [--branch <branch>]",
+      "description": "Sync a fork branch with its upstream repository.",
+      "examples": [
+        {
+          "description": "Sync current fork main",
+          "code": "gh repo sync --branch main"
+        }
+      ],
+      "tags": ["repo", "sync", "fork"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-run-download",
+      "title": "Download workflow artifacts",
+      "syntax": "gh run download [<run-id>]",
+      "description": "Download artifacts generated by a GitHub Actions workflow run.",
+      "examples": [
+        {
+          "description": "Download artifacts from latest matching run",
+          "code": "gh run download"
+        }
+      ],
+      "tags": ["actions", "run", "artifacts"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-run-cancel",
+      "title": "Cancel workflow run",
+      "syntax": "gh run cancel <run-id>",
+      "description": "Cancel an in-progress GitHub Actions workflow run.",
+      "examples": [
+        {
+          "description": "Cancel a stuck run",
+          "code": "gh run cancel 1234567890"
+        }
+      ],
+      "tags": ["actions", "run", "cancel"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
+    },
+    {
+      "id": "gh-browse",
+      "title": "Open repository in browser",
+      "syntax": "gh browse [<number>|<path>|<commit-sha>]",
+      "description": "Open the current repository, issue, pull request, file, or commit in the browser.",
+      "examples": [
+        {
+          "description": "Open current repository",
+          "code": "gh browse"
+        }
+      ],
+      "tags": ["browse", "repo", "web"],
+      "source": "official",
+      "source_url": "https://cli.github.com/manual/"
     }
   ]
 }
