@@ -16,7 +16,10 @@ use crate::store::{Result, StoreError};
 /// Step definitions: (version, sql). Ordered ascending; each is applied in a
 /// single transaction. The v1 baseline encodes the full current DDL so a
 /// fresh DB and a migrated-from-v0 DB converge to the same schema.
-const STEP_SQL: &[(u32, &str)] = &[(1, super::SCHEMA_SQL)];
+const STEP_SQL: &[(u32, &str)] = &[
+    (1, super::SCHEMA_SQL),
+    (2, "ALTER TABLE recents ADD COLUMN copied_syntax TEXT;"),
+];
 
 pub fn run(conn: &Connection) -> Result<()> {
     run_steps(conn, STEP_SQL)
@@ -94,7 +97,7 @@ mod tests {
                 |r| r.get(0),
             )
             .expect("schema_version row");
-        assert_eq!(v, "1", "schema_version must be 1 after baseline migration");
+        assert_eq!(v, "2", "schema_version must be 2 after all migrations");
         // All 7 spec §9.2 tables must exist.
         for table in &[
             "meta",
@@ -128,7 +131,7 @@ mod tests {
                 |r| r.get(0),
             )
             .expect("schema_version");
-        assert_eq!(v, "1");
+        assert_eq!(v, "2");
     }
 
     #[test]
@@ -142,8 +145,8 @@ mod tests {
             [],
         )
         .expect("seed version");
-        // run() must detect v1 and make no changes.
-        run(&conn).expect("noop");
+        // run() skips step 1 (already at v1) but applies step 2 (ALTER TABLE).
+        run(&conn).expect("step 2 applies");
         let v: String = conn
             .query_row(
                 "SELECT value FROM meta WHERE key = 'schema_version'",
@@ -151,27 +154,31 @@ mod tests {
                 |r| r.get(0),
             )
             .expect("version");
-        assert_eq!(v, "1");
+        assert_eq!(v, "2");
     }
 
     #[test]
     fn migration_failure_returns_typed_error_no_corruption() {
         let (_d, conn) = open_fresh();
-        // Apply v1 first so the DB is at a known good state.
-        run(&conn).expect("v1");
-        // Inject a failing v2 step — bad SQL that SQLite will reject.
+        // Apply all real steps so the DB is at v2.
+        run(&conn).expect("v2");
+        // Inject a failing v3 step — bad SQL that SQLite will reject.
         const BAD_SQL: &str = "THIS IS INTENTIONALLY BAD SQL FOR TESTING;";
-        let result = run_steps(&conn, &[(1, crate::store::SCHEMA_SQL), (2, BAD_SQL)]);
+        let alter_sql = "ALTER TABLE recents ADD COLUMN copied_syntax TEXT;";
+        let result = run_steps(
+            &conn,
+            &[(1, crate::store::SCHEMA_SQL), (2, alter_sql), (3, BAD_SQL)],
+        );
         assert!(
-            matches!(result, Err(StoreError::MigrationFailed { step: 2, .. })),
-            "expected MigrationFailed at step 2, got: {result:?}"
+            matches!(result, Err(StoreError::MigrationFailed { step: 3, .. })),
+            "expected MigrationFailed at step 3, got: {result:?}"
         );
         // DB must be fully readable after the failed migration (no corruption).
         let n: i64 = conn
             .query_row("SELECT COUNT(*) FROM settings", [], |r| r.get(0))
             .expect("settings must be readable after failed migration");
         assert_eq!(n, 0);
-        // schema_version must still be at 1 (the failed step was rolled back).
+        // schema_version must still be at 2 (the failed step was rolled back).
         let v: String = conn
             .query_row(
                 "SELECT value FROM meta WHERE key = 'schema_version'",
@@ -179,7 +186,7 @@ mod tests {
                 |r| r.get(0),
             )
             .expect("schema_version after failure");
-        assert_eq!(v, "1", "failed step must not bump schema_version");
+        assert_eq!(v, "2", "failed step must not bump schema_version");
     }
 
     #[test]

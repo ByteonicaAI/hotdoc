@@ -91,13 +91,16 @@
     border-radius: 2px;
   }
   .actions {
-    display: none;
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
     gap: 8px;
     margin-top: 6px;
   }
   li:hover > .actions,
   li:focus-within > .actions {
-    display: flex;
+    opacity: 1;
+    pointer-events: auto;
   }
   .actions button {
     font: inherit;

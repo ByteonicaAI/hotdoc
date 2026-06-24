@@ -11,7 +11,7 @@ use anyhow::Result;
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::{AppHandle, Emitter, Wry};
+use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_opener::OpenerExt;
 use tracing::info;
 
@@ -55,6 +55,10 @@ pub fn build(app: &AppHandle<Wry>) -> Result<()> {
             info!(id = %event.id().as_ref(), "tray menu click");
             match event.id().as_ref() {
                 ID_PREFS => {
+                    if let Some(w) = app.get_webview_window("main") {
+                        let _ = w.show();
+                        let _ = w.set_focus();
+                    }
                     let _ = app.emit("hotdoc://open-settings", ());
                 }
                 ID_RELOAD => {

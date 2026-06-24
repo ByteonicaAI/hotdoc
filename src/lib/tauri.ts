@@ -12,10 +12,6 @@ export async function searchPacks(query: string): Promise<SearchHit[]> {
   return invoke<SearchHit[]>("search", { query });
 }
 
-export async function copySyntaxFor(query: string): Promise<string | null> {
-  return invoke<string | null>("copy_syntax", { query });
-}
-
 export async function hideWindow(): Promise<void> {
   await invoke("hide_window");
 }
@@ -36,8 +32,8 @@ export async function logToBackend(
 
 export type { Recent };
 
-export async function recordRecent(query: string): Promise<void> {
-  await invoke("record_recent", { query });
+export async function recordRecent(query: string, copiedSyntax?: string | null): Promise<void> {
+  await invoke("record_recent", { query, copiedSyntax: copiedSyntax ?? null });
 }
 
 export async function getRecents(n: number): Promise<Recent[]> {
@@ -117,11 +113,6 @@ export async function recordSearch(
   await invoke("record_search", { query, firstId, clickedId });
 }
 
-// ponytail: §7.5 — most-activated cards for the empty-view Popular section.
-export async function getPopular(n: number): Promise<SearchHit[]> {
-  return invoke<SearchHit[]>("get_popular", { n });
-}
-
 export type IndexStatus = { entry_count: number; pack_count: number };
 
 // ponytail: FR-I4 — index counts for the launcher footer.
@@ -133,10 +124,4 @@ export async function indexStatus(): Promise<IndexStatus> {
 // the toast.
 export async function copyDiagnostics(): Promise<string> {
   return invoke<string>("copy_diagnostics");
-}
-
-// ponytail: FR-C6 — resize the launcher window for the Tab details pane.
-// 420 = collapsed, 620 = expanded (spec §8.2).
-export async function setWindowHeight(height: number): Promise<void> {
-  await invoke("set_window_height", { height });
 }

@@ -8,11 +8,15 @@ import { log } from "../logger";
 // disabled recents in Settings — backend `recents::record` also gates
 // against `is_enabled`, so this is purely an optimization + a way to
 // avoid noisy log entries when the toggle is off.
-export async function onActivation(query: string, recentsEnabled = true): Promise<void> {
+export async function onActivation(
+  query: string,
+  syntax: string,
+  recentsEnabled = true,
+): Promise<void> {
   const trimmed = query.trim();
   if (!trimmed || !recentsEnabled) return;
   try {
-    await recordRecent(trimmed);
+    await recordRecent(trimmed, syntax || null);
   } catch (e) {
     log.warn("record recent failed", { query: trimmed, error: String(e) });
   }

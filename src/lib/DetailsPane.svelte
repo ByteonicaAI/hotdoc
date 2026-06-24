@@ -70,11 +70,13 @@
 
 <style>
   .details-pane {
-    border-top: 1px solid var(--border, #e5e7eb);
+    position: absolute;
+    inset: 0;
+    z-index: 10;
     padding: 10px 12px;
     background: var(--bg);
     overflow-y: auto;
-    max-height: 200px;
+    border-radius: 8px;
   }
   .details-header {
     display: flex;

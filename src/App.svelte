@@ -13,6 +13,11 @@
   import { STRINGS, format } from "./lib/strings";
 
   const launcher = new Launcher();
+
+  $effect(() => {
+    const _ = launcher.selectedIndex;
+    document.querySelector('[role="listbox"] li.active')?.scrollIntoView({ block: "nearest" });
+  });
   // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
   // Rust before this window paints, so a streaming N/N counter would never
   // render; the steady-state count is the honest signal. `null` = not yet
@@ -35,11 +40,31 @@
   onMount(() => {
     document.getElementById("q")?.focus();
     const unlisteners: Array<() => void> = [];
+    function onWindowKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (launcher.detailsHit) {
+          launcher.closeDetails();
+          document.getElementById("q")?.focus();
+        } else {
+          void launcher.doHide();
+        }
+      }
+    }
+    window.addEventListener("keydown", onWindowKey, true);
     void indexStatus()
       .then((s) => (status = s))
       .catch(() => {
         /* leave as Indexing… */
       });
+    void listen("hotdoc://show", () => {
+      launcher.reset();
+      const input = document.getElementById("q") as HTMLInputElement | null;
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+    }).then((u) => unlisteners.push(u));
     void listen("hotdoc://refresh-empty-view", () => {
       void launcher.loadEmptyView();
     }).then((u) => unlisteners.push(u));
@@ -81,7 +106,10 @@
     void getVersion()
       .then((v) => (appVersion = v))
       .catch(() => {});
-    return () => unlisteners.forEach((u) => u());
+    return () => {
+      unlisteners.forEach((u) => u());
+      window.removeEventListener("keydown", onWindowKey, true);
+    };
   });
 </script>
 
@@ -97,57 +125,65 @@
     autocorrect="off"
     spellcheck="false"
   />
-  <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
-    {#if launcher.emptyQuery}
-      <EmptyView
-        recents={launcher.recentList}
-        pinned={launcher.pinnedList}
-        popular={launcher.popularList}
-        onSelectRecent={(q: string) => launcher.selectRecent(q)}
-        onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
-        onSelectPopular={(h: SearchHit) => launcher.selectPinned(h)}
-        selectedIndex={launcher.selectedIndex}
-        pinnedOffset={launcher.recentList.length}
-        popularOffset={launcher.recentList.length + launcher.pinnedList.length}
-      />
-    {:else}
-      {#each launcher.results as r, i (r.id)}
-        <ResultItem
-          hit={r}
-          active={i === launcher.selectedIndex}
-          pinned={launcher.pinnedIds.has(r.id)}
-          query={launcher.query}
-          onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
-          onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
-          onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
-          onOpenSource={(h: SearchHit) => launcher.openSource(h)}
-          onReport={(h: SearchHit) => reportCard(h)}
+  <div class="results-area">
+    <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
+      {#if launcher.emptyQuery}
+        <EmptyView
+          recents={launcher.recentList}
+          pinned={launcher.pinnedList}
+          onSelectRecent={(q: string) => launcher.selectRecent(q)}
+          onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
+          onCopyText={(text: string) => launcher.copyText(text)}
+          selectedIndex={launcher.selectedIndex}
+          pinnedOffset={0}
+          recentsOffset={launcher.pinnedList.length}
         />
-      {/each}
-      {#if launcher.zeroResult}
-        <li class="empty zero" role="status">
-          {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
-          {#if launcher.suggestions.length > 0}
-            <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
-            <span class="suggest-chips">
-              {#each launcher.suggestions as pack (pack)}
-                <button
-                  type="button"
-                  class="suggest-chip"
-                  onmousedown={(e) => {
-                    e.preventDefault();
-                    launcher.applySuggestion(pack);
-                  }}
-                >
-                  {pack}
-                </button>
-              {/each}
-            </span>
-          {/if}
-        </li>
+      {:else}
+        {#each launcher.results as r, i (r.id)}
+          <ResultItem
+            hit={r}
+            active={i === launcher.selectedIndex}
+            pinned={launcher.pinnedIds.has(r.id)}
+            query={launcher.query}
+            onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
+            onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
+            onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
+            onOpenSource={(h: SearchHit) => launcher.openSource(h)}
+            onReport={(h: SearchHit) => reportCard(h)}
+          />
+        {/each}
+        {#if launcher.zeroResult}
+          <li class="empty zero" role="status">
+            {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
+            {#if launcher.suggestions.length > 0}
+              <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
+              <span class="suggest-chips">
+                {#each launcher.suggestions as pack (pack)}
+                  <button
+                    type="button"
+                    class="suggest-chip"
+                    onmousedown={(e) => {
+                      e.preventDefault();
+                      launcher.applySuggestion(pack);
+                    }}
+                  >
+                    {pack}
+                  </button>
+                {/each}
+              </span>
+            {/if}
+          </li>
+        {/if}
       {/if}
+    </ul>
+    {#if launcher.detailsHit}
+      <DetailsPane
+        hit={launcher.detailsHit}
+        onClose={() => launcher.closeDetails()}
+        onToast={(m: string) => launcher.showToast(m)}
+      />
     {/if}
-  </ul>
+  </div>
   {#if launcher.toast}
     <div class="toast" role="status">{launcher.toast}</div>
   {/if}
@@ -162,28 +198,53 @@
       onToast={(m: string) => launcher.showToast(m)}
     />
   {/if}
-  {#if launcher.detailsHit}
-    <DetailsPane
-      hit={launcher.detailsHit}
-      onClose={() => launcher.closeDetails()}
-      onToast={(m: string) => launcher.showToast(m)}
-    />
-  {/if}
   <footer class="status" aria-live="polite">
-    {#if status}
-      {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
-    {:else}
-      {STRINGS.INDEXING_STATUS}
-    {/if}
+    <span class="footer-keys">
+      {#if !launcher.emptyQuery && launcher.results.length > 0}
+        {STRINGS.FOOTER_KEYS_SEARCH}
+      {:else}
+        {STRINGS.FOOTER_KEYS_EMPTY}
+      {/if}
+    </span>
+    <span class="footer-count">
+      {#if status}
+        {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
+      {:else}
+        {STRINGS.INDEXING_STATUS}
+      {/if}
+    </span>
   </footer>
 </main>
 
 <style>
+  .results-area {
+    position: relative;
+    flex: 1 1 auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .results-area > ul {
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
   .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 6px 16px;
     border-top: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.08));
     color: var(--muted, #888);
     font-size: 11px;
+  }
+  .footer-keys {
+    color: var(--muted, #888);
+    font-size: 11px;
+  }
+  .footer-count {
+    color: var(--muted, #888);
+    font-size: 10px;
+    opacity: 0.7;
   }
   .zero {
     display: flex;

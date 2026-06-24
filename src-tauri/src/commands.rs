@@ -10,7 +10,7 @@ use hotdoc_core::index::SearchHit;
 use hotdoc_core::store::packs;
 use hotdoc_core::store::pinned::{self, PinnedHit};
 use hotdoc_core::store::recents::{self, Recent};
-use hotdoc_core::store::search_log::{self, PopularHit};
+use hotdoc_core::store::search_log;
 use hotdoc_core::store::settings;
 
 use crate::index_state;
@@ -29,27 +29,6 @@ pub fn search(query: String, state: State<'_, AppState>) -> Result<Vec<SearchHit
         .map_err(|e| format!("search failed: {e:#}"))?;
     info!(query = %query, hits = hits.len(), "search");
     Ok(hits)
-}
-
-#[tauri::command]
-#[instrument(skip(state, app))]
-pub fn copy_syntax(
-    query: String,
-    state: State<'_, AppState>,
-    app: tauri::AppHandle,
-) -> Result<Option<String>, String> {
-    let idx = state.index.read().map_err(|_| "index lock poisoned".to_string())?.clone();
-    let hit = idx
-        .search(&query, 1, &state.popularity_map)
-        .map_err(|e| format!("search failed: {e:#}"))?
-        .into_iter()
-        .next();
-    let Some(hit) = hit else { return Ok(None) };
-    app.clipboard()
-        .write_text(hit.syntax.clone())
-        .map_err(|e| format!("clipboard write failed: {e}"))?;
-    info!(query = %query, id = %hit.id, "copy_syntax");
-    Ok(Some(hit.syntax))
 }
 
 #[tauri::command]
@@ -86,9 +65,14 @@ pub fn log_error(level: String, msg: String, context: Option<String>) -> Result<
 // P1-3 logs the failure without surfacing internals.
 #[tauri::command]
 #[instrument(skip(state))]
-pub fn record_recent(query: String, state: State<'_, AppState>) -> Result<(), String> {
+pub fn record_recent(
+    query: String,
+    copied_syntax: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
-    recents::record(&conn, &query).map_err(|e| format!("record_recent: {e:#}"))
+    recents::record(&conn, &query, copied_syntax.as_deref())
+        .map_err(|e| format!("record_recent: {e:#}"))
 }
 
 #[tauri::command]
@@ -125,13 +109,6 @@ pub fn record_search(
     }
     search_log::record(&conn, &query, first_id.as_deref(), clicked_id.as_deref())
         .map_err(|e| format!("record_search: {e:#}"))
-}
-
-#[tauri::command]
-#[instrument(skip(state))]
-pub fn get_popular(n: usize, state: State<'_, AppState>) -> Result<Vec<PopularHit>, String> {
-    let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
-    search_log::popular(&conn, n).map_err(|e| format!("get_popular: {e:#}"))
 }
 
 // Index status (spec FR-I4). Counts feed the launcher footer. Read from
@@ -319,12 +296,4 @@ pub fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
         return Err(format!("open_url: only https: URLs allowed, got {url:?}"));
     }
     app.opener().open_path(url, None::<&str>).map_err(|e| format!("open_url: {e}"))
-}
-
-#[tauri::command]
-#[instrument(skip(window))]
-pub fn set_window_height(window: tauri::WebviewWindow, height: u32) -> Result<(), String> {
-    window
-        .set_size(tauri::Size::Logical(tauri::LogicalSize { width: 720.0, height: height as f64 }))
-        .map_err(|e| format!("set_window_height: {e}"))
 }

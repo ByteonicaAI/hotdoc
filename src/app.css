@@ -125,7 +125,6 @@ ul[role="listbox"] {
   list-style: none;
   margin: 0;
   padding: 0;
-  flex: 1 1 auto;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

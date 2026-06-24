@@ -480,6 +480,20 @@ fn apply_exact_match_bonuses(
     if !raw_query.is_empty() && raw_query == syntax.to_lowercase() {
         bonus += 15.0;
     }
+    // +12.0 if query tokens (sorted) == syntax tokens (sorted) — order-independent match
+    if !raw_query.is_empty() {
+        let mut query_tokens: Vec<&str> = raw_query.split_whitespace().collect();
+        let mut syntax_tokens: Vec<&str> = syntax.split_whitespace().collect();
+        query_tokens.sort_unstable();
+        syntax_tokens.sort_unstable();
+        let syntax_tokens_lc: Vec<String> =
+            syntax_tokens.iter().map(|t| t.to_lowercase()).collect();
+        let syntax_tokens_lc_refs: Vec<&str> =
+            syntax_tokens_lc.iter().map(|s| s.as_str()).collect();
+        if !query_tokens.is_empty() && query_tokens == syntax_tokens_lc_refs {
+            bonus += 12.0;
+        }
+    }
     // +10.0 if query == title exactly
     if !raw_query.is_empty() && raw_query == title.to_lowercase() {
         bonus += 10.0;

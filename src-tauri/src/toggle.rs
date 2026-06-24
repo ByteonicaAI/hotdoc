@@ -1,6 +1,6 @@
 use std::net::UdpSocket;
 
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 use tracing::{info, warn};
 
 use hotdoc_core::cli::TOGGLE_PORT;
@@ -34,6 +34,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>) {
                 let _ = w.show();
                 let _ = w.set_focus();
                 let _ = w.unminimize();
+                let _ = app.emit("hotdoc://show", ());
             }
             let _ = sock.send_to(&buf[..len], peer);
         }

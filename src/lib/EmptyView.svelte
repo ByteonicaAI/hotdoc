@@ -5,25 +5,23 @@
   type Props = {
     recents: Recent[];
     pinned: SearchHit[];
-    popular?: SearchHit[];
     onSelectRecent: (query: string) => void;
     onSelectPinned: (hit: SearchHit) => void;
-    onSelectPopular?: (hit: SearchHit) => void;
+    onCopyText: (text: string) => void;
     selectedIndex: number;
     pinnedOffset: number;
-    popularOffset?: number;
+    recentsOffset: number;
   };
 
   const {
     recents = [],
     pinned = [],
-    popular = [],
     onSelectRecent,
     onSelectPinned,
-    onSelectPopular,
+    onCopyText,
     selectedIndex,
     pinnedOffset,
-    popularOffset = pinnedOffset + pinned.length,
+    recentsOffset,
   }: Props = $props();
 
   function recentClick(e: MouseEvent, query: string) {
@@ -42,40 +40,11 @@
       onSelectPinned(hit);
     }
   }
-
-  function popularClick(e: MouseEvent, hit: SearchHit) {
-    e.preventDefault();
-    onSelectPopular?.(hit);
-  }
-
-  function popularKey(e: KeyboardEvent, hit: SearchHit) {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onSelectPopular?.(hit);
-    }
-  }
 </script>
 
-{#if recents.length === 0 && pinned.length === 0 && popular.length === 0}
+{#if recents.length === 0 && pinned.length === 0}
   <li class="empty" aria-hidden="true">{STRINGS.EMPTY_STATE}</li>
 {:else}
-  {#if recents.length > 0}
-    {#each recents as r, i (r.query)}
-      <li class:active={i === selectedIndex} role="presentation">
-        <button
-          type="button"
-          role="option"
-          aria-selected={i === selectedIndex}
-          class="recent-row"
-          onclick={(e) => recentClick(e, r.query)}
-          aria-label="{STRINGS.ARIA_RECENT_QUERY}: {r.query}"
-        >
-          <span class="recent-label">{STRINGS.RECENT_LABEL}</span>
-          <span class="recent-query">{r.query}</span>
-        </button>
-      </li>
-    {/each}
-  {/if}
   {#if pinned.length > 0}
     {#each pinned as p, i (p.id)}
       <li class:active={pinnedOffset + i === selectedIndex} role="presentation">
@@ -92,25 +61,46 @@
           <span class="pinned-title">{p.title}</span>
           <span class="pinned-syntax">{p.syntax}</span>
         </button>
+        <button
+          type="button"
+          class="row-copy-btn"
+          aria-label="Copy {p.syntax}"
+          onmousedown={(e) => {
+            e.preventDefault();
+            onCopyText(p.syntax);
+          }}>Copy</button
+        >
       </li>
     {/each}
   {/if}
-  {#if popular.length > 0}
-    <li class="section-label" aria-hidden="true">{STRINGS.POPULAR_LABEL}</li>
-    {#each popular as p, i (p.id)}
-      <li class:active={popularOffset + i === selectedIndex} role="presentation">
+  {#if recents.length > 0}
+    {#each recents as r, i (r.query)}
+      <li class:active={recentsOffset + i === selectedIndex} role="presentation">
         <button
           type="button"
           role="option"
-          aria-selected={popularOffset + i === selectedIndex}
-          class="pinned-row"
-          onclick={(e) => popularClick(e, p)}
-          onkeydown={(e) => popularKey(e, p)}
-          aria-label="{STRINGS.ARIA_POPULAR}: {p.title}"
+          aria-selected={recentsOffset + i === selectedIndex}
+          class="recent-row"
+          onclick={(e) => recentClick(e, r.query)}
+          aria-label="{STRINGS.ARIA_RECENT_QUERY}: {r.query}"
         >
-          <span class="popular-title">{p.title}</span>
-          <span class="pinned-syntax">{p.syntax}</span>
+          <span class="recent-label">{STRINGS.RECENT_LABEL}</span>
+          <span class="recent-query">{r.query}</span>
+          {#if r.copied_syntax}
+            <span class="recent-syntax">{r.copied_syntax}</span>
+          {/if}
         </button>
+        {#if r.copied_syntax}
+          <button
+            type="button"
+            class="row-copy-btn"
+            aria-label="Copy {r.copied_syntax}"
+            onmousedown={(e) => {
+              e.preventDefault();
+              onCopyText(r.copied_syntax!);
+            }}>Copy</button
+          >
+        {/if}
       </li>
     {/each}
   {/if}
@@ -122,27 +112,13 @@
     color: var(--muted, #888);
     font-size: 13px;
   }
-  .section-label {
-    padding: 6px 16px 2px;
-    color: var(--muted, #888);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .popular-title {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
   .recent-row,
   .pinned-row {
     display: flex;
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 8px 16px;
+    padding: 5px 16px;
     background: transparent;
     border: none;
     color: inherit;
@@ -164,6 +140,16 @@
   .recent-query {
     font-family: var(--mono, monospace);
   }
+  .recent-syntax {
+    font-family: var(--mono, monospace);
+    color: var(--muted, #888);
+    font-size: 12px;
+    margin-left: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 40%;
+  }
   .pin-mark {
     font-size: 11px;
   }
@@ -178,5 +164,35 @@
     font-family: var(--mono, monospace);
     color: var(--muted, #888);
     font-size: 12px;
+  }
+  li {
+    display: flex;
+    align-items: center;
+  }
+  li > .recent-row,
+  li > .pinned-row {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .row-copy-btn {
+    flex-shrink: 0;
+    display: none;
+    font: inherit;
+    font-size: 11px;
+    padding: 2px 8px;
+    margin-right: 8px;
+    border: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.15));
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted, #888);
+    cursor: pointer;
+  }
+  li:hover > .row-copy-btn,
+  li.active > .row-copy-btn {
+    display: block;
+  }
+  .row-copy-btn:hover {
+    background: var(--row-active-bg, rgba(255, 255, 255, 0.08));
+    color: inherit;
   }
 </style>

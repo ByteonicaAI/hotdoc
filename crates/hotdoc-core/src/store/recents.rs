@@ -18,6 +18,7 @@ const MAX_RECENTS: usize = 20;
 #[derive(Debug, Clone, Serialize)]
 pub struct Recent {
     pub query: String,
+    pub copied_syntax: Option<String>,
     pub last_used_at: i64,
     pub use_count: i64,
 }
@@ -27,7 +28,7 @@ pub struct Recent {
 /// Insert + evict run in a single transaction (NFR-8 atomicity) — a crash
 /// between the two would otherwise leave the table over-cap by one row.
 #[instrument(skip(conn))]
-pub fn record(conn: &Connection, query: &str) -> Result<()> {
+pub fn record(conn: &Connection, query: &str, syntax: Option<&str>) -> Result<()> {
     if !is_enabled(conn)? {
         return Ok(());
     }
@@ -38,11 +39,12 @@ pub fn record(conn: &Connection, query: &str) -> Result<()> {
     let tx = conn.unchecked_transaction()?;
     let now = crate::store::time::unix_now_ms();
     tx.execute(
-        "INSERT INTO recents(query, last_used_at, use_count) VALUES (?1, ?2, 1) \
+        "INSERT INTO recents(query, copied_syntax, last_used_at, use_count) VALUES (?1, ?2, ?3, 1) \
          ON CONFLICT(query) DO UPDATE SET \
+           copied_syntax = excluded.copied_syntax, \
            last_used_at = excluded.last_used_at, \
            use_count = recents.use_count + 1",
-        params![trimmed, now],
+        params![trimmed, syntax, now],
     )?;
     tx.execute(
         "DELETE FROM recents WHERE query NOT IN ( \
@@ -59,7 +61,7 @@ pub fn record(conn: &Connection, query: &str) -> Result<()> {
 #[instrument(skip(conn))]
 pub fn top_n(conn: &Connection, n: usize) -> Result<Vec<Recent>> {
     let mut stmt = conn.prepare(
-        "SELECT query, last_used_at, use_count \
+        "SELECT query, copied_syntax, last_used_at, use_count \
          FROM recents \
          ORDER BY last_used_at DESC, use_count DESC \
          LIMIT ?1",
@@ -67,8 +69,9 @@ pub fn top_n(conn: &Connection, n: usize) -> Result<Vec<Recent>> {
     let rows = stmt.query_map(params![n as i64], |row| {
         Ok(Recent {
             query: row.get(0)?,
-            last_used_at: row.get(1)?,
-            use_count: row.get(2)?,
+            copied_syntax: row.get(1)?,
+            last_used_at: row.get(2)?,
+            use_count: row.get(3)?,
         })
     })?;
     let mut out = Vec::new();
@@ -119,7 +122,7 @@ mod tests {
     #[test]
     fn record_writes_on_first_call() {
         let (_dir, conn) = open();
-        record(&conn, "git status").expect("record");
+        record(&conn, "git status", None).expect("record");
         let rows = top_n(&conn, 5).expect("top_n");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].query, "git status");
@@ -129,9 +132,9 @@ mod tests {
     #[test]
     fn record_bumps_use_count_on_repeat() {
         let (_dir, conn) = open();
-        record(&conn, "docker ps").expect("record");
-        record(&conn, "docker ps").expect("record");
-        record(&conn, "docker ps").expect("record");
+        record(&conn, "docker ps", None).expect("record");
+        record(&conn, "docker ps", None).expect("record");
+        record(&conn, "docker ps", None).expect("record");
         let rows = top_n(&conn, 5).expect("top_n");
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].use_count, 3);
@@ -142,7 +145,7 @@ mod tests {
         let (_dir, conn) = open();
         for i in 0..25 {
             let q = format!("query-{i:02}");
-            record(&conn, &q).expect("record");
+            record(&conn, &q, None).expect("record");
             std::thread::sleep(std::time::Duration::from_millis(2));
         }
         let rows = top_n(&conn, 100).expect("top_n");
@@ -153,8 +156,8 @@ mod tests {
     #[test]
     fn clear_drops_all_rows() {
         let (_dir, conn) = open();
-        record(&conn, "a").expect("record");
-        record(&conn, "b").expect("record");
+        record(&conn, "a", None).expect("record");
+        record(&conn, "b", None).expect("record");
         let n = clear(&conn).expect("clear");
         assert_eq!(n, 2);
         assert!(top_n(&conn, 5).expect("top_n").is_empty());
@@ -169,14 +172,14 @@ mod tests {
             [],
         )
         .expect("insert setting");
-        record(&conn, "ignored").expect("record");
+        record(&conn, "ignored", None).expect("record");
         assert!(top_n(&conn, 5).expect("top_n").is_empty());
     }
 
     #[test]
     fn empty_query_is_noop() {
         let (_dir, conn) = open();
-        record(&conn, "   ").expect("record");
+        record(&conn, "   ", None).expect("record");
         assert!(top_n(&conn, 5).expect("top_n").is_empty());
     }
 
@@ -214,7 +217,7 @@ mod tests {
         });
 
         for i in 0..(MAX_RECENTS + 4) {
-            record(&conn, &format!("q-{i:02}")).expect("record");
+            record(&conn, &format!("q-{i:02}"), None).expect("record");
         }
         std::thread::sleep(std::time::Duration::from_millis(20));
         stop.store(true, Ordering::Relaxed);

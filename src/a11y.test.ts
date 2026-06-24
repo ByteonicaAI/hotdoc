@@ -65,10 +65,9 @@ const mockHit: SearchHit = {
 
 function setupInvoke(hits: SearchHit[] = [], settings: Record<string, string> = {}) {
   vi.mocked(invoke).mockImplementation((cmd: string) => {
-    if (cmd === "search" || cmd === "copy_syntax") return Promise.resolve(hits);
+    if (cmd === "search") return Promise.resolve(hits);
     if (cmd === "get_recents") return Promise.resolve([]);
     if (cmd === "get_pinned") return Promise.resolve([]);
-    if (cmd === "get_popular") return Promise.resolve([]);
     if (cmd === "get_all_settings") return Promise.resolve(settings);
     if (cmd === "list_packs") return Promise.resolve([]);
     if (cmd === "index_status") return Promise.resolve({ entry_count: 79, pack_count: 5 });

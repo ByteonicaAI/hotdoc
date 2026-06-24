@@ -3,4 +3,4 @@
 //! index bookkeeping (per spec §9.2).
 
 /// Current schema version. Bumped on each backward-incompatible migration.
-pub const SCHEMA_VERSION: i64 = 1;
+pub const SCHEMA_VERSION: i64 = 2;

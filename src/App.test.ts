@@ -792,8 +792,7 @@ describe("zero-result suggestions + popular (G4/G5)", () => {
   it("renders pack suggestions on zero result and re-scopes on click (G4)", async () => {
     vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
       if (cmd === "list_packs") return Promise.resolve(["docker", "git", "kubectl"]);
-      if (cmd === "get_recents" || cmd === "get_pinned" || cmd === "get_popular")
-        return Promise.resolve([]);
+      if (cmd === "get_recents" || cmd === "get_pinned") return Promise.resolve([]);
       // A normal search returns nothing → zero-result state. A pack-scoped
       // search (query == "docker") returns the docker card.
       if (cmd === "search") {
@@ -810,21 +809,6 @@ describe("zero-result suggestions + popular (G4/G5)", () => {
     await fireEvent.mouseDown(chip);
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("search", { query: "docker" });
-    });
-  });
-
-  it("renders the Popular section from search_log (G5)", async () => {
-    const popularHit = { ...mockHit, id: "git-pull", title: "Pull changes", syntax: "git pull" };
-    vi.mocked(invoke).mockImplementation((cmd: string) => {
-      if (cmd === "get_popular") return Promise.resolve([popularHit]);
-      if (cmd === "get_recents" || cmd === "get_pinned" || cmd === "list_packs")
-        return Promise.resolve([]);
-      return Promise.resolve(undefined);
-    });
-    render(App);
-    await waitFor(() => {
-      expect(screen.getByText("Popular")).toBeInTheDocument();
-      expect(screen.getByText("Pull changes")).toBeInTheDocument();
     });
   });
 });
@@ -977,10 +961,8 @@ describe("boot settings (M4.5-T12)", () => {
 });
 
 // ponytail: M4.5-T12 — FR-C6 coverage. The Tab key on the focused
-// result opens the DetailsPane for that result, calls set_window_height
-// with 620, and Escape closes + restores height to 420 + returns focus
-// to the search input. The pane's close button must produce the same
-// height restore + unmount behavior as the direct closeDetails() call.
+// result opens the DetailsPane for that result, and Escape closes it
+// and returns focus to the search input.
 describe("FR-C6 details pane (M4.5-T12)", () => {
   beforeEach(() => {
     vi.mocked(invoke).mockReset();
@@ -1013,27 +995,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
     });
   });
 
-  it("tab_calls_set_window_height_620_when_opening_details", async () => {
-    vi.mocked(invoke).mockImplementation((cmd: string) => {
-      if (cmd === "get_recents") return Promise.resolve([]);
-      if (cmd === "get_pinned") return Promise.resolve([]);
-      if (cmd === "list_packs") return Promise.resolve([]);
-      if (cmd === "search") return Promise.resolve([mockHit]);
-      return Promise.resolve(undefined);
-    });
-    render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
-    await fireEvent.input(input, { target: { value: "git" } });
-    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
-    await fireEvent.keyDown(input, { key: "Tab" });
-    await waitFor(() => {
-      expect(invoke).toHaveBeenCalledWith("set_window_height", {
-        height: 620,
-      });
-    });
-  });
-
-  it("escape_from_details_closes_pane_and_restores_height_420", async () => {
+  it("escape_from_details_closes_pane", async () => {
     vi.mocked(invoke).mockImplementation((cmd: string) => {
       if (cmd === "get_recents") return Promise.resolve([]);
       if (cmd === "get_pinned") return Promise.resolve([]);
@@ -1047,13 +1009,9 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
     await waitFor(() => expect(screen.getByTestId("details-pane")).toBeInTheDocument());
-    vi.mocked(invoke).mockClear();
     await fireEvent.keyDown(input, { key: "Escape" });
     await waitFor(() => {
       expect(screen.queryByTestId("details-pane")).toBeNull();
-      expect(invoke).toHaveBeenCalledWith("set_window_height", {
-        height: 420,
-      });
     });
   });
 
@@ -1080,7 +1038,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
     });
   });
 
-  it("close_button_click_same_height_restore_and_unmount", async () => {
+  it("close_button_click_unmounts_details_pane", async () => {
     vi.mocked(invoke).mockImplementation((cmd: string) => {
       if (cmd === "get_recents") return Promise.resolve([]);
       if (cmd === "get_pinned") return Promise.resolve([]);
@@ -1094,15 +1052,11 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
     await waitFor(() => expect(screen.getByTestId("details-pane")).toBeInTheDocument());
-    vi.mocked(invoke).mockClear();
     // Click the close button — same path as closeDetails() direct call.
     const closeBtn = screen.getByRole("button", { name: /close/i });
     await fireEvent.click(closeBtn);
     await waitFor(() => {
       expect(screen.queryByTestId("details-pane")).toBeNull();
-      expect(invoke).toHaveBeenCalledWith("set_window_height", {
-        height: 420,
-      });
     });
   });
 

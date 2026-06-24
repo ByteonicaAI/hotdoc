@@ -2,7 +2,6 @@ import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manage
 import {
   clearRecents,
   copyDiagnostics,
-  getPopular,
   getRecents,
   hideWindow,
   listPackMetas,
@@ -11,7 +10,6 @@ import {
   rebuildIndex as rebuildIndexRpc,
   recordSearch,
   searchPacks,
-  setWindowHeight,
 } from "./tauri";
 import type { PackMeta, Recent, SearchHit } from "./types";
 import { log } from "./logger";
@@ -46,7 +44,6 @@ export class Launcher {
   toast = $state<string | null>(null);
   recentList = $state<Recent[]>([]);
   pinnedList = $state<SearchHit[]>([]);
-  popularList = $state<SearchHit[]>([]);
   pinnedIds = $state<Set<string>>(new Set());
   selectedIndex = $state<number>(-1);
   validPackIds = $state<Set<string>>(new Set());
@@ -67,10 +64,8 @@ export class Launcher {
   // when there are zero results. ≤3 chips; Enter/click re-scopes.
   suggestions = $derived(this.zeroResult ? suggestPacks(this.query, this.validPackIds, 3) : []);
   // ponytail: T11 NFR-9 — total empty-view row count for arrow-nav bounds.
-  // Recents, then Pinned, then Popular — same ordering as EmptyView renders.
-  emptyItemCount = $derived(
-    this.recentList.length + this.pinnedList.length + this.popularList.length,
-  );
+  // Pinned first, then Recents — same ordering as EmptyView renders.
+  emptyItemCount = $derived(this.pinnedList.length + this.recentList.length);
 
   #toastTimer: ReturnType<typeof setTimeout> | null = null;
   #hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -129,21 +124,16 @@ export class Launcher {
   async loadEmptyView() {
     // ponytail: M4.5-T1 / FR-R4 — when recents are disabled, skip the
     // recents fetch and clear recentList so EmptyView doesn't briefly
-    // render stale rows from before the toggle. Pinned + Popular are
-    // independent of the toggle and still fetch.
+    // render stale rows from before the toggle.
     if (!this.recentsEnabled) this.recentList = [];
     try {
-      const [r, p, pop] = await Promise.all([
+      const [r, p] = await Promise.all([
         this.recentsEnabled ? getRecents(5) : Promise.resolve([] as Recent[]),
         pinned.fetchPinned(),
-        getPopular(8).catch(() => [] as SearchHit[]),
       ]);
       this.recentList = r;
       this.pinnedList = p;
       this.pinnedIds = new Set(p.map((h) => h.id));
-      // ponytail: §7.5 — Popular section is deduped against Pinned (a card
-      // already shown under Pinned is not repeated).
-      this.popularList = pop.filter((h) => !this.pinnedIds.has(h.id));
     } catch (e) {
       log.warn("load empty view failed", { error: String(e) });
     }
@@ -234,33 +224,45 @@ export class Launcher {
     void this.runSearch();
   }
 
-  // ponytail: T11 — Enter on empty-view activates the keyboard-selected row.
-  // Maps selectedIndex into the recents/pinned/popular split that EmptyView renders.
-  activateEmpty() {
+  // ponytail: T11 — Enter on empty-view copies the selected item's syntax and
+  // hides (same UX as main search Enter). Pinned always has .syntax; recents
+  // use copied_syntax if recorded, else fall back to populating the search box.
+  async activateEmpty() {
     const i = this.selectedIndex;
     if (i < 0) return;
-    const rLen = this.recentList.length;
     const pLen = this.pinnedList.length;
-    if (i < rLen) {
-      const r = this.recentList[i];
-      if (r) this.selectRecent(r.query);
-    } else if (i < rLen + pLen) {
-      const p = this.pinnedList[i - rLen];
-      if (p) this.selectPinned(p);
-    } else {
-      const pop = this.popularList[i - rLen - pLen];
-      if (pop) this.selectPinned(pop);
+    const rLen = this.recentList.length;
+    if (i < pLen) {
+      const p = this.pinnedList[i];
+      if (p) {
+        await this.#copyAndToast(p.syntax);
+        this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+      }
+    } else if (i < pLen + rLen) {
+      const r = this.recentList[i - pLen];
+      if (r) {
+        if (r.copied_syntax) {
+          await this.#copyAndToast(r.copied_syntax);
+          this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+        } else {
+          this.selectRecent(r.query);
+        }
+      }
     }
   }
 
-  // ponytail: T11 — Ctrl+P on empty-view pins/unpins the selected pinned or popular row.
+  async copyText(text: string) {
+    await this.#copyAndToast(text);
+    this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+  }
+
+  // ponytail: T11 — Ctrl+P on empty-view pins/unpins the selected pinned row.
   async togglePinEmpty() {
     const i = this.selectedIndex;
     if (i < 0) return;
-    const rLen = this.recentList.length;
     const pLen = this.pinnedList.length;
-    if (i < rLen) return; // recents: no pin action
-    const hit = i < rLen + pLen ? this.pinnedList[i - rLen] : this.popularList[i - rLen - pLen];
+    if (i >= pLen) return; // recents: no pin action
+    const hit = this.pinnedList[i];
     if (hit) await this.togglePinHit(hit);
   }
 
@@ -282,12 +284,10 @@ export class Launcher {
 
   openDetails(hit: SearchHit) {
     this.detailsHit = hit;
-    void setWindowHeight(620).catch(() => {});
   }
 
   closeDetails() {
     this.detailsHit = null;
-    void setWindowHeight(420).catch(() => {});
   }
 
   openHelp() {
@@ -331,7 +331,15 @@ export class Launcher {
 
   async doHide() {
     this.#clearTimers();
+    this.toast = null;
     await hideWindow();
+  }
+
+  reset() {
+    this.query = "";
+    this.results = [];
+    this.selectedIndex = -1;
+    void this.loadEmptyView();
   }
 
   async runSearch() {
@@ -463,7 +471,7 @@ export class Launcher {
     const onNextKey = () => doHide();
     window.addEventListener("keydown", onNextKey, { once: true, capture: true });
     this.#hideTimer = setTimeout(doHide, HIDE_AFTER_COPY_MS);
-    void recents.onActivation(this.query, this.recentsEnabled);
+    void recents.onActivation(this.query, top.syntax, this.recentsEnabled);
     // ponytail: §7.5 / §9.2 — log the activation. first = top-ranked hit,
     // clicked = the row the user actually activated. Gated on the same
     // recents toggle (FR-R4); backend re-checks too.
@@ -518,7 +526,7 @@ export class Launcher {
       }
       if (e.key === "Enter" && this.selectedIndex >= 0) {
         e.preventDefault();
-        this.activateEmpty();
+        void this.activateEmpty();
         return;
       }
       if ((e.key === "p" || e.key === "P") && (e.ctrlKey || e.metaKey)) {

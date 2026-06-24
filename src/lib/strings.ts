@@ -11,7 +11,7 @@ export function format(template: string, ...args: string[]): string {
 
 export const STRINGS = {
   // Search bar
-  SEARCH_PLACEHOLDER: "hotdoc: type to search…",
+  SEARCH_PLACEHOLDER: "Type to search…",
   SEARCH_INPUT_ARIA: "Search commands",
   SEARCH_RESULTS_ARIA: "Search results",
   // Empty / zero-result states
@@ -85,4 +85,7 @@ export const STRINGS = {
   DETAILS_EXAMPLE_LABEL: "Example",
   // Footer status (M4.5-T2 — moved out of App.svelte)
   FOOTER_STATUS: "$1 commands · $2 packs",
+  // Footer key hints (Raycast-style)
+  FOOTER_KEYS_SEARCH: "↑↓ Navigate  ·  ↵ Copy  ·  ⇧↵ Example  ·  ⌃P Pin  ·  Tab Details",
+  FOOTER_KEYS_EMPTY: "↑↓ Navigate  ·  ↵ Copy",
 } as const;

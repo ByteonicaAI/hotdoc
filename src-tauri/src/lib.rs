@@ -79,7 +79,6 @@ pub fn run() {
         ))
         .invoke_handler(tauri::generate_handler![
             commands::search,
-            commands::copy_syntax,
             commands::hide_window,
             commands::log_error,
             commands::record_recent,
@@ -98,10 +97,8 @@ pub fn run() {
             commands::rebuild_index,
             commands::open_url,
             commands::record_search,
-            commands::get_popular,
             commands::index_status,
-            commands::copy_diagnostics,
-            commands::set_window_height
+            commands::copy_diagnostics
         ])
         .on_window_event(|window, event| {
             if matches!(event, tauri::WindowEvent::Focused(false)) {

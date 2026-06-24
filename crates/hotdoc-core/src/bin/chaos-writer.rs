@@ -10,7 +10,7 @@ fn main() {
     let mut i: u64 = 0;
     loop {
         let query = format!("chaos-query-{i}");
-        let _ = hotdoc_core::store::recents::record(&conn, &query);
+        let _ = hotdoc_core::store::recents::record(&conn, &query, None);
         i = i.wrapping_add(1);
     }
 }

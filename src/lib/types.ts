@@ -24,6 +24,7 @@ export type PackMeta = {
 
 export type Recent = {
   query: string;
+  copied_syntax: string | null;
   last_used_at: number;
   use_count: number;
 };
