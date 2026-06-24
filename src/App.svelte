@@ -88,6 +88,7 @@
 <main>
   <input
     id="q"
+    aria-label={STRINGS.SEARCH_INPUT_ARIA}
     placeholder={STRINGS.SEARCH_PLACEHOLDER}
     value={launcher.query}
     oninput={(e) => launcher.onInput(e.currentTarget.value)}

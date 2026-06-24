@@ -32,7 +32,7 @@
           "code": "terraform plan -var environment=prod -out=prod.plan"
         }
       ],
-      "tags": ["planning", "execution"],
+      "tags": ["plan", "execution", "infrastructure"],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/plan"
     },

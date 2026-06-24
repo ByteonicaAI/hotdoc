@@ -107,7 +107,7 @@
           "code": "numbers = [1, 2, 3, 4, 5]\nsquares = [x**2 for x in numbers if x % 2 == 0]\nprint(squares)  # [4, 16]"
         }
       ],
-      "tags": ["comprehensions", "lists", "functional"],
+      "tags": ["comprehension", "list", "functional", "python"],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/expressions.html#list-displays"
     },

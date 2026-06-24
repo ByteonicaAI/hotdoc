@@ -51,6 +51,7 @@
   });
 
   async function saveHotkey() {
+    status = null;
     const combo = hotkeyInputEl?.value ?? "Ctrl+Shift+Space";
     try {
       await setHotkey(combo);
@@ -62,6 +63,7 @@
   }
 
   async function pickTheme(v: Theme) {
+    status = null;
     const next = normaliseTheme(v);
     theme = next;
     launcher.applyTheme(next);
@@ -73,6 +75,7 @@
   }
 
   async function toggleAutostart() {
+    status = null;
     const next = !autostart;
     try {
       await setAutostart(next);
@@ -84,6 +87,7 @@
   }
 
   async function toggleRecents() {
+    status = null;
     const next = !recentsEnabled;
     try {
       await setSetting("recents_enabled", String(next));

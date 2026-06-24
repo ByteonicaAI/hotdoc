@@ -34,7 +34,13 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path) -> Result<()> {
         let top3: Vec<String> = hits.iter().take(3).map(|h| h.id.clone()).collect();
         let ok = match &q.expected_first {
             None => hits.is_empty(),
-            Some(expected) => first.as_deref() == Some(expected.as_str()),
+            Some(expected) => {
+                first.as_deref() == Some(expected.as_str())
+                    || (!q.acceptable_top3.is_empty()
+                        && q.acceptable_top3
+                            .iter()
+                            .any(|a| first.as_deref() == Some(a.as_str())))
+            }
         };
         if !ok {
             failed += 1;

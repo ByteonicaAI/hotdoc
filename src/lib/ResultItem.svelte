@@ -46,7 +46,7 @@
   <div class="row syntax-row">
     <span class="syntax">{hit.syntax}</span>
     {#if pinned}
-      <span class="pin-mark" aria-label={STRINGS.PIN_ARIA}>📌</span>
+      <span class="pin-mark" aria-label={STRINGS.PIN_ARIA} aria-hidden="true">📌</span>
     {/if}
     <span class="source {hit.source}">{sourceLabel(hit.source)}</span>
   </div>

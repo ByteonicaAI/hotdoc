@@ -12,6 +12,7 @@ export function format(template: string, ...args: string[]): string {
 export const STRINGS = {
   // Search bar
   SEARCH_PLACEHOLDER: "hotdoc: type to search…",
+  SEARCH_INPUT_ARIA: "Search commands",
   SEARCH_RESULTS_ARIA: "Search results",
   // Empty / zero-result states
   EMPTY_STATE: "Type to search packs.",

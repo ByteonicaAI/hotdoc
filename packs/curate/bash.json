@@ -47,7 +47,7 @@
           "code": "if [ -f \"file.txt\" ]; then echo \"File exists\"; fi"
         }
       ],
-      "tags": ["conditions", "control-flow", "testing"],
+      "tags": ["conditions", "control-flow", "testing", "if", "condition"],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Conditional-Constructs"
     },

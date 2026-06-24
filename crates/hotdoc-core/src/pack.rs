@@ -327,7 +327,7 @@ mod tests {
             .find(|p| p.id == "git")
             .expect("git pack present");
         validate(git).expect("git pack should validate");
-        assert_eq!(git.entries.len(), 15);
+        assert_eq!(git.entries.len(), 50);
     }
 
     #[test]

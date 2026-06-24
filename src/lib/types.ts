@@ -28,12 +28,13 @@ export type Recent = {
   use_count: number;
 };
 
-export const SOURCE_LABEL: Record<string, string> = {
+export const SOURCE_LABEL: Record<SourceKind, string> = {
   official: "Official",
   "cheat-sheet": "Cheat Sheet",
   curated: "Curated",
+  personal: "Personal",
 };
 
-export function sourceLabel(source: string): string {
-  return SOURCE_LABEL[source] ?? source;
+export function sourceLabel(source: SourceKind): string {
+  return SOURCE_LABEL[source];
 }

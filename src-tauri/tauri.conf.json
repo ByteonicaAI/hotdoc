@@ -16,7 +16,7 @@
         "title": "hotdoc",
         "width": 720,
         "height": 420,
-        "visible": true,
+        "visible": false,
         "decorations": false,
         "resizable": false,
         "center": true,

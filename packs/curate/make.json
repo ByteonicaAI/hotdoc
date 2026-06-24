@@ -53,7 +53,7 @@
     },
     {
       "id": "make-phony",
-      "title": ".PHONY declaration",
+      "title": "Makefile .PHONY declaration",
       "syntax": ".PHONY: target1 target2",
       "description": "Declare targets that don't produce files; always run when requested.",
       "examples": [
@@ -62,7 +62,7 @@
           "code": ".PHONY: clean install test help\nclean:\n\trm -rf build/ *.o"
         }
       ],
-      "tags": ["targets", "special"],
+      "tags": ["targets", "special", "phony", "makefile", "target"],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },
@@ -174,7 +174,7 @@
     {
       "id": "make-clean",
       "title": "clean target",
-      "syntax": "clean:\n\trm -rf output files",
+      "syntax": "make clean, clean:\n\trm -rf output files",
       "description": "Remove build artifacts and temporary files.",
       "examples": [
         {
@@ -182,7 +182,7 @@
           "code": ".PHONY: clean\nclean:\n\trm -rf build/ *.o *.a\n\t@echo \"Cleaned\""
         }
       ],
-      "tags": ["cleanup", "phony"],
+      "tags": ["cleanup", "phony", "build"],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },

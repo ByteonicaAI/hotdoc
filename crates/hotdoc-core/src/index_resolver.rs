@@ -196,7 +196,11 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
             info!("pack fingerprint changed; rebuilding tantivy index");
         }
         // No persistent index, packs changed, or open failed — build it.
-        std::fs::create_dir_all(&p).ok();
+        if let Err(e) = std::fs::create_dir_all(&p) {
+            if e.kind() != std::io::ErrorKind::AlreadyExists {
+                warn!(path = %p.display(), error = %e, "create_dir_all failed");
+            }
+        }
         match HotdocIndex::build(&packs, &p) {
             Ok(idx) => {
                 if let Err(e) = HotdocIndex::populate_store(db, &packs) {

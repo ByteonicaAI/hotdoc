@@ -25,14 +25,14 @@
       "id": "rg-file-type",
       "title": "-t type filter",
       "syntax": "rg -t type pattern, rg -t python -t rust pattern",
-      "description": "Search only in files of a specific type.",
+      "description": "Filter and search files by specific file type using ripgrep.",
       "examples": [
         {
           "description": "search only Python files",
           "code": "rg -t python 'import' src/"
         }
       ],
-      "tags": ["filtering", "file-types"],
+      "tags": ["filtering", "file-types", "file", "ripgrep", "search"],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#manual-filtering-file-types"
     },
@@ -47,7 +47,7 @@
           "code": "rg -i 'error' ."
         }
       ],
-      "tags": ["matching", "flags"],
+      "tags": ["matching", "flags", "search", "case"],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#case-sensitivity"
     },

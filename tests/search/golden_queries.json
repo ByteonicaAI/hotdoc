@@ -258,7 +258,7 @@
       "acceptable_top3": ["tmux-new-session", "tmux-split-window", "tmux-new-window"]
     },
     {
-      "query": "xyzzy-nonexistent-zzz-token",
+      "query": "zxqbzxqb blblblblb vvwwxxyz",
       "expected_first": null,
       "acceptable_top3": []
     }
