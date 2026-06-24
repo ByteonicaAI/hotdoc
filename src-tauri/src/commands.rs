@@ -337,6 +337,6 @@ pub fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
 #[instrument(skip(window))]
 pub fn set_window_height(window: tauri::WebviewWindow, height: u32) -> Result<(), String> {
     window
-        .set_size(tauri::Size::Physical(tauri::PhysicalSize { width: 720, height }))
+        .set_size(tauri::Size::Logical(tauri::LogicalSize { width: 720.0, height: height as f64 }))
         .map_err(|e| format!("set_window_height: {e}"))
 }

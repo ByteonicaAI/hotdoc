@@ -25,8 +25,8 @@
     }
     try {
       await openUrl(hit.source_url);
-    } catch {
-      onToast(STRINGS.TOAST_OPEN_REJECTED);
+    } catch (e) {
+      onToast(STRINGS.TOAST_OPEN_FAIL.replace("$1", String(e)));
     }
   }
 </script>
@@ -44,7 +44,7 @@
       <code class="detail-syntax">{hit.syntax}</code>
     </div>
     <div class="detail-row">
-      <span class="detail-label">Pack</span>
+      <span class="detail-label">{STRINGS.DETAILS_PACK_LABEL}</span>
       <span>{hit.pack_id}</span>
     </div>
     <div class="detail-row">

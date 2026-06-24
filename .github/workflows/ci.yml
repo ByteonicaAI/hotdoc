@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -86,7 +89,7 @@ jobs:
 
       - name: Format check
         working-directory: src-tauri
-        run: cargo fmt --check
+        run: cargo fmt --all --check
 
       - name: Clippy
         working-directory: src-tauri
@@ -128,6 +131,7 @@ jobs:
 
   nfr-build-gates:
     name: NFR build gates (T4/T5/T6/T8-NFR7)
+    needs: [frontend, rust]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

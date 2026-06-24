@@ -34,7 +34,7 @@
 
   onMount(() => {
     document.getElementById("q")?.focus();
-    let unlisten: (() => void) | undefined;
+    const unlisteners: Array<() => void> = [];
     void indexStatus()
       .then((s) => (status = s))
       .catch(() => {
@@ -42,12 +42,10 @@
       });
     void listen("hotdoc://refresh-empty-view", () => {
       void launcher.loadEmptyView();
-    }).then((u) => {
-      unlisten = u;
-    });
+    }).then((u) => unlisteners.push(u));
     void listen("hotdoc://open-settings", () => {
       launcher.openSettings();
-    });
+    }).then((u) => unlisteners.push(u));
     void listen("hotdoc://reload-index", () => {
       // ponytail: T13 + T16. Tray menu item → IPC rebuild →
       // reloadIndex() in the launcher toasts the count and refreshes
@@ -56,12 +54,12 @@
       void indexStatus()
         .then((s) => (status = s))
         .catch(() => {});
-    });
+    }).then((u) => unlisteners.push(u));
     void listen("hotdoc://copy-diagnostics", () => {
       // ponytail: FR-G2 — tray "Copy diagnostics" → redacted bundle to
       // clipboard, toast confirms.
       void launcher.copyDiagnostics();
-    });
+    }).then((u) => unlisteners.push(u));
     // ponytail: read the persisted theme synchronously after focus but
     // before the first paint of user-driven content. applyTheme is a
     // pure DOM flip — no flash because the cascade resolves on the same
@@ -83,7 +81,7 @@
     void getVersion()
       .then((v) => (appVersion = v))
       .catch(() => {});
-    return () => unlisten?.();
+    return () => unlisteners.forEach((u) => u());
   });
 </script>
 

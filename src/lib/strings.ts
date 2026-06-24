@@ -80,6 +80,7 @@ export const STRINGS = {
   ABOUT_TABLE_HOMEPAGE: "Homepage",
   // Details pane labels (M4.5-T2 — moved out of DetailsPane.svelte)
   DETAILS_COMMAND_LABEL: "Command",
+  DETAILS_PACK_LABEL: "Pack",
   DETAILS_EXAMPLE_LABEL: "Example",
   // Footer status (M4.5-T2 — moved out of App.svelte)
   FOOTER_STATUS: "$1 commands · $2 packs",

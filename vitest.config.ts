@@ -19,6 +19,7 @@ export default defineConfig({
       reporter: ["text", "html", "lcov"],
       include: ["src/**/*.{ts,js,svelte}"],
       exclude: ["src/**/*.{test,spec}.{ts,js,svelte}", "src/main.ts", "src/vite-env.d.ts"],
+      thresholds: { lines: 80, functions: 80 },
     },
   },
 });

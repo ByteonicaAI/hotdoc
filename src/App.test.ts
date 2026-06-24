@@ -555,6 +555,66 @@ describe("App launcher", () => {
     });
   });
 
+  it("> about opens the about panel", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "list_pack_metas") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> about" } });
+    await waitFor(() => {
+      expect(screen.getByTestId("about-panel")).toBeInTheDocument();
+    });
+  });
+
+  it("FR-R4 recents_disabled hides recents section in empty view", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_all_settings") return Promise.resolve({ recents_enabled: "false" });
+      if (cmd === "get_recents")
+        return Promise.resolve([{ query: "git stash", last_used_at: 1, use_count: 1 }]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    await waitFor(() => {
+      expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+    });
+  });
+
+  it("recents toggle in settings propagates to launcher, suppresses record_recent IPC", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "get_all_settings") return Promise.resolve({});
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    await fireEvent.input(input, { target: { value: "> settings" } });
+    await waitFor(() => expect(screen.getByTestId("settings-panel")).toBeInTheDocument());
+    await fireEvent.click(screen.getByTestId("recents-toggle"));
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith("set_setting", {
+        key: "recents_enabled",
+        value: "false",
+      });
+    });
+    await fireEvent.input(input, { target: { value: "git stash" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    vi.mocked(invoke).mockClear();
+    await fireEvent.keyDown(input, { key: "Enter" });
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("git stash"));
+    const recordCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "record_recent");
+    expect(recordCalls).toHaveLength(0);
+  });
+
   // ponytail: T19 (FR-R4). When the boot settings row says
   // recents_enabled = "false", the launcher's cached flag is false
   // before any activation can fire, so the `record_recent` IPC is
