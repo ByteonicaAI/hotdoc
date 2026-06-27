@@ -1,11 +1,10 @@
 /* hotdoc design system — "The Reflex"
-   Local-first keyboard launcher. Floating surface, restrained color,
+   Local-first keyboard launcher. Edge-to-edge surface, restrained color,
    monospace command as the hero. Light + dark are both first-class;
    the window mirrors the system theme it floats over. */
 
 :root {
   /* Neutrals — light. Tinted cool toward Signal Blue (chroma is whisper-low). */
-  --backdrop: #e7e9ee; /* the tone behind the floating surface */
   --bg: #fbfbfd; /* the surface itself */
   --fg: #14151a;
   --border: #e4e5ea;
@@ -33,7 +32,6 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --backdrop: #050608;
     --bg: #101116;
     --fg: #e6e7ec;
     --border: #262833;
@@ -56,7 +54,6 @@
 }
 
 :root[data-theme="light"] {
-  --backdrop: #e7e9ee;
   --bg: #fbfbfd;
   --fg: #14151a;
   --border: #e4e5ea;
@@ -78,7 +75,6 @@
 }
 
 :root[data-theme="dark"] {
-  --backdrop: #050608;
   --bg: #101116;
   --fg: #e6e7ec;
   --border: #262833;
@@ -108,15 +104,11 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: transparent;
 }
 
 body {
-  /* The native window is transparent (tauri.conf: transparent + macOSPrivateApi),
-     so everything outside `main` shows the desktop. The padding is the
-     transparent gap the floating surface sits in; the shadow lives on `main`. */
-  padding: 6px;
-  background: transparent;
+  /* Solid, opaque window. The surface fills it edge to edge. */
+  background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -128,15 +120,10 @@ body {
 }
 
 main {
-  /* The only visible surface: a rounded floating pane with the system's one
-     shadow. height accounts for the body padding so it never clips. */
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
   overflow: hidden;
 }
 
