@@ -111,10 +111,10 @@ body {
 }
 
 body {
-  /* 8px backdrop frame: the surface reads as a floating pane even when the
-     OS window is opaque. The only shadow in the system lives on `main`. */
-  padding: 8px;
-  background: var(--backdrop);
+  /* The native window (Tauri, decorations:false) is an opaque rectangle, so
+     the surface fills it edge to edge. No backdrop frame — a transparent
+     window would be required to float, and that is a separate native change. */
+  background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -130,9 +130,6 @@ main {
   flex-direction: column;
   height: 100%;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
   overflow: hidden;
 }
 
