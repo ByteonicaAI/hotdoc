@@ -279,21 +279,20 @@
 <style>
   .results-area {
     position: relative;
-    /* Caps how tall the window grows; the list scrolls past this height. */
-    max-height: 380px;
-    flex: 1 1 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
-  /* When the settings/about panel forces a fixed-height window, let the
-     results area fill it so the overlay has a full surface to cover. */
-  main.tall .results-area {
-    max-height: none;
-  }
+  /* Size the list to its content so the window grows row by row, capped so it
+     shows roughly 5 results then scrolls. Content-sized (not flex-grow) so it
+     never collapses to a single row in the auto-height window. */
   .results-area > ul {
-    flex: 1 1 auto;
+    max-height: 460px;
     overflow-y: auto;
+  }
+  /* The settings/about panel fixes the window height; let the list fill it. */
+  main.tall .results-area > ul {
+    max-height: none;
   }
   .status {
     flex: 0 0 auto;
