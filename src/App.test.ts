@@ -46,14 +46,14 @@ describe("App launcher", () => {
 
   it("renders the search input and focuses it", () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     expect(input).toBeInTheDocument();
   });
 
   it("typing debounces and fires search after ~30ms", async () => {
     vi.mocked(invoke).mockResolvedValue([mockHit]);
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     const searchCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "search");
     expect(searchCalls).toHaveLength(0);
@@ -70,7 +70,7 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [mockHit] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter" });
@@ -85,7 +85,7 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [mockHit] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
@@ -100,7 +100,7 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [hitWithUrl] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
@@ -115,7 +115,7 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [hostile] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
@@ -129,7 +129,7 @@ describe("App launcher", () => {
 
   it("Escape hides the window", async () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.keyDown(input, { key: "Escape" });
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("hide_window");
@@ -138,7 +138,7 @@ describe("App launcher", () => {
 
   it("Ctrl+C with empty input hides the window", async () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.keyDown(input, { key: "c", ctrlKey: true });
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("hide_window");
@@ -148,7 +148,7 @@ describe("App launcher", () => {
   it("zero-result state renders the No-matches row", async () => {
     vi.mocked(invoke).mockResolvedValue([]);
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "asdfqwer" } });
     await waitFor(() => {
       // Text is split across nodes (NO_MATCHES_PREFIX + query + suffix).
@@ -163,12 +163,15 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [mockHit] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter" });
     await waitFor(() => {
-      expect(invoke).toHaveBeenCalledWith("record_recent", { query: "git stash" });
+      expect(invoke).toHaveBeenCalledWith("record_recent", {
+        query: "git stash",
+        copiedSyntax: "git stash",
+      });
     });
   });
 
@@ -177,7 +180,7 @@ describe("App launcher", () => {
       Promise.resolve(cmd === "search" ? [mockHit] : undefined),
     );
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Escape" });
@@ -228,7 +231,7 @@ describe("App launcher", () => {
     });
     const button = screen.getByRole("option", { name: /Recent query: git stash/i });
     await fireEvent.click(button);
-    const inputEl = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const inputEl = screen.getByPlaceholderText(/type to search/i);
     await waitFor(() => {
       expect((inputEl as HTMLInputElement).value).toBe("git stash");
     });
@@ -250,7 +253,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
     const initial = screen.getByText("alpha").closest("li")!;
@@ -278,7 +281,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "ArrowUp" });
@@ -298,7 +301,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -325,7 +328,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -342,7 +345,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "zzzzz" } });
     await waitFor(() => expect(screen.getByText(/no matches for/i)).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "ArrowDown" });
@@ -358,7 +361,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "p", ctrlKey: true });
@@ -378,7 +381,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "p", ctrlKey: true });
@@ -396,7 +399,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> recents" } });
     await waitFor(() => {
       expect((input as HTMLInputElement).value).toBe("");
@@ -408,7 +411,7 @@ describe("App launcher", () => {
 
   it("> settings opens the settings panel", async () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => {
       expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
@@ -417,7 +420,7 @@ describe("App launcher", () => {
 
   it("> help shows the keyboard-shortcut toast", async () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> help" } });
     await waitFor(() => {
       expect(screen.getByText(/palette/i)).toBeInTheDocument();
@@ -426,7 +429,7 @@ describe("App launcher", () => {
 
   it("> recents clear calls clear_recents IPC", async () => {
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> recents clear" } });
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith("clear_recents");
@@ -445,7 +448,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> dctr" } });
     await waitFor(() => {
       expect((input as HTMLInputElement).value).toBe("dctr");
@@ -467,7 +470,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> dctr" } });
     await waitFor(() => {
       expect((input as HTMLInputElement).value).toBe("dctr");
@@ -487,7 +490,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => {
       expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
@@ -521,7 +524,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => {
       expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
@@ -544,7 +547,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => {
       expect(screen.getByTestId("settings-panel")).toBeInTheDocument();
@@ -564,7 +567,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> about" } });
     await waitFor(() => {
       expect(screen.getByTestId("about-panel")).toBeInTheDocument();
@@ -596,7 +599,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "> settings" } });
     await waitFor(() => expect(screen.getByTestId("settings-panel")).toBeInTheDocument());
     await fireEvent.click(screen.getByTestId("recents-toggle"));
@@ -637,7 +640,7 @@ describe("App launcher", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter" });
@@ -802,7 +805,7 @@ describe("zero-result suggestions + popular (G4/G5)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "dcoker" } });
     const chip = await screen.findByRole("button", { name: "docker" });
     expect(chip).toBeInTheDocument();
@@ -950,7 +953,7 @@ describe("boot settings (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter" });
@@ -984,7 +987,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("Stash changes")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
@@ -1004,7 +1007,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
@@ -1024,7 +1027,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
@@ -1047,7 +1050,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });
@@ -1078,7 +1081,7 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       return Promise.resolve(undefined);
     });
     render(App);
-    const input = screen.getByPlaceholderText(/hotdoc: type to search/i);
+    const input = screen.getByPlaceholderText(/type to search/i);
     await fireEvent.input(input, { target: { value: "git" } });
     await waitFor(() => expect(screen.getByText("Stash changes")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Tab" });

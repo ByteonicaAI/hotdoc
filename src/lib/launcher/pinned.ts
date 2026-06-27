@@ -20,7 +20,9 @@ export async function toggle(entryId: string, currentlyPinned: boolean): Promise
 
 export async function fetchPinned(): Promise<Awaited<ReturnType<typeof getPinned>>> {
   try {
-    return await getPinned();
+    // Guard the IPC boundary: a malformed/empty response must still satisfy
+    // the array contract so callers (loadEmptyView) never `.map` on undefined.
+    return (await getPinned()) ?? [];
   } catch (e) {
     log.warn("fetch pinned failed", { error: String(e) });
     return [];
