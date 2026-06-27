@@ -16,7 +16,7 @@
 
   // Spotlight-style window: logical width is fixed; height tracks the content.
   const WINDOW_WIDTH = 720;
-  const WINDOW_PAD = 8; // matches body padding; transparent shadow gutter
+  const WINDOW_PAD = 0; // surface fills the window edge to edge, no gutter
   let mainEl = $state<HTMLElement>();
 
   // Show the results area (and footer) once there's a query, or when there are

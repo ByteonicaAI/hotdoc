@@ -107,10 +107,9 @@ body {
 }
 
 body {
-  /* Transparent window (tauri.conf: transparent + macOSPrivateApi): only the
-     rounded `main` is visible, floating over the desktop. The padding gives the
-     shadow room; the window resizes to fit `main`, Spotlight-style. */
-  padding: 8px;
+  /* Transparent window (tauri.conf: transparent + macOSPrivateApi): the rounded
+     `main` fills it edge to edge with no gutter, and the window resizes to fit
+     `main`, Spotlight-style. */
   background: transparent;
   color: var(--fg);
   font-family: var(--font-ui);
@@ -131,7 +130,6 @@ main {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: var(--shadow);
   overflow: hidden;
 }
 
