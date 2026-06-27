@@ -56,6 +56,7 @@ pub fn build(app: &AppHandle<Wry>) -> Result<()> {
             match event.id().as_ref() {
                 ID_PREFS => {
                     if let Some(w) = app.get_webview_window("main") {
+                        crate::window_pos::center_on_active_monitor(app, &w);
                         let _ = w.show();
                         let _ = w.set_focus();
                     }

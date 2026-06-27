@@ -24,7 +24,7 @@
   --source-curated: #7c3aed;
   --source-personal: #76787f;
   --mark-bg: rgba(250, 204, 21, 0.5);
-  --shadow: 0 14px 44px -10px rgba(18, 20, 33, 0.3), 0 3px 10px -3px rgba(18, 20, 33, 0.16);
+  --shadow: 0 4px 14px -6px rgba(18, 20, 33, 0.32);
 
   --font-ui: Inter, Avenir, Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
@@ -51,7 +51,7 @@
     --source-curated: #a78bfa;
     --source-personal: #9ca3af;
     --mark-bg: rgba(250, 204, 21, 0.32);
-    --shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.6), 0 4px 12px -4px rgba(0, 0, 0, 0.45);
+    --shadow: 0 5px 16px -6px rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -74,7 +74,7 @@
   --source-curated: #7c3aed;
   --source-personal: #76787f;
   --mark-bg: rgba(250, 204, 21, 0.5);
-  --shadow: 0 14px 44px -10px rgba(18, 20, 33, 0.3), 0 3px 10px -3px rgba(18, 20, 33, 0.16);
+  --shadow: 0 4px 14px -6px rgba(18, 20, 33, 0.32);
 }
 
 :root[data-theme="dark"] {
@@ -96,7 +96,7 @@
   --source-curated: #a78bfa;
   --source-personal: #9ca3af;
   --mark-bg: rgba(250, 204, 21, 0.32);
-  --shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.6), 0 4px 12px -4px rgba(0, 0, 0, 0.45);
+  --shadow: 0 5px 16px -6px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -115,7 +115,7 @@ body {
   /* The native window is transparent (tauri.conf: transparent + macOSPrivateApi),
      so everything outside `main` shows the desktop. The padding is the
      transparent gap the floating surface sits in; the shadow lives on `main`. */
-  padding: 10px;
+  padding: 6px;
   background: transparent;
   color: var(--fg);
   font-family: var(--font-ui);

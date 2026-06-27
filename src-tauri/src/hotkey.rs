@@ -16,6 +16,7 @@ pub fn register(app: &AppHandle, combo: &str) -> Result<()> {
                 // specifically, _NET_WM_STATE_ABOVE being set at focus-request
                 // time is what allows the focus steal to succeed.
                 let _ = w.unminimize();
+                crate::window_pos::center_on_active_monitor(app, &w);
                 let _ = w.show();
                 let _ = w.set_always_on_top(true);
                 let _ = w.set_focus();

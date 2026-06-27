@@ -31,6 +31,7 @@ pub fn spawn<R: Runtime>(app: AppHandle<R>) {
                 }
             };
             if let Some(w) = app.get_webview_window("main") {
+                crate::window_pos::center_on_active_monitor(&app, &w);
                 let _ = w.show();
                 let _ = w.set_focus();
                 let _ = w.unminimize();

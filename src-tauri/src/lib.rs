@@ -4,6 +4,7 @@ mod index_state;
 mod settings;
 mod toggle;
 mod tray;
+mod window_pos;
 
 use std::sync::{Arc, Mutex, RwLock};
 
@@ -65,6 +66,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
+                window_pos::center_on_active_monitor(app, &w);
                 let _ = w.show();
                 let _ = w.set_focus();
             }
