@@ -8,15 +8,45 @@
   import AboutPanel from "./lib/AboutPanel.svelte";
   import DetailsPane from "./lib/DetailsPane.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
-  import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
+  import { getAllSettings, indexStatus, openUrl, resizeWindowTo } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
   import { STRINGS, format } from "./lib/strings";
 
   const launcher = new Launcher();
 
+  // Spotlight-style window: logical width is fixed; height tracks the content.
+  const WINDOW_WIDTH = 720;
+  const WINDOW_PAD = 8; // matches body padding; transparent shadow gutter
+  let mainEl = $state<HTMLElement>();
+
+  // Show the results area (and footer) once there's a query, or when there are
+  // recents/pinned to surface. Empty + no history = just the search bar.
+  const showResults = $derived(
+    !launcher.emptyQuery || launcher.pinnedList.length + launcher.recentList.length > 0,
+  );
+
   $effect(() => {
     const _ = launcher.selectedIndex;
     document.querySelector('[role="listbox"] li.active')?.scrollIntoView({ block: "nearest" });
+  });
+
+  // Resize the native window to fit `main` whenever the rendered height can
+  // change, so the surface grows from a single bar as results come in.
+  $effect(() => {
+    // Track every input to the rendered height.
+    void launcher.results.length;
+    void launcher.emptyQuery;
+    void launcher.zeroResult;
+    void launcher.suggestions.length;
+    void launcher.recentList.length;
+    void launcher.pinnedList.length;
+    void launcher.settingsOpen;
+    void launcher.aboutOpen;
+    void launcher.detailsHit;
+    requestAnimationFrame(() => {
+      if (!mainEl) return;
+      void resizeWindowTo(WINDOW_WIDTH, mainEl.offsetHeight + WINDOW_PAD * 2);
+    });
   });
   // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
   // Rust before this window paints, so a streaming N/N counter would never
@@ -121,7 +151,7 @@
   });
 </script>
 
-<main>
+<main bind:this={mainEl} class:tall={launcher.settingsOpen || launcher.aboutOpen}>
   <div class="input-zone">
     <span class="input-glyph" aria-hidden="true">
       <svg
@@ -153,65 +183,67 @@
       <span class="input-count" aria-hidden="true">{launcher.results.length}</span>
     {/if}
   </div>
-  <div class="results-area">
-    <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
-      {#if launcher.emptyQuery}
-        <EmptyView
-          recents={launcher.recentList}
-          pinned={launcher.pinnedList}
-          onSelectRecent={(q: string) => launcher.selectRecent(q)}
-          onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
-          onCopyText={(text: string) => launcher.copyText(text)}
-          selectedIndex={launcher.selectedIndex}
-          pinnedOffset={0}
-          recentsOffset={launcher.pinnedList.length}
-        />
-      {:else}
-        {#each launcher.results as r, i (r.id)}
-          <ResultItem
-            hit={r}
-            active={i === launcher.selectedIndex}
-            pinned={launcher.pinnedIds.has(r.id)}
-            query={launcher.query}
-            onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
-            onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
-            onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
-            onOpenSource={(h: SearchHit) => launcher.openSource(h)}
-            onReport={(h: SearchHit) => reportCard(h)}
+  {#if showResults}
+    <div class="results-area">
+      <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
+        {#if launcher.emptyQuery}
+          <EmptyView
+            recents={launcher.recentList}
+            pinned={launcher.pinnedList}
+            onSelectRecent={(q: string) => launcher.selectRecent(q)}
+            onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
+            onCopyText={(text: string) => launcher.copyText(text)}
+            selectedIndex={launcher.selectedIndex}
+            pinnedOffset={0}
+            recentsOffset={launcher.pinnedList.length}
           />
-        {/each}
-        {#if launcher.zeroResult}
-          <li class="empty zero" role="status">
-            {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
-            {#if launcher.suggestions.length > 0}
-              <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
-              <span class="suggest-chips">
-                {#each launcher.suggestions as pack (pack)}
-                  <button
-                    type="button"
-                    class="suggest-chip"
-                    onmousedown={(e) => {
-                      e.preventDefault();
-                      launcher.applySuggestion(pack);
-                    }}
-                  >
-                    {pack}
-                  </button>
-                {/each}
-              </span>
-            {/if}
-          </li>
+        {:else}
+          {#each launcher.results as r, i (r.id)}
+            <ResultItem
+              hit={r}
+              active={i === launcher.selectedIndex}
+              pinned={launcher.pinnedIds.has(r.id)}
+              query={launcher.query}
+              onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
+              onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
+              onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
+              onOpenSource={(h: SearchHit) => launcher.openSource(h)}
+              onReport={(h: SearchHit) => reportCard(h)}
+            />
+          {/each}
+          {#if launcher.zeroResult}
+            <li class="empty zero" role="status">
+              {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
+              {#if launcher.suggestions.length > 0}
+                <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
+                <span class="suggest-chips">
+                  {#each launcher.suggestions as pack (pack)}
+                    <button
+                      type="button"
+                      class="suggest-chip"
+                      onmousedown={(e) => {
+                        e.preventDefault();
+                        launcher.applySuggestion(pack);
+                      }}
+                    >
+                      {pack}
+                    </button>
+                  {/each}
+                </span>
+              {/if}
+            </li>
+          {/if}
         {/if}
+      </ul>
+      {#if launcher.detailsHit}
+        <DetailsPane
+          hit={launcher.detailsHit}
+          onClose={() => launcher.closeDetails()}
+          onToast={(m: string) => launcher.showToast(m)}
+        />
       {/if}
-    </ul>
-    {#if launcher.detailsHit}
-      <DetailsPane
-        hit={launcher.detailsHit}
-        onClose={() => launcher.closeDetails()}
-        onToast={(m: string) => launcher.showToast(m)}
-      />
-    {/if}
-  </div>
+    </div>
+  {/if}
   {#if launcher.toast}
     <div class="toast" role="status">{launcher.toast}</div>
   {/if}
@@ -226,29 +258,38 @@
       onToast={(m: string) => launcher.showToast(m)}
     />
   {/if}
-  <footer class="status" aria-live="polite">
-    <span class="footer-keys">
-      {#each footerKeys as hint (hint)}
-        <span class="hint">{hint}</span>
-      {/each}
-    </span>
-    <span class="footer-count">
-      {#if status}
-        {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
-      {:else}
-        {STRINGS.INDEXING_STATUS}
-      {/if}
-    </span>
-  </footer>
+  {#if showResults}
+    <footer class="status" aria-live="polite">
+      <span class="footer-keys">
+        {#each footerKeys as hint (hint)}
+          <span class="hint">{hint}</span>
+        {/each}
+      </span>
+      <span class="footer-count">
+        {#if status}
+          {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
+        {:else}
+          {STRINGS.INDEXING_STATUS}
+        {/if}
+      </span>
+    </footer>
+  {/if}
 </main>
 
 <style>
   .results-area {
     position: relative;
+    /* Caps how tall the window grows; the list scrolls past this height. */
+    max-height: 380px;
     flex: 1 1 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+  /* When the settings/about panel forces a fixed-height window, let the
+     results area fill it so the overlay has a full surface to cover. */
+  main.tall .results-area {
+    max-height: none;
   }
   .results-area > ul {
     flex: 1 1 auto;

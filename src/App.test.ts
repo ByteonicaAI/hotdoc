@@ -191,14 +191,19 @@ describe("App launcher", () => {
     expect(calls).not.toContain("record_recent");
   });
 
-  it("empty query shows the empty-view hint when no recents", async () => {
+  it("empty query with no recents shows just the search bar (Spotlight-style)", async () => {
     vi.mocked(invoke).mockImplementation((cmd: string) =>
       Promise.resolve(cmd === "get_recents" ? [] : undefined),
     );
     render(App);
+    // The bar is always present.
+    expect(screen.getByPlaceholderText(/type to search/i)).toBeInTheDocument();
+    // With no query and no history, the results area collapses to nothing —
+    // no listbox, no empty-view hint — so the window stays a single bar.
     await waitFor(() => {
-      expect(screen.getByText(/Type to search packs\./i)).toBeInTheDocument();
+      expect(screen.queryByText(/Type to search packs\./i)).not.toBeInTheDocument();
     });
+    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
   it("empty query shows Recent rows when recents exist", async () => {

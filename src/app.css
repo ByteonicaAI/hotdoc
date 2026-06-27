@@ -107,8 +107,11 @@ body {
 }
 
 body {
-  /* Solid, opaque window. The surface fills it edge to edge. */
-  background: var(--bg);
+  /* Transparent window (tauri.conf: transparent + macOSPrivateApi): only the
+     rounded `main` is visible, floating over the desktop. The padding gives the
+     shadow room; the window resizes to fit `main`, Spotlight-style. */
+  padding: 8px;
+  background: transparent;
   color: var(--fg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -120,11 +123,22 @@ body {
 }
 
 main {
+  /* Sizes to its content (just the input bar when empty, growing as results
+     appear). `position: relative` anchors the settings/about/details overlays. */
+  position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
   background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+/* Full-panel states (settings, about) get a fixed height so their overlays
+   fill a proper rounded surface instead of collapsing onto the bar. */
+main.tall {
+  height: 460px;
 }
 
 /* ── Input zone ───────────────────────────────────────────────── */

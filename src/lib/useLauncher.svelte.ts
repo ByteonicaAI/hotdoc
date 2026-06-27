@@ -131,7 +131,7 @@ export class Launcher {
         this.recentsEnabled ? getRecents(5) : Promise.resolve([] as Recent[]),
         pinned.fetchPinned(),
       ]);
-      this.recentList = r;
+      this.recentList = r ?? [];
       this.pinnedList = p;
       this.pinnedIds = new Set(p.map((h) => h.id));
     } catch (e) {
