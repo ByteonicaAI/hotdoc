@@ -26,9 +26,15 @@ docs/internal
 
 # AI Agents
 CLAUDE.md
+GEMINI.md
+AGENTS.md
 .codex
 .opencode
 .hermes
 .claude
+.playwright-mcp/
+.playwright/
+.stagehand/
+.local/
 superpowers/
 graphify-out

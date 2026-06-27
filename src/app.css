@@ -121,10 +121,27 @@ body {
   overflow: hidden;
 }
 
+/* Transparent click-catcher behind `main`. Clicking the empty area of the
+   window (anywhere but the rounded surface) dismisses, like clicking outside
+   Spotlight. Button (not div) so it's keyboard-operable with no a11y warning. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  cursor: default;
+}
+
 main {
-  /* Sizes to its content (just the input bar when empty, growing as results
-     appear). `position: relative` anchors the settings/about/details overlays. */
+  /* Anchored to the top of the transparent window, sized to its content (just
+     the input bar when empty, growing as results appear). `position: relative`
+     + z-index keeps it above the backdrop and anchors the overlays. */
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -133,10 +150,10 @@ main {
   overflow: hidden;
 }
 
-/* Full-panel states (settings, about) get a fixed height so their overlays
-   fill a proper rounded surface instead of collapsing onto the bar. */
+/* Full-panel states (settings, about) fill the window so their overlays cover a
+   proper rounded surface instead of collapsing onto the bar. */
 main.tall {
-  height: 460px;
+  height: 100%;
 }
 
 /* ── Input zone ───────────────────────────────────────────────── */

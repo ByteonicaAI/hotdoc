@@ -1,17 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import type { PackMeta, Recent, SearchHit } from "./types";
-
-// Spotlight-style content sizing: the window is transparent and resizes to the
-// rendered content height so only the rounded surface is ever visible. No-ops
-// outside Tauri (e.g. unit tests) so callers don't need to guard.
-export async function resizeWindowTo(width: number, height: number): Promise<void> {
-  try {
-    await getCurrentWindow().setSize(new LogicalSize(width, height));
-  } catch {
-    /* not running inside a Tauri window */
-  }
-}
 
 // ponytail: thin typed wrappers around Tauri commands. The Rust side
 // returns Result<T, String> for search/copy_syntax; Tauri auto-rejects

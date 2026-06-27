@@ -8,45 +8,29 @@
   import AboutPanel from "./lib/AboutPanel.svelte";
   import DetailsPane from "./lib/DetailsPane.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
-  import { getAllSettings, indexStatus, openUrl, resizeWindowTo } from "./lib/tauri";
+  import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
   import type { SearchHit } from "./lib/types";
   import { STRINGS, format } from "./lib/strings";
 
   const launcher = new Launcher();
 
-  // Spotlight-style window: logical width is fixed; height tracks the content.
-  const WINDOW_WIDTH = 720;
-  const WINDOW_PAD = 0; // surface fills the window edge to edge, no gutter
-  let mainEl = $state<HTMLElement>();
-
   // Show the results area (and footer) once there's a query, or when there are
-  // recents/pinned to surface. Empty + no history = just the search bar.
+  // recents/pinned to surface. Empty + no history = just the search bar; the
+  // rest of the (transparent) window stays empty until the user types.
   const showResults = $derived(
     !launcher.emptyQuery || launcher.pinnedList.length + launcher.recentList.length > 0,
   );
 
+  // The window is a fixed-size transparent pane; only the rounded `main` shows.
+  // Clicking the empty area (the backdrop) dismisses, like clicking outside
+  // Spotlight.
+  function dismiss() {
+    void launcher.doHide();
+  }
+
   $effect(() => {
     const _ = launcher.selectedIndex;
     document.querySelector('[role="listbox"] li.active')?.scrollIntoView({ block: "nearest" });
-  });
-
-  // Resize the native window to fit `main` whenever the rendered height can
-  // change, so the surface grows from a single bar as results come in.
-  $effect(() => {
-    // Track every input to the rendered height.
-    void launcher.results.length;
-    void launcher.emptyQuery;
-    void launcher.zeroResult;
-    void launcher.suggestions.length;
-    void launcher.recentList.length;
-    void launcher.pinnedList.length;
-    void launcher.settingsOpen;
-    void launcher.aboutOpen;
-    void launcher.detailsHit;
-    requestAnimationFrame(() => {
-      if (!mainEl) return;
-      void resizeWindowTo(WINDOW_WIDTH, mainEl.offsetHeight + WINDOW_PAD * 2);
-    });
   });
   // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
   // Rust before this window paints, so a streaming N/N counter would never
@@ -151,7 +135,8 @@
   });
 </script>
 
-<main bind:this={mainEl} class:tall={launcher.settingsOpen || launcher.aboutOpen}>
+<button type="button" class="backdrop" aria-label={STRINGS.DISMISS_ARIA} onclick={dismiss}></button>
+<main class:tall={launcher.settingsOpen || launcher.aboutOpen}>
   <div class="input-zone">
     <span class="input-glyph" aria-hidden="true">
       <svg
@@ -287,7 +272,9 @@
      shows roughly 5 results then scrolls. Content-sized (not flex-grow) so it
      never collapses to a single row in the auto-height window. */
   .results-area > ul {
-    max-height: 460px;
+    /* Fits ~5 rich rows (syntax + title + desc + example ≈ 110-130px each)
+       within the fixed window height, then scrolls. */
+    max-height: 580px;
     overflow-y: auto;
   }
   /* The settings/about panel fixes the window height; let the list fill it. */

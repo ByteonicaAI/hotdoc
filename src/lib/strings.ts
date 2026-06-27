@@ -50,6 +50,7 @@ export const STRINGS = {
   SETTINGS_ARIA: "Settings",
   SETTINGS_TITLE: "Settings",
   CLOSE_ARIA: "Close",
+  DISMISS_ARIA: "Dismiss",
   HOTKEY_SECTION: "Hotkey",
   HOTKEY_PLACEHOLDER: "Ctrl+Shift+Space",
   SAVE_BTN: "Save",

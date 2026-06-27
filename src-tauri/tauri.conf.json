@@ -16,11 +16,11 @@
         "label": "main",
         "title": "hotdoc",
         "width": 720,
-        "height": 96,
+        "height": 660,
         "visible": false,
         "decorations": false,
         "transparent": true,
-        "resizable": true,
+        "resizable": false,
         "center": true,
         "alwaysOnTop": true
       }
