@@ -108,17 +108,21 @@
 
 <style>
   .empty {
-    padding: 12px 16px;
-    color: var(--muted, #888);
+    margin: auto 0;
+    padding: 28px 16px;
+    color: var(--faint);
     font-size: 13px;
+    text-align: center;
   }
+  /* Selection tint comes from the global `li.active` (accent-soft); the inner
+     button stays transparent so the two never double up. */
   .recent-row,
   .pinned-row {
     display: flex;
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 5px 16px;
+    padding: 2px 4px;
     background: transparent;
     border: none;
     color: inherit;
@@ -126,16 +130,12 @@
     text-align: left;
     font: inherit;
   }
-  li.active > .recent-row,
-  li.active > .pinned-row {
-    background: var(--row-active-bg, rgba(255, 255, 255, 0.08));
-  }
   .recent-label {
-    font-size: 11px;
-    color: var(--muted, #888);
+    font-size: 10px;
+    color: var(--faint);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    min-width: 56px;
+    letter-spacing: 0.05em;
+    min-width: 50px;
   }
   .recent-query {
     font-family: var(--mono, monospace);
@@ -177,22 +177,22 @@
   .row-copy-btn {
     flex-shrink: 0;
     display: none;
-    font: inherit;
-    font-size: 11px;
-    padding: 2px 8px;
-    margin-right: 8px;
-    border: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.15));
-    border-radius: 4px;
-    background: transparent;
+    font: 500 11px/1 var(--font-ui);
+    padding: 3px 8px;
+    margin-right: 4px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
     color: var(--muted, #888);
     cursor: pointer;
+    transition: border-color 90ms ease;
   }
   li:hover > .row-copy-btn,
   li.active > .row-copy-btn {
     display: block;
   }
   .row-copy-btn:hover {
-    background: var(--row-active-bg, rgba(255, 255, 255, 0.08));
-    color: inherit;
+    border-color: var(--accent);
+    color: var(--fg);
   }
 </style>

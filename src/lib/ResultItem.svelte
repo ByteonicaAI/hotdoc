@@ -45,6 +45,12 @@
 <li class:active role="option" aria-selected={active}>
   <div class="row syntax-row">
     <span class="syntax">{hit.syntax}</span>
+    {#if active}
+      <span class="row-keys" aria-hidden="true">
+        <span class="kbd">↵</span>
+        {#if hit.example_code}<span class="kbd">⇧↵</span>{/if}
+      </span>
+    {/if}
     {#if pinned}
       <span class="pin-mark" aria-label={STRINGS.PIN_ARIA} aria-hidden="true">📌</span>
     {/if}
@@ -83,19 +89,29 @@
 
 <style>
   .pin-mark {
+    flex: 0 0 auto;
     font-size: 11px;
+  }
+  .row-keys {
+    flex: 0 0 auto;
+    display: inline-flex;
+    gap: 4px;
   }
   mark {
     background: var(--mark-bg, rgba(250, 204, 21, 0.35));
     color: inherit;
-    border-radius: 2px;
+    border-radius: 3px;
+    padding: 0 1px;
   }
+  /* Mouse users get the same actions on hover; keyboard is primary. Hidden
+     until the row is hovered or focused so it never competes with the read. */
   .actions {
     display: flex;
     opacity: 0;
     pointer-events: none;
-    gap: 8px;
-    margin-top: 6px;
+    gap: 6px;
+    margin-top: 5px;
+    transition: opacity 90ms ease;
   }
   li:hover > .actions,
   li:focus-within > .actions {
@@ -103,16 +119,17 @@
     pointer-events: auto;
   }
   .actions button {
-    font: inherit;
-    font-size: 11px;
-    padding: 2px 8px;
-    border: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.15));
+    font: 500 11px/1 var(--font-ui);
+    padding: 3px 8px;
+    border: 1px solid var(--border);
     border-radius: 6px;
-    background: transparent;
+    background: var(--bg);
     color: var(--muted, #888);
     cursor: pointer;
+    transition: border-color 90ms ease;
   }
   .actions button:hover {
-    color: inherit;
+    color: var(--fg);
+    border-color: var(--accent);
   }
 </style>

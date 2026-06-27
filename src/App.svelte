@@ -25,6 +25,18 @@
   let status = $state<{ entry_count: number; pack_count: number } | null>(null);
   let appVersion = $state("0.4.0");
 
+  // Footer key hints, split into discrete chips. Contextual to whether the
+  // user is searching (full set) or on the cold/empty view (minimal set).
+  const footerKeys = $derived(
+    (launcher.emptyQuery || launcher.results.length === 0
+      ? STRINGS.FOOTER_KEYS_EMPTY
+      : STRINGS.FOOTER_KEYS_SEARCH
+    )
+      .split("·")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+
   function reportUrl(hit: SearchHit): string {
     const title = encodeURIComponent(`Card report: ${hit.pack_id}/${hit.id}`);
     const body = encodeURIComponent(
@@ -110,17 +122,37 @@
 </script>
 
 <main>
-  <input
-    id="q"
-    aria-label={STRINGS.SEARCH_INPUT_ARIA}
-    placeholder={STRINGS.SEARCH_PLACEHOLDER}
-    bind:value={launcher.query}
-    oninput={(e) => launcher.onInput(e.currentTarget.value)}
-    onkeydown={(e) => launcher.onKey(e)}
-    autocomplete="off"
-    autocorrect="off"
-    spellcheck="false"
-  />
+  <div class="input-zone">
+    <span class="input-glyph" aria-hidden="true">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <line x1="21" y1="21" x2="16.5" y2="16.5" />
+      </svg>
+    </span>
+    <input
+      id="q"
+      aria-label={STRINGS.SEARCH_INPUT_ARIA}
+      placeholder={STRINGS.SEARCH_PLACEHOLDER}
+      bind:value={launcher.query}
+      oninput={(e) => launcher.onInput(e.currentTarget.value)}
+      onkeydown={(e) => launcher.onKey(e)}
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    {#if !launcher.emptyQuery && launcher.results.length > 0}
+      <span class="input-count" aria-hidden="true">{launcher.results.length}</span>
+    {/if}
+  </div>
   <div class="results-area">
     <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
       {#if launcher.emptyQuery}
@@ -196,11 +228,9 @@
   {/if}
   <footer class="status" aria-live="polite">
     <span class="footer-keys">
-      {#if !launcher.emptyQuery && launcher.results.length > 0}
-        {STRINGS.FOOTER_KEYS_SEARCH}
-      {:else}
-        {STRINGS.FOOTER_KEYS_EMPTY}
-      {/if}
+      {#each footerKeys as hint (hint)}
+        <span class="hint">{hint}</span>
+      {/each}
     </span>
     <span class="footer-count">
       {#if status}
@@ -225,48 +255,68 @@
     overflow-y: auto;
   }
   .status {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 16px;
-    border-top: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.08));
-    color: var(--muted, #888);
-    font-size: 11px;
+    gap: 12px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
   }
   .footer-keys {
-    color: var(--muted, #888);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .footer-keys .hint {
+    flex: 0 0 auto;
+    color: var(--muted);
     font-size: 11px;
+    white-space: nowrap;
   }
   .footer-count {
-    color: var(--muted, #888);
-    font-size: 10px;
-    opacity: 0.7;
+    flex: 0 0 auto;
+    color: var(--faint);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
+  /* Zero-result lives as a centered block, not a row in the list. */
   .zero {
+    /* The only row when search fails; center it in the list's free space. */
+    margin: auto 0;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    padding: 28px 16px;
+    text-align: center;
   }
   .suggest-label {
-    color: var(--muted, #888);
-    font-size: 12px;
+    color: var(--faint);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
   .suggest-chips {
     display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 6px;
   }
   .suggest-chip {
-    font: inherit;
-    font-size: 12px;
-    padding: 2px 10px;
-    border: 1px solid var(--row-active-bg, rgba(255, 255, 255, 0.15));
-    border-radius: 999px;
-    background: transparent;
-    color: inherit;
+    font: 500 12px/1 var(--font-mono);
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--active-bg);
+    color: var(--fg);
     cursor: pointer;
+    transition: border-color 90ms ease;
   }
   .suggest-chip:hover {
-    background: var(--row-active-bg, rgba(255, 255, 255, 0.08));
+    border-color: var(--accent);
   }
 </style>

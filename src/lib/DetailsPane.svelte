@@ -73,16 +73,17 @@
     position: absolute;
     inset: 0;
     z-index: 10;
-    padding: 10px 12px;
+    padding: 14px 16px;
     background: var(--bg);
     overflow-y: auto;
-    border-radius: 8px;
   }
   .details-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
   }
   .details-title {
     font-size: 11px;

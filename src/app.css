@@ -1,77 +1,102 @@
+/* hotdoc design system — "The Reflex"
+   Local-first keyboard launcher. Floating surface, restrained color,
+   monospace command as the hero. Light + dark are both first-class;
+   the window mirrors the system theme it floats over. */
+
 :root {
-  --bg: #ffffff;
-  --fg: #0f0f0f;
-  --border: #e5e7eb;
-  --muted: #6b7280;
-  --active-bg: #f4f4f5;
-  --font-ui: Inter, Avenir, Helvetica, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
-  --mono: var(--font-mono);
-  --row-active-bg: rgba(0, 0, 0, 0.05);
-  --input-bg: #ffffff;
+  /* Neutrals — light. Tinted cool toward Signal Blue (chroma is whisper-low). */
+  --backdrop: #e7e9ee; /* the tone behind the floating surface */
+  --bg: #fbfbfd; /* the surface itself */
+  --fg: #14151a;
+  --border: #e4e5ea;
+  --muted: #6b6e79;
+  --faint: #9b9ea9;
+  --active-bg: #f0f1f5;
+  --row-active-bg: rgba(20, 21, 26, 0.05);
+  --input-bg: #fbfbfd;
+  --kbd-bg: #eceef3;
   --accent: #4a9eff;
   --status-bg: rgba(74, 158, 255, 0.12);
-  --status-err-bg: rgba(255, 80, 80, 0.12);
+  --status-err-bg: rgba(220, 72, 72, 0.12);
+  --accent-soft: rgba(74, 158, 255, 0.1); /* keyboard-selection tint */
   --source-official: #2563eb;
   --source-cheat-sheet: #16a34a;
   --source-curated: #7c3aed;
-  --source-personal: #888;
-  --mark-bg: rgba(250, 204, 21, 0.45);
+  --source-personal: #76787f;
+  --mark-bg: rgba(250, 204, 21, 0.5);
+  --shadow: 0 14px 44px -10px rgba(18, 20, 33, 0.3), 0 3px 10px -3px rgba(18, 20, 33, 0.16);
+
+  --font-ui: Inter, Avenir, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+  --mono: var(--font-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #0b0b0e;
-    --fg: #e4e4e7;
-    --border: #27272a;
-    --muted: #a1a1aa;
-    --active-bg: #18181b;
-    --row-active-bg: rgba(255, 255, 255, 0.08);
-    --input-bg: rgba(255, 255, 255, 0.06);
+    --backdrop: #050608;
+    --bg: #101116;
+    --fg: #e6e7ec;
+    --border: #262833;
+    --muted: #9a9ca6;
+    --faint: #696b75;
+    --active-bg: #1b1c22;
+    --row-active-bg: rgba(255, 255, 255, 0.06);
+    --input-bg: #101116;
+    --kbd-bg: #1e2027;
     --status-bg: rgba(74, 158, 255, 0.15);
-    --status-err-bg: rgba(255, 80, 80, 0.18);
+    --status-err-bg: rgba(255, 80, 80, 0.16);
+    --accent-soft: rgba(74, 158, 255, 0.14);
     --source-official: #60a5fa;
     --source-cheat-sheet: #4ade80;
     --source-curated: #a78bfa;
     --source-personal: #9ca3af;
-    --mark-bg: rgba(250, 204, 21, 0.3);
+    --mark-bg: rgba(250, 204, 21, 0.32);
+    --shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.6), 0 4px 12px -4px rgba(0, 0, 0, 0.45);
   }
 }
 
 :root[data-theme="light"] {
-  --bg: #ffffff;
-  --fg: #0f0f0f;
-  --border: #e5e7eb;
-  --muted: #6b7280;
-  --active-bg: #f4f4f5;
-  --row-active-bg: rgba(0, 0, 0, 0.05);
-  --input-bg: #ffffff;
-  --accent: #4a9eff;
+  --backdrop: #e7e9ee;
+  --bg: #fbfbfd;
+  --fg: #14151a;
+  --border: #e4e5ea;
+  --muted: #6b6e79;
+  --faint: #9b9ea9;
+  --active-bg: #f0f1f5;
+  --row-active-bg: rgba(20, 21, 26, 0.05);
+  --input-bg: #fbfbfd;
+  --kbd-bg: #eceef3;
   --status-bg: rgba(74, 158, 255, 0.12);
-  --status-err-bg: rgba(255, 80, 80, 0.12);
+  --status-err-bg: rgba(220, 72, 72, 0.12);
+  --accent-soft: rgba(74, 158, 255, 0.1);
   --source-official: #2563eb;
   --source-cheat-sheet: #16a34a;
   --source-curated: #7c3aed;
-  --source-personal: #888;
-  --mark-bg: rgba(250, 204, 21, 0.45);
+  --source-personal: #76787f;
+  --mark-bg: rgba(250, 204, 21, 0.5);
+  --shadow: 0 14px 44px -10px rgba(18, 20, 33, 0.3), 0 3px 10px -3px rgba(18, 20, 33, 0.16);
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b0b0e;
-  --fg: #e4e4e7;
-  --border: #27272a;
-  --muted: #a1a1aa;
-  --active-bg: #18181b;
-  --row-active-bg: rgba(255, 255, 255, 0.08);
-  --input-bg: rgba(255, 255, 255, 0.06);
-  --accent: #4a9eff;
+  --backdrop: #050608;
+  --bg: #101116;
+  --fg: #e6e7ec;
+  --border: #262833;
+  --muted: #9a9ca6;
+  --faint: #696b75;
+  --active-bg: #1b1c22;
+  --row-active-bg: rgba(255, 255, 255, 0.06);
+  --input-bg: #101116;
+  --kbd-bg: #1e2027;
   --status-bg: rgba(74, 158, 255, 0.15);
-  --status-err-bg: rgba(255, 80, 80, 0.18);
+  --status-err-bg: rgba(255, 80, 80, 0.16);
+  --accent-soft: rgba(74, 158, 255, 0.14);
   --source-official: #60a5fa;
   --source-cheat-sheet: #4ade80;
   --source-curated: #a78bfa;
   --source-personal: #9ca3af;
-  --mark-bg: rgba(250, 204, 21, 0.3);
+  --mark-bg: rgba(250, 204, 21, 0.32);
+  --shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.6), 0 4px 12px -4px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -83,7 +108,13 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: var(--bg);
+}
+
+body {
+  /* 8px backdrop frame: the surface reads as a floating pane even when the
+     OS window is opaque. The only shadow in the system lives on `main`. */
+  padding: 8px;
+  background: var(--backdrop);
   color: var(--fg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -97,55 +128,86 @@ body {
 main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px;
-  gap: 8px;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ── Input zone ───────────────────────────────────────────────── */
+
+.input-zone {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.input-glyph {
+  flex: 0 0 auto;
+  display: flex;
+  color: var(--faint);
 }
 
 #q {
-  flex: 0 0 auto;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
   color: var(--fg);
-  font: 500 16px/1.4 var(--font-ui);
-  padding: 8px 8px;
-  caret-color: var(--source-official);
+  font: 500 17px/1.3 var(--font-ui);
+  padding: 0;
+  caret-color: var(--accent);
 }
 
 #q::placeholder {
-  color: var(--muted);
+  color: var(--faint);
   font-weight: 400;
 }
+
+.input-count {
+  flex: 0 0 auto;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  background: var(--active-bg);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Result list ──────────────────────────────────────────────── */
 
 ul[role="listbox"] {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 6px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 ul[role="listbox"] li {
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 9px;
+  padding: 7px 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   border: 1px solid transparent;
-  background: var(--bg);
+  background: transparent;
   transition:
-    background-color 80ms linear,
-    border-color 80ms linear;
+    background-color 90ms ease,
+    border-color 90ms ease;
 }
 
 ul[role="listbox"] li.active {
-  background: var(--active-bg);
+  background: var(--accent-soft);
   border-color: var(--border);
 }
 
@@ -158,8 +220,9 @@ ul[role="listbox"] li.active {
 }
 
 .syntax {
-  font-family: var(--font-mono);
-  font-size: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+  font: 500 14px/1.4 var(--font-mono);
   color: var(--fg);
   white-space: nowrap;
   overflow: hidden;
@@ -169,28 +232,25 @@ ul[role="listbox"] li.active {
 
 .source {
   flex: 0 0 auto;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 5px;
   color: white;
-  background: var(--muted);
+  background: var(--source-personal);
   text-transform: uppercase;
 }
 
 .source.official {
   background: var(--source-official);
 }
-
 .source.cheat-sheet {
   background: var(--source-cheat-sheet);
 }
-
 .source.curated {
   background: var(--source-curated);
 }
-
 .source.personal {
   background: var(--source-personal);
 }
@@ -208,7 +268,7 @@ ul[role="listbox"] li.active {
 .pack {
   flex: 0 0 auto;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--faint);
   font-family: var(--font-mono);
 }
 
@@ -221,46 +281,87 @@ ul[role="listbox"] li.active {
 }
 
 .example {
+  align-self: flex-start;
+  max-width: 100%;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--muted);
   background: var(--active-bg);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   user-select: text;
 }
 
+/* ── Keycap (inline hints + footer) ───────────────────────────── */
+
+.kbd {
+  flex: 0 0 auto;
+  font: 500 10.5px/1 var(--font-mono);
+  color: var(--muted);
+  background: var(--kbd-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 5px;
+  white-space: nowrap;
+}
+
+/* ── Empty / zero-result ──────────────────────────────────────── */
+
 .empty {
   color: var(--muted);
   font-size: 13px;
   padding: 16px;
   text-align: center;
-  font-style: italic;
 }
 
-/* NFR-9 (T11): visible focus ring on every interactive element — keyboard-only UX. */
+/* ── Focus ring — keyboard-first, on every interactive element ── */
+
 *:focus-visible {
-  outline: 2px solid var(--accent, #4a9eff);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 5px;
 }
+
+/* ── Toast ────────────────────────────────────────────────────── */
 
 .toast {
   position: fixed;
-  bottom: 12px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--fg);
   color: var(--bg);
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 7px 13px;
+  border-radius: 7px;
   font-size: 12px;
   font-family: var(--font-mono);
   white-space: nowrap;
-  max-width: calc(100% - 24px);
+  max-width: calc(100% - 32px);
   overflow: hidden;
   text-overflow: ellipsis;
+  box-shadow: var(--shadow);
+  animation: toast-in 130ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
