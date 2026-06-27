@@ -108,13 +108,15 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  background: transparent;
 }
 
 body {
-  /* The native window (Tauri, decorations:false) is an opaque rectangle, so
-     the surface fills it edge to edge. No backdrop frame — a transparent
-     window would be required to float, and that is a separate native change. */
-  background: var(--bg);
+  /* The native window is transparent (tauri.conf: transparent + macOSPrivateApi),
+     so everything outside `main` shows the desktop. The padding is the
+     transparent gap the floating surface sits in; the shadow lives on `main`. */
+  padding: 10px;
+  background: transparent;
   color: var(--fg);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -126,10 +128,15 @@ body {
 }
 
 main {
+  /* The only visible surface: a rounded floating pane with the system's one
+     shadow. height accounts for the body padding so it never clips. */
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
   overflow: hidden;
 }
 
