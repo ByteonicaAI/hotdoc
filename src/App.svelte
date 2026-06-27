@@ -59,11 +59,7 @@
       });
     void listen("hotdoc://show", () => {
       launcher.reset();
-      const input = document.getElementById("q") as HTMLInputElement | null;
-      if (input) {
-        input.value = "";
-        input.focus();
-      }
+      document.getElementById("q")?.focus();
     }).then((u) => unlisteners.push(u));
     void listen("hotdoc://refresh-empty-view", () => {
       void launcher.loadEmptyView();
@@ -118,7 +114,7 @@
     id="q"
     aria-label={STRINGS.SEARCH_INPUT_ARIA}
     placeholder={STRINGS.SEARCH_PLACEHOLDER}
-    value={launcher.query}
+    bind:value={launcher.query}
     oninput={(e) => launcher.onInput(e.currentTarget.value)}
     onkeydown={(e) => launcher.onKey(e)}
     autocomplete="off"

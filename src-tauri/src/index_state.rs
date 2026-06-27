@@ -70,8 +70,3 @@ pub fn bundled_packs_dir() -> PathBuf {
 pub fn dev_packs_dir() -> PathBuf {
     index_resolver::dev_packs_dir()
 }
-
-#[allow(dead_code)] // re-export for tests + future use
-pub fn persistent_index_dir() -> Option<PathBuf> {
-    index_resolver::persistent_index_dir()
-}
