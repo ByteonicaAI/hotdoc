@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use tauri::State;
+use tauri::{LogicalSize, State, WebviewWindow};
 use tauri_plugin_autostart::ManagerExt as AutostartExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
@@ -296,4 +296,20 @@ pub fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
         return Err(format!("open_url: only https: URLs allowed, got {url:?}"));
     }
     app.opener().open_path(url, None::<&str>).map_err(|e| format!("open_url: {e}"))
+}
+
+// ponytail: WS-F phase 1 fix — frontend-driven compact/tall snap.
+// Settings/About open force tall (820px); everything else is compact
+// (660px). Window is centered both axes by center_on_active_monitor on
+// subsequent activations; this command only resizes, it does not
+// reposition. Height is clamped to [400, 1200] so a tampered frontend
+// can't drive the window off-screen.
+#[tauri::command]
+#[instrument(skip(window))]
+pub fn set_window_size(window: WebviewWindow, height: u32) -> Result<(), String> {
+    let height = height.clamp(400, 1200) as f64;
+    window
+        .set_size(LogicalSize::new(crate::window_pos::WINDOW_WIDTH, height))
+        .map_err(|e| format!("failed to set window size: {e}"))?;
+    Ok(())
 }

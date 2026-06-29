@@ -12,6 +12,7 @@
   import { Launcher } from "./lib/useLauncher.svelte";
   import { setupLauncher, type LifecycleRefs } from "./lib/launcher/lifecycle";
   import type { SearchHit } from "./lib/types";
+  import { setWindowSize } from "./lib/tauri";
   import { STRINGS } from "./lib/strings";
 
   const launcher = new Launcher();
@@ -24,14 +25,17 @@
     !launcher.emptyQuery || launcher.pinnedList.length + launcher.recentList.length > 0,
   );
 
-  // ponytail: window-height sync runs as an inline $effect (rather than via
-  // launcher.bindWindowHeightEffect()) so the effect lives in this component's
-  // scope and never throws `effect_orphan`. Settings/About force tall; everything
-  // else stays compact.
+  // ponytail: WS-F phase 1 fix — window-height sync runs as an inline
+  // $effect (not from a Launcher method) so the effect lives in this
+  // component's scope and never throws `effect_orphan`. Settings/About
+  // force tall (820); everything else stays compact (660). The Rust
+  // side (`set_window_size` IPC) handles the actual resize; main.tall +
+  // .search-view's CSS height transition mask the snap visually.
+  const WINDOW_HEIGHTS = { compact: 660, tall: 820 } as const;
   $effect(() => {
-    void launcher.settingsOpen;
-    void launcher.aboutOpen;
-    launcher.applyWindowHeight();
+    const target =
+      launcher.settingsOpen || launcher.aboutOpen ? WINDOW_HEIGHTS.tall : WINDOW_HEIGHTS.compact;
+    void setWindowSize(target);
   });
 
   $effect(() => {

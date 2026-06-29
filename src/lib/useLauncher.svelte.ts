@@ -297,43 +297,6 @@ export class Launcher {
     this.detailsHit = null;
   }
 
-  // ponytail: WS-F — two known fixed window heights; window snaps between
-  // them and the inner content (`.search-view`) uses a CSS transition on
-  // `height` to mask the snap. Settings/About force tall; the details
-  // popout is rendered inline so compact (660) still fits it.
-  private static readonly HEIGHTS = { compact: 660, tall: 820 } as const;
-
-  private get desiredWindowHeight(): number {
-    if (this.settingsOpen || this.aboutOpen) return Launcher.HEIGHTS.tall;
-    // open the details pane inline; compact still fits 5 entries
-    return Launcher.HEIGHTS.compact;
-  }
-
-  /** Snap to the launcher height implied by current phase. No animation
-   *  on the window itself — `main`'s CSS owns the visual continuity. */
-  applyWindowHeight(): void {
-    if (typeof window === "undefined") return;
-    const target = this.desiredWindowHeight;
-    const el = document.documentElement;
-    el.style.setProperty("--launcher-height", `${target}px`);
-  }
-
-  // ponytail: caller must invoke this from a component scope (App.svelte
-  // <script>) — `$effect` requires an active component context, so a
-  // bare `new Launcher()` outside one (e.g. App.test.ts's applyTheme
-  // suite) would throw `effect_orphan`. Keeping the effect one method
-  // hop away from the constructor avoids that trap without losing the
-  // binding convenience.
-  /** Bind `$effect` to caller's scope; App.svelte invokes this once. */
-  bindWindowHeightEffect(): void {
-    $effect(() => {
-      // touch each phase field so the effect re-runs on changes
-      void this.settingsOpen;
-      void this.aboutOpen;
-      this.applyWindowHeight();
-    });
-  }
-
   openHelp() {
     this.#showToast(STRINGS.TOAST_HELP);
   }

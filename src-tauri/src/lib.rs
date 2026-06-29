@@ -99,6 +99,7 @@ pub fn run() {
             commands::rebuild_index,
             commands::open_url,
             commands::record_search,
+            commands::set_window_size,
             commands::index_status,
             commands::copy_diagnostics
         ])

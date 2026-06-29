@@ -1,11 +1,13 @@
-use tauri::{AppHandle, LogicalPosition, LogicalSize, Monitor, Runtime, WebviewWindow};
+use tauri::{AppHandle, LogicalPosition, Monitor, Runtime, WebviewWindow};
 use tracing::warn;
 
 /// Logical window width, mirroring `app.windows[0].width` in tauri.conf.json.
-const WINDOW_WIDTH: f64 = 720.0;
+/// `pub(crate)` so the `set_window_size` IPC command in commands.rs can
+/// keep width constant when the frontend asks to resize only height.
+pub(crate) const WINDOW_WIDTH: f64 = 720.0;
 /// Compact logical height (input + 5 entries + footer). Matches
-/// `app.windows[0].height` in tauri.conf.json. Tall state is driven
-/// separately by `set_tall_height` calls from the frontend.
+/// `app.windows[0].height` in tauri.conf.json. Tall state (820) is driven
+/// by the frontend via the `set_window_size` IPC command.
 const WINDOW_HEIGHT: f64 = 660.0;
 /// Minimum gap from the cursor monitor's top — keeps the window off the
 /// very top edge on tall secondary displays; ignored if the monitor is
@@ -37,9 +39,6 @@ pub fn center_on_active_monitor<R: Runtime>(app: &AppHandle<R>, window: &Webview
     let y = if h >= WINDOW_HEIGHT { y_raw.max(oy + MIN_TOP_MARGIN) } else { oy + MIN_TOP_MARGIN };
     if let Err(e) = window.set_position(LogicalPosition::new(x, y)) {
         warn!(error = %e, x, y, "failed to position launcher window");
-    }
-    if let Err(e) = window.set_size(LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT)) {
-        warn!(error = %e, "failed to size launcher window");
     }
 }
 
