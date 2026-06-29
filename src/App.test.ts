@@ -696,6 +696,20 @@ describe("Launcher.applyTheme", () => {
     expect(applied).toBe("system");
     expect(document.documentElement.dataset.theme).toBeUndefined();
   });
+
+  // Regression: a stale query must not survive a hide. doHide() now
+  // calls reset() after hide_window so the next show is always clean,
+  // even when hotdoc://show doesn't fire on reopen.
+  it("doHide clears the query and results", async () => {
+    const launcher = new Launcher();
+    launcher.query = "git stash";
+    launcher.results = [mockHit];
+    launcher.selectedIndex = 0;
+    await launcher.doHide();
+    expect(launcher.query).toBe("");
+    expect(launcher.results).toEqual([]);
+    expect(launcher.selectedIndex).toBe(-1);
+  });
 });
 
 // ponytail: SEC-1 / FR-C2. ResultItem renders `hit.syntax` and

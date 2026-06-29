@@ -333,6 +333,9 @@ export class Launcher {
     this.#clearTimers();
     this.toast = null;
     await hideWindow();
+    // Clear query/results after hiding so the next show is always clean,
+    // regardless of whether hotdoc://show fires on reopen.
+    this.reset();
   }
 
   reset() {
