@@ -16,6 +16,12 @@ const SRC_PRIORITY_OFFICIAL: f32 = 1.0;
 const SRC_PRIORITY_CHEAT_SHEET: f32 = 0.5;
 const SRC_PRIORITY_CURATED: f32 = 0.0;
 
+// ponytail: 5.2. Sidecar file name for entry_meta. Sits next to
+// tantivy's own `meta.json` in the index dir; tantivy ignores
+// unknown files, so coexistence is safe. The `hotdoc_` prefix marks
+// it as ours — no collision with tantivy's reserved filenames.
+const ENTRY_META_SIDECAR: &str = "hotdoc_entry_meta.json";
+
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchHit {
     pub id: String,
@@ -36,7 +42,7 @@ pub struct HotdocIndex {
     entry_meta: std::collections::HashMap<String, EntryMeta>,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, serde::Deserialize)]
 pub struct EntryMeta {
     pub description: String,
     pub source_url: Option<String>,
@@ -97,6 +103,14 @@ impl HotdocIndex {
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
         let entry_meta = collect_entry_meta(packs);
+        // ponytail: 5.2. Persist entry_meta to a JSON sidecar so
+        // HotdocIndex::open() can rebuild the exact same in-memory
+        // map on a subsequent launch without re-parsing the pack
+        // JSONs at every CLI invocation. Tantivy's own `meta.json`
+        // can't carry this — it's tantivy's schema/index descriptor
+        // and we don't control its format. The sidecar is removed
+        // implicitly when build() removes the dir at the top.
+        write_entry_meta_sidecar(path, &entry_meta).context("writing entry_meta sidecar")?;
         Ok(Self {
             _index: index,
             reader,
@@ -137,6 +151,15 @@ impl HotdocIndex {
         Ok(())
     }
 
+    // ponytail: 5.2. Approach B (sidecar JSON) — tantivy can't
+    // round-trip entry_meta through its own meta.json (that's a
+    // schema descriptor we don't own), so build() writes
+    // hotdoc_entry_meta.json next to the tantivy index and open()
+    // reads it back. Signature stays (path) — no upstream call
+    // site changes vs Approach A. Missing sidecar → Err so the
+    // Tauri resolver's open-failure fallthrough (in
+    // index_resolver::resolve_one) rebuilds. Direct CLI users
+    // get a clear error pointing them at `hotdoc-cli index`.
     pub fn open(path: &Path) -> Result<Self> {
         let index = Index::open_in_dir(path).context("opening index dir")?;
         let fields = resolve_fields(&index.schema()).context("resolving schema fields")?;
@@ -144,11 +167,12 @@ impl HotdocIndex {
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
+        let entry_meta = read_entry_meta_sidecar(path).context("reading entry_meta sidecar")?;
         Ok(Self {
             _index: index,
             reader,
             fields,
-            entry_meta: std::collections::HashMap::new(),
+            entry_meta,
         })
     }
 
@@ -635,6 +659,34 @@ fn collect_entry_meta(packs: &[Pack]) -> std::collections::HashMap<String, Entry
     m
 }
 
+// ponytail: 5.2. Sidecar I/O. Build writes the in-memory map to
+// path/hotdoc_entry_meta.json; open reads it back. Pretty-printed
+// JSON so humans can diff it across builds when debugging the
+// meta-parity invariant. Errors propagate via anyhow for the
+// resolve_and_build fallthrough to catch.
+fn write_entry_meta_sidecar(
+    dir: &Path,
+    meta: &std::collections::HashMap<String, EntryMeta>,
+) -> Result<()> {
+    let path = dir.join(ENTRY_META_SIDECAR);
+    let json = serde_json::to_vec_pretty(meta).context("serializing entry_meta sidecar")?;
+    std::fs::write(&path, json).with_context(|| format!("writing {}", path.display()))?;
+    Ok(())
+}
+
+fn read_entry_meta_sidecar(dir: &Path) -> Result<std::collections::HashMap<String, EntryMeta>> {
+    let path = dir.join(ENTRY_META_SIDECAR);
+    let raw = std::fs::read(&path).with_context(|| {
+        format!(
+            "reading {} (re-run `hotdoc-cli index` to rebuild)",
+            path.display()
+        )
+    })?;
+    let meta: std::collections::HashMap<String, EntryMeta> =
+        serde_json::from_slice(&raw).context("parsing entry_meta sidecar")?;
+    Ok(meta)
+}
+
 impl EntryMeta {
     fn empty() -> Self {
         Self {
@@ -682,6 +734,42 @@ mod tests {
             .expect("search");
         assert!(!hits.is_empty(), "expected hits for 'git stash'");
         assert_eq!(hits[0].id, "git-stash", "top hit should be git-stash");
+    }
+
+    // ponytail: 5.2 meta-parity fix. Build() writes an entry_meta
+    // sidecar (hotdoc_entry_meta.json) into the index dir; open()
+    // reads it back. Without the sidecar, reused indexes reported
+    // entry_count=0 and lost tag/description exact-match bonuses
+    // (architecture doc §3.6 parity contract). This test asserts
+    // open() produces an entry_meta map deep-equal to build()'s.
+    #[test]
+    fn open_repopulates_entry_meta() {
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-open-meta-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        let packs = packs_for_test();
+        let built = HotdocIndex::build(&packs, &dir).expect("build");
+        let reopened = HotdocIndex::open(&dir).expect("open");
+        assert_eq!(
+            built.entry_meta.len(),
+            reopened.entry_meta.len(),
+            "open() must produce the same entry_meta.len() as build()"
+        );
+        for (id, expected) in &built.entry_meta {
+            let actual = reopened.entry_meta.get(id);
+            assert_eq!(
+                actual,
+                Some(expected),
+                "entry_meta[{id}] must deep-equal build()'s after open()"
+            );
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
