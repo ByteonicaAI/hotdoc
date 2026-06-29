@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setupLauncher, type LifecycleRefs } from "./lifecycle";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { Launcher } from "../useLauncher.svelte";
 
 vi.mock("@tauri-apps/api/event", () => ({
@@ -88,5 +89,52 @@ describe("setupLauncher", () => {
     expect(launcher.loadEmptyView).toHaveBeenCalledOnce();
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(launcher.initPalette).toHaveBeenCalledOnce();
+  });
+
+  it("unlistens late-resolving listeners that race cleanup (I6 fix)", async () => {
+    // ponytail: I6 fix verification — if a listen() promise resolves AFTER
+    // cleanup() has run, the unlisten fn must still fire so the IPC
+    // listener doesn't leak as a ghost. Without the disposed flag, the
+    // unlisten would be pushed to a discarded array.
+    const flush = () => new Promise<void>((r) => setTimeout(r, 0));
+    const refs: LifecycleRefs = { status: { current: null }, appVersion: { current: "0.4.0" } };
+
+    // Phase 1: cleanup runs first, THEN a queued listen resolves.
+    // The unlisten should fire from the disposed branch (not from the
+    // normal drain, because cleanup's drain already ran with an empty list).
+    let resolveLate!: (u: UnlistenFn) => void;
+    const latePromise = new Promise<UnlistenFn>((r) => {
+      resolveLate = r;
+    });
+    vi.mocked(listen).mockReturnValueOnce(latePromise);
+
+    const { cleanup } = setupLauncher(fakeLauncher(), refs);
+    cleanup();
+
+    let lateUnlistenCalls = 0;
+    resolveLate(() => {
+      lateUnlistenCalls += 1;
+    });
+    await flush();
+    expect(lateUnlistenCalls).toBe(1);
+
+    // Phase 2: setup runs, the listen promise resolves BEFORE cleanup,
+    // then cleanup runs — drains the queued unlisten via the normal path.
+    let resolveEarly!: (u: UnlistenFn) => void;
+    const earlyPromise = new Promise<UnlistenFn>((r) => {
+      resolveEarly = r;
+    });
+    vi.mocked(listen).mockReturnValueOnce(earlyPromise);
+
+    const earlyResult = setupLauncher(fakeLauncher(), refs);
+    let earlyUnlistenCalls = 0;
+    resolveEarly(() => {
+      earlyUnlistenCalls += 1;
+    });
+    await flush();
+    expect(earlyUnlistenCalls).toBe(0);
+
+    earlyResult.cleanup();
+    expect(earlyUnlistenCalls).toBe(1);
   });
 });

@@ -1,10 +1,11 @@
 <script lang="ts">
   import { STRINGS, format } from "./strings";
+  import type { IndexStatus } from "./tauri";
 
   type Props = {
     emptyQuery: boolean;
     resultsEmpty: boolean;
-    status: { entry_count: number; pack_count: number } | null;
+    status: IndexStatus | null;
   };
   const { emptyQuery, resultsEmpty, status }: Props = $props();
 

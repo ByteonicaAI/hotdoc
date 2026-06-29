@@ -22,6 +22,7 @@ export interface LifecycleResult {
 
 export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): LifecycleResult {
   const unlisteners: UnlistenFn[] = [];
+  let disposed = false;
   const keyHandler = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -36,28 +37,50 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
   window.addEventListener("keydown", keyHandler, true);
   document.getElementById("q")?.focus();
 
+  // ponytail: I6 fix — if cleanup() runs before listen()'s promise
+  // resolves, the resulting unlisten fn would otherwise be pushed to an
+  // array that's about to be discarded (ghost listener). track() either
+  // queues it for the normal cleanup drain, or fires it immediately when
+  // teardown already happened.
+  function track(p: Promise<UnlistenFn>) {
+    void p.then((u) => {
+      if (disposed) u();
+      else unlisteners.push(u);
+    });
+  }
+
   void indexStatus()
     .then((s) => (refs.status.current = s))
     .catch(() => {});
-  void listen("hotdoc://show", () => {
-    launcher.reset();
-    document.getElementById("q")?.focus();
-  }).then((u) => unlisteners.push(u));
-  void listen("hotdoc://refresh-empty-view", () => {
-    void launcher.loadEmptyView();
-  }).then((u) => unlisteners.push(u));
-  void listen("hotdoc://open-settings", () => {
-    launcher.openSettings();
-  }).then((u) => unlisteners.push(u));
-  void listen("hotdoc://reload-index", () => {
-    void launcher.reloadIndex();
-    void indexStatus()
-      .then((s) => (refs.status.current = s))
-      .catch(() => {});
-  }).then((u) => unlisteners.push(u));
-  void listen("hotdoc://copy-diagnostics", () => {
-    void launcher.copyDiagnostics();
-  }).then((u) => unlisteners.push(u));
+  track(
+    listen("hotdoc://show", () => {
+      launcher.reset();
+      document.getElementById("q")?.focus();
+    }),
+  );
+  track(
+    listen("hotdoc://refresh-empty-view", () => {
+      void launcher.loadEmptyView();
+    }),
+  );
+  track(
+    listen("hotdoc://open-settings", () => {
+      launcher.openSettings();
+    }),
+  );
+  track(
+    listen("hotdoc://reload-index", () => {
+      void launcher.reloadIndex();
+      void indexStatus()
+        .then((s) => (refs.status.current = s))
+        .catch(() => {});
+    }),
+  );
+  track(
+    listen("hotdoc://copy-diagnostics", () => {
+      void launcher.copyDiagnostics();
+    }),
+  );
   void getAllSettings()
     .then((s) => {
       launcher.applyTheme(s["theme"]);
@@ -72,6 +95,7 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
 
   return {
     cleanup: () => {
+      disposed = true;
       unlisteners.forEach((u) => u());
       window.removeEventListener("keydown", keyHandler, true);
     },
