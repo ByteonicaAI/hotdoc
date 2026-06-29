@@ -298,6 +298,17 @@
   :global(main.tall) .search-view {
     height: 100%;
   }
+  /* Window snaps between compact/tall heights. `main` height animates so
+     the snap isn't abrupt; the inner pane transitions to fill the new
+     box. Respects prefers-reduced-motion via the global transition group. */
+  .search-view {
+    transition: height 140ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .search-view {
+      transition: none;
+    }
+  }
   /* The "Copied" confirmation shown after the search view fades out. It sits
      inside main's rounded surface, so it just needs centered themed text. */
   .copied-view {
