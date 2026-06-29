@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Golden query set for NFR-3 (first-result accuracy). 50 baseline queries across 18 packs (CI gate for v1.0) + 18 adversarial queries (WS-A.1 baseline; expected-failing until the normalized ranker rewrite in 5.3 lands). Authored 2026-06-21 (25 baseline) + 2026-06-24 (25 baseline) + 2026-06-29 (18 adversarial).",
-    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Adversarial queries (adversarial: true) have expected_first pinned to the CURRENT ranker's top-1 and a _comment documenting the target behavior the rewrite must produce; they are not part of the CI gate until 5.4 wires them in.",
+    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Adversarial queries (adversarial: true) have expected_first pinned to the TARGET behavior the 5.3 rewrite must produce; the current ranker's actual output is recorded in each query's _comment field. The default bench runs all 68 queries; --adversarial filters to the 18. Neither is gated by verify:all until Phase 6 wires the adversarial gate in.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
     "adversarial_count": 18,
