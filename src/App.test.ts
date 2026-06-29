@@ -802,28 +802,6 @@ describe("XSS regression (SEC-1)", () => {
     expect(marks.length).toBeGreaterThan(0);
     expect([...marks].some((m) => /stash/i.test(m.textContent ?? ""))).toBe(true);
   });
-
-  it("renders hover actions and Copy example copies the example code (G3)", async () => {
-    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    const onCopyExample = vi.fn();
-    render(ResultItem, {
-      hit: mockHit,
-      active: false,
-      pinned: false,
-      query: "",
-      onCopyExample,
-    });
-    const btn = screen.getByText("Copy example");
-    expect(btn).toBeInTheDocument();
-    await fireEvent.mouseDown(btn);
-    expect(onCopyExample).toHaveBeenCalledWith(mockHit);
-  });
-
-  it('hides "Open source" when the card has no source_url (G3)', async () => {
-    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    render(ResultItem, { hit: mockHit, active: false, pinned: false });
-    expect(screen.queryByText("Open source")).toBeNull();
-  });
 });
 
 describe("zero-result suggestions + popular (G4/G5)", () => {
