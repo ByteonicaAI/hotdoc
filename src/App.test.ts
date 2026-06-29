@@ -1137,3 +1137,31 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
     });
   });
 });
+
+// ponytail: v1.0 decision 9 — the footer must derive its entry/pack
+// counts from indexStatus() rather than a hardcoded number. Sentinel
+// values (999 / 42) make any leaked fallback text obvious in CI.
+describe("derived entry count (decision 9 — no hardcoded numbers)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(writeText).mockClear();
+  });
+
+  it("footer_renders_entry_and_pack_counts_from_indexStatus", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "index_status") return Promise.resolve({ entry_count: 999, pack_count: 42 });
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.getByText(/999 commands · 42 packs/)).toBeInTheDocument();
+    });
+  });
+});
