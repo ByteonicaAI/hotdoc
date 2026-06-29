@@ -299,7 +299,8 @@ export class Launcher {
 
   // ponytail: WS-F — two known fixed window heights; window snaps between
   // them and the inner content (`.search-view`) uses a CSS transition on
-  // `height` to mask the snap. Settings/About/details-popout force tall.
+  // `height` to mask the snap. Settings/About force tall; the details
+  // popout is rendered inline so compact (660) still fits it.
   private static readonly HEIGHTS = { compact: 660, tall: 820 } as const;
   private static heightAnimationFrame: number | null = null;
 
