@@ -1,188 +1,66 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
-  import { prefersReducedMotion } from "svelte/motion";
-  import { listen } from "@tauri-apps/api/event";
-  import { getVersion } from "@tauri-apps/api/app";
   import ResultItem from "./lib/ResultItem.svelte";
   import EmptyView from "./lib/EmptyView.svelte";
   import SettingsPanel from "./lib/SettingsPanel.svelte";
   import AboutPanel from "./lib/AboutPanel.svelte";
   import DetailsPane from "./lib/DetailsPane.svelte";
+  import LauncherInput from "./lib/LauncherInput.svelte";
+  import LauncherFooter from "./lib/LauncherFooter.svelte";
+  import LauncherCopiedView from "./lib/LauncherCopiedView.svelte";
   import { Launcher } from "./lib/useLauncher.svelte";
-  import { getAllSettings, indexStatus, openUrl } from "./lib/tauri";
+  import { setupLauncher, type LifecycleRefs } from "./lib/launcher/lifecycle";
   import type { SearchHit } from "./lib/types";
-  import { STRINGS, format } from "./lib/strings";
+  import { STRINGS } from "./lib/strings";
 
   const launcher = new Launcher();
+  const refs: LifecycleRefs = {
+    status: { current: null },
+    appVersion: { current: "0.4.0" },
+  };
 
-  // Visual fade durations for the Enter-to-copy dismiss choreography. Must stay
-  // ≤ the phase gaps in useLauncher.svelte.ts (SEARCH_FADE_MS / DISMISS_FADE_MS)
-  // so each fade finishes before the phase advances.
-  const SEARCH_FADE_MS = 160;
-  const COPIED_FADE_MS = 200;
-  function fadeMs(ms: number): number {
-    return prefersReducedMotion.current ? 0 : ms;
-  }
-
-  // Show the results area (and footer) once there's a query, or when there are
-  // recents/pinned to surface. Empty + no history = just the search bar; the
-  // rest of the (transparent) window stays empty until the user types.
   const showResults = $derived(
     !launcher.emptyQuery || launcher.pinnedList.length + launcher.recentList.length > 0,
   );
 
-  // The window is a fixed-size transparent pane; only the rounded `main` shows.
-  // Clicking the empty area (the backdrop) dismisses, like clicking outside
-  // Spotlight.
-  function dismiss() {
-    void launcher.doHide();
-  }
+  // ponytail: window-height sync runs as an inline $effect (rather than via
+  // launcher.bindWindowHeightEffect()) so the effect lives in this component's
+  // scope and never throws `effect_orphan`. Settings/About force tall; everything
+  // else stays compact.
+  $effect(() => {
+    void launcher.settingsOpen;
+    void launcher.aboutOpen;
+    launcher.applyWindowHeight();
+  });
 
   $effect(() => {
     const _ = launcher.selectedIndex;
     document.querySelector('[role="listbox"] li.active')?.scrollIntoView({ block: "nearest" });
   });
-  // ponytail: FR-I4 — footer index state. Cold indexing is synchronous in
-  // Rust before this window paints, so a streaming N/N counter would never
-  // render; the steady-state count is the honest signal. `null` = not yet
-  // loaded → "Indexing…".
-  let status = $state<{ entry_count: number; pack_count: number } | null>(null);
-  let appVersion = $state("0.4.0");
-
-  // Footer key hints, split into discrete chips. Contextual to whether the
-  // user is searching (full set) or on the cold/empty view (minimal set).
-  const footerKeys = $derived(
-    (launcher.emptyQuery || launcher.results.length === 0
-      ? STRINGS.FOOTER_KEYS_EMPTY
-      : STRINGS.FOOTER_KEYS_SEARCH
-    )
-      .split("·")
-      .map((s) => s.trim())
-      .filter(Boolean),
-  );
-
-  function reportUrl(hit: SearchHit): string {
-    const title = encodeURIComponent(`Card report: ${hit.pack_id}/${hit.id}`);
-    const body = encodeURIComponent(
-      `**Card ID:** ${hit.pack_id}/${hit.id}\n**Syntax:** ${hit.syntax}`,
-    );
-    return `https://github.com/ByteonicaAI/hotdoc/issues/new?template=card-report.md&title=${title}&body=${body}`;
-  }
-
-  async function reportCard(hit: SearchHit) {
-    await openUrl(reportUrl(hit));
-  }
 
   onMount(() => {
-    document.getElementById("q")?.focus();
-    const unlisteners: Array<() => void> = [];
-    function onWindowKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        if (launcher.detailsHit) {
-          launcher.closeDetails();
-          document.getElementById("q")?.focus();
-        } else {
-          void launcher.doHide();
-        }
-      }
-    }
-    window.addEventListener("keydown", onWindowKey, true);
-    void indexStatus()
-      .then((s) => (status = s))
-      .catch(() => {
-        /* leave as Indexing… */
-      });
-    void listen("hotdoc://show", () => {
-      launcher.reset();
-      document.getElementById("q")?.focus();
-    }).then((u) => unlisteners.push(u));
-    void listen("hotdoc://refresh-empty-view", () => {
-      void launcher.loadEmptyView();
-    }).then((u) => unlisteners.push(u));
-    void listen("hotdoc://open-settings", () => {
-      launcher.openSettings();
-    }).then((u) => unlisteners.push(u));
-    void listen("hotdoc://reload-index", () => {
-      // ponytail: T13 + T16. Tray menu item → IPC rebuild →
-      // reloadIndex() in the launcher toasts the count and refreshes
-      // the empty view. Errors propagate to the toast pipeline.
-      void launcher.reloadIndex();
-      void indexStatus()
-        .then((s) => (status = s))
-        .catch(() => {});
-    }).then((u) => unlisteners.push(u));
-    void listen("hotdoc://copy-diagnostics", () => {
-      // ponytail: FR-G2 — tray "Copy diagnostics" → redacted bundle to
-      // clipboard, toast confirms.
-      void launcher.copyDiagnostics();
-    }).then((u) => unlisteners.push(u));
-    // ponytail: read the persisted theme synchronously after focus but
-    // before the first paint of user-driven content. applyTheme is a
-    // pure DOM flip — no flash because the cascade resolves on the same
-    // microtask as the attribute write.
-    void getAllSettings()
-      .then((s) => {
-        launcher.applyTheme(s["theme"]);
-        // ponytail: T19 (FR-R4) — sync the recents toggle into the
-        // launcher's cache before any activation can fire. The cache
-        // is also kept in sync by SettingsPanel.setRecentsEnabled on
-        // user toggle; this is the boot path.
-        launcher.setRecentsEnabled(s["recents_enabled"] !== "false");
-      })
-      .catch(() => {
-        /* default theme (system) and recents (on) are fine */
-      });
-    void launcher.loadEmptyView();
-    void launcher.initPalette();
-    void getVersion()
-      .then((v) => (appVersion = v))
-      .catch(() => {});
-    return () => {
-      unlisteners.forEach((u) => u());
-      window.removeEventListener("keydown", onWindowKey, true);
-    };
+    return setupLauncher(launcher, refs).cleanup;
   });
 </script>
 
-<button type="button" class="backdrop" aria-label={STRINGS.DISMISS_ARIA} onclick={dismiss}></button>
+<button
+  type="button"
+  class="backdrop"
+  aria-label={STRINGS.DISMISS_ARIA}
+  onclick={() => void launcher.doHide()}
+></button>
 <main class:tall={launcher.settingsOpen || launcher.aboutOpen}>
   {#if launcher.phase === "search"}
-    <div class="search-view" out:fade={{ duration: fadeMs(SEARCH_FADE_MS) }}>
-      <div class="input-zone">
-        <span class="input-glyph" aria-hidden="true">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.5" y2="16.5" />
-          </svg>
-        </span>
-        <input
-          id="q"
-          aria-label={STRINGS.SEARCH_INPUT_ARIA}
-          placeholder={STRINGS.SEARCH_PLACEHOLDER}
-          bind:value={launcher.query}
-          oninput={(e) => launcher.onInput(e.currentTarget.value)}
-          onkeydown={(e) => launcher.onKey(e)}
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-        />
-        {#if !launcher.emptyQuery && launcher.results.length > 0}
-          <span class="input-count" aria-hidden="true">{launcher.results.length}</span>
-        {/if}
-      </div>
+    <div class="search-view" out:fade={{ duration: 140 }}>
+      <LauncherInput
+        bind:query={launcher.query}
+        onInput={(v: string) => launcher.onInput(v)}
+        onKey={(e: KeyboardEvent) => launcher.onKey(e)}
+        resultCount={launcher.results.length}
+      />
       {#if showResults}
-        <div class="results-area" transition:fade={{ duration: fadeMs(140) }}>
+        <div class="results-area">
           <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
             {#if launcher.emptyQuery}
               <EmptyView
@@ -202,11 +80,6 @@
                   active={i === launcher.selectedIndex}
                   pinned={launcher.pinnedIds.has(r.id)}
                   query={launcher.query}
-                  onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
-                  onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
-                  onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
-                  onOpenSource={(h: SearchHit) => launcher.openSource(h)}
-                  onReport={(h: SearchHit) => reportCard(h)}
                 />
               {/each}
               {#if launcher.zeroResult}
@@ -243,42 +116,36 @@
         </div>
       {/if}
       {#if showResults}
-        <footer class="status" aria-live="polite">
-          <span class="footer-keys">
-            {#each footerKeys as hint (hint)}
-              <span class="hint">{hint}</span>
-            {/each}
-          </span>
-          <span class="footer-count">
-            {#if status}
-              {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
-            {:else}
-              {STRINGS.INDEXING_STATUS}
-            {/if}
-          </span>
-        </footer>
+        <LauncherFooter
+          emptyQuery={launcher.emptyQuery}
+          resultsEmpty={launcher.results.length === 0}
+          status={refs.status.current}
+        />
       {/if}
     </div>
   {/if}
   {#if launcher.phase === "copied"}
-    <div
-      class="copied-view"
-      role="status"
-      in:fade={{ delay: fadeMs(SEARCH_FADE_MS), duration: fadeMs(COPIED_FADE_MS) }}
-      out:fade={{ duration: fadeMs(COPIED_FADE_MS) }}
-    >
-      {launcher.toast}
-    </div>
+    <LauncherCopiedView
+      message={launcher.toast ?? ""}
+      showToast={true}
+      searchFadeMs={160}
+      copiedFadeMs={200}
+    />
   {/if}
-  {#if launcher.toast && launcher.phase === "search"}
-    <div class="toast" role="status">{launcher.toast}</div>
+  {#if launcher.phase === "search" && launcher.toast}
+    <LauncherCopiedView
+      message={launcher.toast}
+      showToast={false}
+      searchFadeMs={0}
+      copiedFadeMs={0}
+    />
   {/if}
   {#if launcher.settingsOpen}
     <SettingsPanel onClose={() => launcher.closeSettings()} {launcher} />
   {/if}
   {#if launcher.aboutOpen}
     <AboutPanel
-      version={appVersion}
+      version={refs.appVersion.current}
       packs={launcher.packMetas}
       onClose={() => launcher.closeAbout()}
       onToast={(m: string) => launcher.showToast(m)}
@@ -287,21 +154,10 @@
 </main>
 
 <style>
-  /* Wraps the input + results + footer so the whole launcher fades out as one
-     on Enter-to-copy. Inherits main's column layout; fills it in the tall
-     (settings/about) states. */
   .search-view {
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  :global(main.tall) .search-view {
-    height: 100%;
-  }
-  /* Window snaps between compact/tall heights. `main` height animates so
-     the snap isn't abrupt; the inner pane transitions to fill the new
-     box. Respects prefers-reduced-motion via the global transition group. */
-  .search-view {
     transition: height 140ms cubic-bezier(0.2, 0, 0, 1);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -309,20 +165,8 @@
       transition: none;
     }
   }
-  /* The "Copied" confirmation shown after the search view fades out. It sits
-     inside main's rounded surface, so it just needs centered themed text. */
-  .copied-view {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 16px 18px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--fg);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  :global(main.tall) .search-view {
+    height: 100%;
   }
   .results-area {
     position: relative;
@@ -330,51 +174,14 @@
     display: flex;
     flex-direction: column;
   }
-  /* Size the list to its content so the window grows row by row, capped so it
-     shows roughly 5 results then scrolls. Content-sized (not flex-grow) so it
-     never collapses to a single row in the auto-height window. */
   .results-area > ul {
-    /* Fits ~5 rich rows (syntax + title + desc + example ≈ 110-130px each)
-       within the fixed window height, then scrolls. */
     max-height: 580px;
     overflow-y: auto;
   }
-  /* The settings/about panel fixes the window height; let the list fill it. */
   main.tall .results-area > ul {
     max-height: none;
   }
-  .status {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 14px;
-    border-top: 1px solid var(--border);
-  }
-  .footer-keys {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-    overflow: hidden;
-  }
-  .footer-keys .hint {
-    flex: 0 0 auto;
-    color: var(--muted);
-    font-size: 11px;
-    white-space: nowrap;
-  }
-  .footer-count {
-    flex: 0 0 auto;
-    color: var(--faint);
-    font-size: 11px;
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-  }
-  /* Zero-result lives as a centered block, not a row in the list. */
   .zero {
-    /* The only row when search fails; center it in the list's free space. */
     margin: auto 0;
     display: flex;
     flex-direction: column;
