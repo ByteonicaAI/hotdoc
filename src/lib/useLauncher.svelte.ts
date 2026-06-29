@@ -302,7 +302,6 @@ export class Launcher {
   // `height` to mask the snap. Settings/About force tall; the details
   // popout is rendered inline so compact (660) still fits it.
   private static readonly HEIGHTS = { compact: 660, tall: 820 } as const;
-  private static heightAnimationFrame: number | null = null;
 
   private get desiredWindowHeight(): number {
     if (this.settingsOpen || this.aboutOpen) return Launcher.HEIGHTS.tall;
