@@ -11,6 +11,8 @@ pub struct GoldenQuery {
     pub expected_first: Option<String>,
     #[serde(default)]
     pub acceptable_top3: Vec<String>,
+    #[serde(default)]
+    pub adversarial: Option<bool>,
 }
 
 #[derive(serde::Deserialize)]
@@ -18,14 +20,25 @@ pub struct GoldenFile {
     pub queries: Vec<GoldenQuery>,
 }
 
-pub fn cmd_bench(golden_path: &Path, index_dir: &Path) -> Result<()> {
+pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool) -> Result<()> {
     let raw = fs::read_to_string(golden_path).context("reading golden file")?;
     let gf: GoldenFile = serde_json::from_str(&raw).context("parsing golden JSON")?;
+    let mut queries = gf.queries;
+    if filter_adversarial {
+        queries.retain(|q| q.adversarial.unwrap_or(false));
+        if queries.is_empty() {
+            println!(
+                "BENCH: no adversarial queries in {} (filter matched 0)",
+                golden_path.display()
+            );
+            return Ok(());
+        }
+    }
     let idx = HotdocIndex::open(index_dir)?;
     let mut passed = 0usize;
     let mut failed = 0usize;
-    let mut durations_ms: Vec<u128> = Vec::with_capacity(gf.queries.len());
-    for q in &gf.queries {
+    let mut durations_ms: Vec<u128> = Vec::with_capacity(queries.len());
+    for q in &queries {
         let start = Instant::now();
         let hits: Vec<SearchHit> = idx.search(&q.query, 8, &Default::default())?;
         let elapsed = start.elapsed().as_millis();
@@ -94,7 +107,7 @@ mod tests {
         let index_dir = fresh_index_dir();
         let _ = std::fs::remove_dir_all(&index_dir);
         crate::index::HotdocIndex::build(&packs, &index_dir).expect("build index");
-        cmd_bench(&default_golden_path(), &index_dir).expect("all golden queries must pass");
+        cmd_bench(&default_golden_path(), &index_dir, false).expect("all golden queries must pass");
         let _ = std::fs::remove_dir_all(&index_dir);
     }
 
@@ -133,5 +146,26 @@ mod tests {
             gf.queries.len(),
             path.display(),
         );
+    }
+
+    #[test]
+    fn adversarial_filter_keeps_only_adversarial_queries() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("g.json");
+        std::fs::write(
+            &path,
+            r#"{"queries":[
+              {"query":"a","expected_first":null},
+              {"query":"b","expected_first":null,"adversarial":true},
+              {"query":"c","expected_first":null,"adversarial":false}
+            ]}"#,
+        )
+        .expect("write fixture");
+        let raw = std::fs::read_to_string(&path).expect("read fixture");
+        let gf: GoldenFile = serde_json::from_str(&raw).expect("parse fixture");
+        let mut qs = gf.queries;
+        qs.retain(|q| q.adversarial.unwrap_or(false));
+        assert_eq!(qs.len(), 1);
+        assert_eq!(qs[0].query, "b");
     }
 }

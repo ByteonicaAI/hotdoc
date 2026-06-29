@@ -84,6 +84,7 @@ fn main() -> ExitCode {
             }
         }
         Some("bench") => {
+            let adversarial = args.iter().any(|a| a == "--adversarial");
             let golden_path = kv
                 .get("queries")
                 .map(PathBuf::from)
@@ -92,7 +93,7 @@ fn main() -> ExitCode {
                 .get("index")
                 .map(PathBuf::from)
                 .unwrap_or_else(cli::default_index_dir);
-            if let Err(e) = golden::cmd_bench(&golden_path, &index) {
+            if let Err(e) = golden::cmd_bench(&golden_path, &index, adversarial) {
                 eprintln!("bench: {e:#}");
                 exit_code = 1;
             }
@@ -117,7 +118,7 @@ fn usage() {
          index  [--packs PATH] [--out PATH]\n  \
          query  <text> [--limit N] [--index PATH]\n  \
          copy   <text> [--index PATH]\n  \
-         bench  [--queries PATH] [--index PATH]\n  \
+         bench  [--queries PATH] [--index PATH] [--adversarial]\n  \
          toggle  send a show/hide signal to the running hotdoc app (bind to your DE shortcut)"
     );
 }
