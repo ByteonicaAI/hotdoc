@@ -112,20 +112,12 @@ pub fn run() {
         })
         .setup(move |app| {
             if let Some(w) = app.get_webview_window("main") {
-                if let Ok(Some(monitor)) = app.primary_monitor() {
-                    // ponytail: FR-L2 / §8.2 — center-top, 60px logical from
-                    // the top. monitor.size() is physical; the 720px window
-                    // width and 60px margin are logical, so scale them by
-                    // the monitor's factor before the physical-pixel math,
-                    // else the window is off-center on fractional-scale
-                    // displays.
-                    let scale = monitor.scale_factor();
-                    let mon_w = monitor.size().width as f64;
-                    let win_w = 720.0 * scale;
-                    let x = ((mon_w - win_w) / 2.0).max(0.0) as i32;
-                    let y = (60.0 * scale) as i32;
-                    let _ = w.set_position(tauri::PhysicalPosition::new(x, y));
-                }
+                // ponytail: FR-L2 / §8.2 — center both axes on the cursor
+                // monitor (or primary if cursor unresolvable), accounting for
+                // window height. Same path the hotkey/tray/single-instance
+                // plugins take on subsequent activations. Falls back to a
+                // 60px top margin if the monitor is shorter than the window.
+                window_pos::center_on_active_monitor(app.handle(), &w);
             }
             toggle::spawn(app.handle().clone());
             hotkey::register(app.handle(), hotkey::default_combo())?;
