@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tantivy::{
     collector::TopDocs,
@@ -42,7 +42,7 @@ pub struct HotdocIndex {
     entry_meta: std::collections::HashMap<String, EntryMeta>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct EntryMeta {
     pub description: String,
     pub source_url: Option<String>,
