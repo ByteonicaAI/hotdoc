@@ -28,7 +28,13 @@ import { isHttpsUrl } from "./url";
 
 const SEARCH_DEBOUNCE_MS = 30;
 const TOAST_MS = 1000;
-const HIDE_AFTER_COPY_MS = 300;
+// Enter-to-copy dismiss choreography (spotlight-style): the search view fades
+// out, the "Copied" confirmation fades in and holds, then it fades out and the
+// window hides. These gaps gate the phase transitions; the matching visual fade
+// durations live in App.svelte and must stay ≤ these.
+const SEARCH_FADE_MS = 160;
+const COPIED_HOLD_MS = 850;
+const DISMISS_FADE_MS = 200;
 
 // ponytail: closed enum per PRD §6.8 — three values, no "blue". The DB
 // stores the value as a string and a stale row (e.g. from a removed
@@ -42,6 +48,10 @@ export class Launcher {
   query = $state("");
   results = $state<SearchHit[]>([]);
   toast = $state<string | null>(null);
+  // Dismiss choreography phase. "search" = normal launcher; "copied" = the
+  // search view has faded out and the "Copied" confirmation is shown; "closing"
+  // = the confirmation is fading out before the window hides.
+  phase = $state<"search" | "copied" | "closing">("search");
   recentList = $state<Recent[]>([]);
   pinnedList = $state<SearchHit[]>([]);
   pinnedIds = $state<Set<string>>(new Set());
@@ -235,15 +245,13 @@ export class Launcher {
     if (i < pLen) {
       const p = this.pinnedList[i];
       if (p) {
-        await this.#copyAndToast(p.syntax);
-        this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+        await this.#copyThenDismiss(p.syntax);
       }
     } else if (i < pLen + rLen) {
       const r = this.recentList[i - pLen];
       if (r) {
         if (r.copied_syntax) {
-          await this.#copyAndToast(r.copied_syntax);
-          this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+          await this.#copyThenDismiss(r.copied_syntax);
         } else {
           this.selectRecent(r.query);
         }
@@ -252,8 +260,7 @@ export class Launcher {
   }
 
   async copyText(text: string) {
-    await this.#copyAndToast(text);
-    this.#hideTimer = setTimeout(() => void this.doHide(), HIDE_AFTER_COPY_MS);
+    await this.#copyThenDismiss(text);
   }
 
   // ponytail: T11 — Ctrl+P on empty-view pins/unpins the selected pinned row.
@@ -331,14 +338,26 @@ export class Launcher {
 
   async doHide() {
     this.#clearTimers();
-    this.toast = null;
-    await hideWindow();
-    // Clear query/results after hiding so the next show is always clean,
-    // regardless of whether hotdoc://show fires on reopen.
+    try {
+      await hideWindow();
+    } catch (e) {
+      // The window staying visible is recoverable (next hotdoc://show re-syncs),
+      // but log it so a stuck window isn't completely invisible to diagnostics.
+      log.error("hide window failed", { error: String(e) });
+    }
+    // reset() restores a clean state regardless of whether hideWindow threw, so
+    // the next show always starts fresh even if hotdoc://show doesn't fire.
     this.reset();
   }
 
+  // Authoritative clean state. Called on hide AND as the hotdoc://show re-show
+  // entry point, so it must clear the dismiss choreography (phase/timers/toast)
+  // too — otherwise re-summoning mid-dismiss leaves the search view unmounted
+  // with a stale "Copied" label and an in-flight timer that hides the window.
   reset() {
+    this.#clearTimers();
+    this.phase = "search";
+    this.toast = null;
     this.query = "";
     this.results = [];
     this.selectedIndex = -1;
@@ -426,14 +445,41 @@ export class Launcher {
     this.#debounce = setTimeout(() => void this.runSearch(), SEARCH_DEBOUNCE_MS);
   }
 
-  async #copyAndToast(text: string) {
+  // Returns whether the clipboard write succeeded so callers can branch (the
+  // dismiss choreography and recents recording must not run on a failed copy).
+  async #copyAndToast(text: string): Promise<boolean> {
     try {
       await clipboardWrite(text);
       this.#showToast(format(STRINGS.TOAST_COPY_OK, text));
+      return true;
     } catch (e) {
       log.error("copy failed", { text, error: String(e) });
       this.#showToast(format(STRINGS.TOAST_COPY_FAIL, String(e)));
+      return false;
     }
+  }
+
+  // Enter-to-copy path: copy, then run the spotlight-style dismiss — fade the
+  // search view out, show the "Copied" confirmation, hold, fade it out, hide.
+  // The phase transitions are timed here; App.svelte renders each phase with a
+  // matching fade. Button copies (Copy example/all) use #copyAndToast instead
+  // and leave the launcher open. Returns false (and skips the dismiss) when the
+  // copy failed, leaving the launcher open in "search" with the failure toast.
+  async #copyThenDismiss(text: string): Promise<boolean> {
+    if (!(await this.#copyAndToast(text))) return false;
+    // We drive the confirmation's lifetime through the phases below, so cancel
+    // #showToast's own auto-clear (otherwise it would blank the label mid-hold).
+    this.#clearTimers();
+    this.phase = "copied";
+    // Reused for two sequential one-shots: the inner timer is only assigned from
+    // inside the outer callback (after it has fired), so it never clobbers a
+    // live timer. Safe only because the search view — and thus the activation
+    // key path — is unmounted while phase !== "search".
+    this.#hideTimer = setTimeout(() => {
+      this.phase = "closing";
+      this.#hideTimer = setTimeout(() => void this.doHide(), DISMISS_FADE_MS);
+    }, SEARCH_FADE_MS + COPIED_HOLD_MS);
+    return true;
   }
 
   async activate(shift: boolean, ctrl: boolean) {
@@ -461,19 +507,9 @@ export class Launcher {
       return;
     }
     const text = shift ? (top.example_code ?? top.syntax) : top.syntax;
-    await this.#copyAndToast(text);
-    // ponytail: FR-C1/C2 — close after 300ms OR on the next keystroke (M4-T14).
-    const doHide = () => {
-      if (this.#hideTimer) {
-        clearTimeout(this.#hideTimer);
-        this.#hideTimer = null;
-      }
-      window.removeEventListener("keydown", onNextKey, true);
-      void this.doHide();
-    };
-    const onNextKey = () => doHide();
-    window.addEventListener("keydown", onNextKey, { once: true, capture: true });
-    this.#hideTimer = setTimeout(doHide, HIDE_AFTER_COPY_MS);
+    // Only record the activation if the copy actually landed on the clipboard —
+    // otherwise a failed copy would persist a bogus one-keystroke-copy recent.
+    if (!(await this.#copyThenDismiss(text))) return;
     void recents.onActivation(this.query, top.syntax, this.recentsEnabled);
     // ponytail: §7.5 / §9.2 — log the activation. first = top-ranked hit,
     // clicked = the row the user actually activated. Gated on the same

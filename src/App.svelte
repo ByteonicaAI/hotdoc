@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { fade } from "svelte/transition";
+  import { prefersReducedMotion } from "svelte/motion";
   import { listen } from "@tauri-apps/api/event";
   import { getVersion } from "@tauri-apps/api/app";
   import ResultItem from "./lib/ResultItem.svelte";
@@ -13,6 +15,15 @@
   import { STRINGS, format } from "./lib/strings";
 
   const launcher = new Launcher();
+
+  // Visual fade durations for the Enter-to-copy dismiss choreography. Must stay
+  // ≤ the phase gaps in useLauncher.svelte.ts (SEARCH_FADE_MS / DISMISS_FADE_MS)
+  // so each fade finishes before the phase advances.
+  const SEARCH_FADE_MS = 160;
+  const COPIED_FADE_MS = 200;
+  function fadeMs(ms: number): number {
+    return prefersReducedMotion.current ? 0 : ms;
+  }
 
   // Show the results area (and footer) once there's a query, or when there are
   // recents/pinned to surface. Empty + no history = just the search bar; the
@@ -137,99 +148,129 @@
 
 <button type="button" class="backdrop" aria-label={STRINGS.DISMISS_ARIA} onclick={dismiss}></button>
 <main class:tall={launcher.settingsOpen || launcher.aboutOpen}>
-  <div class="input-zone">
-    <span class="input-glyph" aria-hidden="true">
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <circle cx="11" cy="11" r="7" />
-        <line x1="21" y1="21" x2="16.5" y2="16.5" />
-      </svg>
-    </span>
-    <input
-      id="q"
-      aria-label={STRINGS.SEARCH_INPUT_ARIA}
-      placeholder={STRINGS.SEARCH_PLACEHOLDER}
-      bind:value={launcher.query}
-      oninput={(e) => launcher.onInput(e.currentTarget.value)}
-      onkeydown={(e) => launcher.onKey(e)}
-      autocomplete="off"
-      autocorrect="off"
-      spellcheck="false"
-    />
-    {#if !launcher.emptyQuery && launcher.results.length > 0}
-      <span class="input-count" aria-hidden="true">{launcher.results.length}</span>
-    {/if}
-  </div>
-  {#if showResults}
-    <div class="results-area">
-      <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
-        {#if launcher.emptyQuery}
-          <EmptyView
-            recents={launcher.recentList}
-            pinned={launcher.pinnedList}
-            onSelectRecent={(q: string) => launcher.selectRecent(q)}
-            onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
-            onCopyText={(text: string) => launcher.copyText(text)}
-            selectedIndex={launcher.selectedIndex}
-            pinnedOffset={0}
-            recentsOffset={launcher.pinnedList.length}
-          />
-        {:else}
-          {#each launcher.results as r, i (r.id)}
-            <ResultItem
-              hit={r}
-              active={i === launcher.selectedIndex}
-              pinned={launcher.pinnedIds.has(r.id)}
-              query={launcher.query}
-              onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
-              onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
-              onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
-              onOpenSource={(h: SearchHit) => launcher.openSource(h)}
-              onReport={(h: SearchHit) => reportCard(h)}
-            />
-          {/each}
-          {#if launcher.zeroResult}
-            <li class="empty zero" role="status">
-              {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
-              {#if launcher.suggestions.length > 0}
-                <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
-                <span class="suggest-chips">
-                  {#each launcher.suggestions as pack (pack)}
-                    <button
-                      type="button"
-                      class="suggest-chip"
-                      onmousedown={(e) => {
-                        e.preventDefault();
-                        launcher.applySuggestion(pack);
-                      }}
-                    >
-                      {pack}
-                    </button>
-                  {/each}
-                </span>
-              {/if}
-            </li>
-          {/if}
-        {/if}
-      </ul>
-      {#if launcher.detailsHit}
-        <DetailsPane
-          hit={launcher.detailsHit}
-          onClose={() => launcher.closeDetails()}
-          onToast={(m: string) => launcher.showToast(m)}
+  {#if launcher.phase === "search"}
+    <div class="search-view" out:fade={{ duration: fadeMs(SEARCH_FADE_MS) }}>
+      <div class="input-zone">
+        <span class="input-glyph" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.5" y2="16.5" />
+          </svg>
+        </span>
+        <input
+          id="q"
+          aria-label={STRINGS.SEARCH_INPUT_ARIA}
+          placeholder={STRINGS.SEARCH_PLACEHOLDER}
+          bind:value={launcher.query}
+          oninput={(e) => launcher.onInput(e.currentTarget.value)}
+          onkeydown={(e) => launcher.onKey(e)}
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
         />
+        {#if !launcher.emptyQuery && launcher.results.length > 0}
+          <span class="input-count" aria-hidden="true">{launcher.results.length}</span>
+        {/if}
+      </div>
+      {#if showResults}
+        <div class="results-area" transition:fade={{ duration: fadeMs(140) }}>
+          <ul role="listbox" aria-label={STRINGS.SEARCH_RESULTS_ARIA}>
+            {#if launcher.emptyQuery}
+              <EmptyView
+                recents={launcher.recentList}
+                pinned={launcher.pinnedList}
+                onSelectRecent={(q: string) => launcher.selectRecent(q)}
+                onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
+                onCopyText={(text: string) => launcher.copyText(text)}
+                selectedIndex={launcher.selectedIndex}
+                pinnedOffset={0}
+                recentsOffset={launcher.pinnedList.length}
+              />
+            {:else}
+              {#each launcher.results as r, i (r.id)}
+                <ResultItem
+                  hit={r}
+                  active={i === launcher.selectedIndex}
+                  pinned={launcher.pinnedIds.has(r.id)}
+                  query={launcher.query}
+                  onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
+                  onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
+                  onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
+                  onOpenSource={(h: SearchHit) => launcher.openSource(h)}
+                  onReport={(h: SearchHit) => reportCard(h)}
+                />
+              {/each}
+              {#if launcher.zeroResult}
+                <li class="empty zero" role="status">
+                  {STRINGS.NO_MATCHES_PREFIX}{launcher.query.trim()}{STRINGS.NO_MATCHES_SUFFIX}
+                  {#if launcher.suggestions.length > 0}
+                    <span class="suggest-label">{STRINGS.SUGGEST_PREFIX}</span>
+                    <span class="suggest-chips">
+                      {#each launcher.suggestions as pack (pack)}
+                        <button
+                          type="button"
+                          class="suggest-chip"
+                          onmousedown={(e) => {
+                            e.preventDefault();
+                            launcher.applySuggestion(pack);
+                          }}
+                        >
+                          {pack}
+                        </button>
+                      {/each}
+                    </span>
+                  {/if}
+                </li>
+              {/if}
+            {/if}
+          </ul>
+          {#if launcher.detailsHit}
+            <DetailsPane
+              hit={launcher.detailsHit}
+              onClose={() => launcher.closeDetails()}
+              onToast={(m: string) => launcher.showToast(m)}
+            />
+          {/if}
+        </div>
+      {/if}
+      {#if showResults}
+        <footer class="status" aria-live="polite">
+          <span class="footer-keys">
+            {#each footerKeys as hint (hint)}
+              <span class="hint">{hint}</span>
+            {/each}
+          </span>
+          <span class="footer-count">
+            {#if status}
+              {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
+            {:else}
+              {STRINGS.INDEXING_STATUS}
+            {/if}
+          </span>
+        </footer>
       {/if}
     </div>
   {/if}
-  {#if launcher.toast}
+  {#if launcher.phase === "copied"}
+    <div
+      class="copied-view"
+      role="status"
+      in:fade={{ delay: fadeMs(SEARCH_FADE_MS), duration: fadeMs(COPIED_FADE_MS) }}
+      out:fade={{ duration: fadeMs(COPIED_FADE_MS) }}
+    >
+      {launcher.toast}
+    </div>
+  {/if}
+  {#if launcher.toast && launcher.phase === "search"}
     <div class="toast" role="status">{launcher.toast}</div>
   {/if}
   {#if launcher.settingsOpen}
@@ -243,25 +284,35 @@
       onToast={(m: string) => launcher.showToast(m)}
     />
   {/if}
-  {#if showResults}
-    <footer class="status" aria-live="polite">
-      <span class="footer-keys">
-        {#each footerKeys as hint (hint)}
-          <span class="hint">{hint}</span>
-        {/each}
-      </span>
-      <span class="footer-count">
-        {#if status}
-          {format(STRINGS.FOOTER_STATUS, String(status.entry_count), String(status.pack_count))}
-        {:else}
-          {STRINGS.INDEXING_STATUS}
-        {/if}
-      </span>
-    </footer>
-  {/if}
 </main>
 
 <style>
+  /* Wraps the input + results + footer so the whole launcher fades out as one
+     on Enter-to-copy. Inherits main's column layout; fills it in the tall
+     (settings/about) states. */
+  .search-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  :global(main.tall) .search-view {
+    height: 100%;
+  }
+  /* The "Copied" confirmation shown after the search view fades out. It sits
+     inside main's rounded surface, so it just needs centered themed text. */
+  .copied-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .results-area {
     position: relative;
     overflow: hidden;

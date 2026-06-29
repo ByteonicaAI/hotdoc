@@ -74,10 +74,14 @@ describe("App launcher", () => {
     await fireEvent.input(input, { target: { value: "git stash" } });
     await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
     await fireEvent.keyDown(input, { key: "Enter" });
+    // Copy happens immediately and the "Copied" confirmation is shown.
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith("git stash");
-      expect(invoke).toHaveBeenCalledWith("hide_window");
+      expect(screen.getByText(/Copied: git stash/)).toBeInTheDocument();
     });
+    // The dismiss choreography (search fade → copied hold → fade) hides the
+    // window only after ~1.2s, so allow a generous timeout.
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("hide_window"), { timeout: 2500 });
   });
 
   it("Shift+Enter copies the first example, falling back to syntax", async () => {
@@ -695,6 +699,23 @@ describe("Launcher.applyTheme", () => {
     const applied = launcher.applyTheme("blue");
     expect(applied).toBe("system");
     expect(document.documentElement.dataset.theme).toBeUndefined();
+  });
+
+  // Regression: a failed clipboard write must NOT run the dismiss
+  // choreography — the launcher stays open in "search" so the user can retry,
+  // the window is not hidden, and no recent is recorded for text that never
+  // reached the clipboard.
+  it("failed copy keeps the launcher open and does not dismiss", async () => {
+    vi.mocked(writeText).mockRejectedValueOnce(new Error("clipboard blocked"));
+    const launcher = new Launcher();
+    launcher.results = [mockHit];
+    launcher.selectedIndex = 0;
+    await launcher.activate(false, false);
+    expect(launcher.phase).toBe("search");
+    const hideCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "hide_window");
+    expect(hideCalls).toHaveLength(0);
+    const recordCalls = vi.mocked(invoke).mock.calls.filter((c) => c[0] === "record_recent");
+    expect(recordCalls).toHaveLength(0);
   });
 
   // Regression: a stale query must not survive a hide. doHide() now

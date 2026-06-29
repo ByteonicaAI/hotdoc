@@ -352,8 +352,9 @@ ul[role="listbox"] li.active {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
   padding: 7px 13px;
   border-radius: 7px;
   font-size: 12px;
