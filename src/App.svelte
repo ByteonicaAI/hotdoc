@@ -15,10 +15,10 @@
   import { STRINGS } from "./lib/strings";
 
   const launcher = new Launcher();
-  const refs: LifecycleRefs = {
+  const refs = $state<LifecycleRefs>({
     status: { current: null },
     appVersion: { current: "0.4.0" },
-  };
+  });
 
   const showResults = $derived(
     !launcher.emptyQuery || launcher.pinnedList.length + launcher.recentList.length > 0,
