@@ -72,7 +72,6 @@
                 pinned={launcher.pinnedList}
                 onSelectRecent={(q: string) => launcher.selectRecent(q)}
                 onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
-                onCopyText={(text: string) => launcher.copyText(text)}
                 selectedIndex={launcher.selectedIndex}
                 pinnedOffset={0}
                 recentsOffset={launcher.pinnedList.length}

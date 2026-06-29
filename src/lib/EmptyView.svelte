@@ -7,7 +7,6 @@
     pinned: SearchHit[];
     onSelectRecent: (query: string) => void;
     onSelectPinned: (hit: SearchHit) => void;
-    onCopyText: (text: string) => void;
     selectedIndex: number;
     pinnedOffset: number;
     recentsOffset: number;
@@ -18,7 +17,6 @@
     pinned = [],
     onSelectRecent,
     onSelectPinned,
-    onCopyText,
     selectedIndex,
     pinnedOffset,
     recentsOffset,
@@ -61,15 +59,6 @@
           <span class="pinned-title">{p.title}</span>
           <span class="pinned-syntax">{p.syntax}</span>
         </button>
-        <button
-          type="button"
-          class="row-copy-btn"
-          aria-label="Copy {p.syntax}"
-          onmousedown={(e) => {
-            e.preventDefault();
-            onCopyText(p.syntax);
-          }}>Copy</button
-        >
       </li>
     {/each}
   {/if}
@@ -90,17 +79,6 @@
             <span class="recent-syntax">{r.copied_syntax}</span>
           {/if}
         </button>
-        {#if r.copied_syntax}
-          <button
-            type="button"
-            class="row-copy-btn"
-            aria-label="Copy {r.copied_syntax}"
-            onmousedown={(e) => {
-              e.preventDefault();
-              onCopyText(r.copied_syntax!);
-            }}>Copy</button
-          >
-        {/if}
       </li>
     {/each}
   {/if}
@@ -173,26 +151,5 @@
   li > .pinned-row {
     flex: 1 1 auto;
     min-width: 0;
-  }
-  .row-copy-btn {
-    flex-shrink: 0;
-    display: none;
-    font: 500 11px/1 var(--font-ui);
-    padding: 3px 8px;
-    margin-right: 4px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg);
-    color: var(--muted, #888);
-    cursor: pointer;
-    transition: border-color 90ms ease;
-  }
-  li:hover > .row-copy-btn,
-  li.active > .row-copy-btn {
-    display: block;
-  }
-  .row-copy-btn:hover {
-    border-color: var(--accent);
-    color: var(--fg);
   }
 </style>
