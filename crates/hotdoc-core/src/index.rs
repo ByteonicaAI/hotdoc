@@ -958,6 +958,7 @@ mod tests {
                 description: description.to_string(),
                 examples: vec![],
                 tags: tags.iter().map(|s| s.to_string()).collect(),
+                aliases: vec![],
                 source,
                 source_url: None,
             }],

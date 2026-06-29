@@ -41,6 +41,11 @@ pub struct Entry {
     pub examples: Vec<Example>,
     #[serde(default)]
     pub tags: Vec<String>,
+    /// ponytail: WS-A.4 — short user phrases the ranker treats as
+    /// first-class intent fields (e.g. "undo last commit" → git-reset-soft).
+    /// Curated in v1, expansion heuristic deferred.
+    #[serde(default)]
+    pub aliases: Vec<String>,
     pub source: EntrySource,
     #[serde(default)]
     pub source_url: Option<String>,
@@ -477,6 +482,7 @@ mod tests {
                 description: "d".to_string(),
                 examples: vec![],
                 tags: vec![],
+                aliases: vec![],
                 source: EntrySource::Curated,
                 source_url: None,
             }],
@@ -609,6 +615,31 @@ mod tests {
             assert_eq!(report.failed.len(), 2);
             assert!(report.all_failed(), "no good + some bad = all failed");
             let _ = std::fs::remove_dir_all(&dir);
+        }
+    }
+
+    #[test]
+    fn every_loaded_entry_has_aliases_field() {
+        let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("packs")
+            .join("curate");
+        let report = crate::pack::load_dir(&dir).expect("load packs");
+        assert!(!report.loaded.is_empty(), "no packs loaded");
+        for pack in &report.loaded {
+            for entry in &pack.entries {
+                // Aliases is a Vec<String> (possibly empty). The backfill
+                // task guarantees every entry has the field; this test
+                // enforces the schema invariant going forward.
+                assert!(
+                    entry.aliases.is_empty() || entry.aliases.iter().all(|a| !a.is_empty()),
+                    "entry {}/{} has aliases with empty strings: {:?}",
+                    pack.id,
+                    entry.id,
+                    entry.aliases
+                );
+            }
         }
     }
 }

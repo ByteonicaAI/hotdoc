@@ -323,6 +323,7 @@ mod tests {
                     code: format!("code-{id}"),
                 }],
                 tags: vec![],
+                aliases: vec![],
                 source: EntrySource::Curated,
                 source_url: None,
             }],
