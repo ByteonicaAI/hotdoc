@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["pr", "create", "open"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_create"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["pr", "list"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_list"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["pr", "view", "show"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_view"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["pr", "checkout", "local"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_checkout"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["pr", "merge"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_merge"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["issue", "create", "open"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_issue_create"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["issue", "list"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_issue_list"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["repo", "clone"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_repo_clone"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["repo", "view"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_repo_view"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["run", "workflow", "actions", "list"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_run_list"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["run", "watch", "logs"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_run_watch"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["auth", "status", "login"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_auth_status"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["auth", "login", "setup"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_auth_login"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["gist", "create", "share"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_gist_create"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["secret", "list", "environment"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_secret_list"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["release", "list", "version"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_release_list"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["workflow", "run", "actions"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_workflow_run"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["comment", "issue", "pr"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_pr_comment"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["label", "list", "organization"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://cli.github.com/manual/gh_label_list"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["pull request", "status", "review"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["pull request", "diff", "review"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["pull request", "review", "approve"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["issue", "view", "details"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["issue", "comment"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["repo", "create", "github"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["release", "tag", "publish"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["release", "download", "asset"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["actions", "run", "logs"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["actions", "rerun", "workflow"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["actions", "workflow", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["api", "rest", "graphql"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["auth", "token", "scope"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["alias", "shortcut"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["pr", "draft", "review"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["pr", "close"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["issue", "edit", "label"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["repo", "fork", "clone"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["repo", "sync", "fork"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["actions", "run", "artifacts"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["actions", "run", "cancel"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     },
@@ -618,6 +658,7 @@
         }
       ],
       "tags": ["browse", "repo", "web"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://cli.github.com/manual/"
     }

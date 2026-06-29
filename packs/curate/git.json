@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["stash", "save", "working tree", "stsh", "git"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs/git-stash"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["stash", "restore", "apply"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-stash"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["stash", "list", "show"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-stash"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["reset", "discard", "hard", "undo"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-reset"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["reset", "soft", "uncommit", "undo", "last", "commit", "git"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["branch", "create", "checkout", "new", "git"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["branch", "switch", "checkout"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-checkout"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["branch", "delete", "remove"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-branch"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["cherry-pick", "apply", "commit"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs/git-cherry-pick"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["log", "oneline", "history"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-log"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["log", "graph", "history", "branches"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-log"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["diff", "staged", "cached", "review"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-diff"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["rebase", "interactive", "squash", "edit"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-rebase"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["fetch", "prune", "remote", "cleanup"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-fetch"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["remote", "add", "url"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-remote"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["tag", "release", "version"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-tag"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["merge", "branch", "combine"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-merge"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["blame", "history", "author"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-blame"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["rebase", "continue", "conflict"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-rebase"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["grep", "search", "pattern"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-grep"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["reflog", "recovery", "history"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-reflog"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["show", "diff", "commit"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-show"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["push", "remote", "upload"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-push"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["pull", "fetch", "merge", "remote"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://git-scm.com/docs/git-pull"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["status", "working tree", "staged"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["add", "stage", "index"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["commit", "history", "snapshot"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["clone", "checkout", "remote"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["init", "repository", "new"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["branch", "switch"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["branch", "create", "switch"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["restore", "discard", "working tree"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["unstage", "restore", "index"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["clean", "untracked", "delete"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["config", "setup", "global"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["branch", "list", "upstream"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["remote", "origin", "url"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["push", "upstream", "remote"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["pull", "rebase", "sync"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["revert", "undo", "commit"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -618,6 +658,7 @@
         }
       ],
       "tags": ["worktree", "branch", "checkout"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -633,6 +674,7 @@
         }
       ],
       "tags": ["submodule", "dependency", "clone"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -648,6 +690,7 @@
         }
       ],
       "tags": ["diff", "working tree", "review"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -663,6 +706,7 @@
         }
       ],
       "tags": ["diff", "branch", "compare"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -678,6 +722,7 @@
         }
       ],
       "tags": ["commit", "amend", "fix"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -693,6 +738,7 @@
         }
       ],
       "tags": ["branch", "rename"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -708,6 +754,7 @@
         }
       ],
       "tags": ["remote", "url", "origin"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -723,6 +770,7 @@
         }
       ],
       "tags": ["bisect", "debug", "history"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -738,6 +786,7 @@
         }
       ],
       "tags": ["files", "tracked", "index"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     },
@@ -753,6 +802,7 @@
         }
       ],
       "tags": ["archive", "release", "export"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://git-scm.com/docs"
     }

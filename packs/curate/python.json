@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["imports", "modules"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/simple_stmts.html#import"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["conditionals", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#if"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["loops", "iteration"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#for"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["loops", "iteration", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#while"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["functions", "reusability"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#function"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["classes", "oop", "objects"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#class"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["comprehension", "list", "functional", "python"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/expressions.html#list-displays"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["comprehensions", "dictionaries", "functional"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/expressions.html#dictionary-displays"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["error-handling", "exceptions"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#try"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["context-managers", "file-io", "resources"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/compound_stmts.html#with"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["functions", "functional", "anonymous"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/expressions.html#lambda"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["strings", "formatting"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/library/stdtypes.html#printf-style-string-formatting"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["slicing", "sequences", "strings"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/reference/expressions.html#slicings"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["iteration", "sequences", "indexing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/library/functions.html#enumerate"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["iteration", "sequences"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.python.org/3/library/functions.html#zip"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["cli", "script", "run"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["cli", "module", "run"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["cli", "inline", "command"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["cli", "interactive", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["cli", "version"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["venv", "environment", "isolation"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["pip", "package", "install"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["stdlib", "server", "http"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["stdlib", "json", "pretty"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["test", "unittest", "stdlib"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["debug", "pdb", "stdlib"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["benchmark", "timeit", "stdlib"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["compile", "bytecode", "stdlib"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["profile", "import", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["warnings", "debug", "ci"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["stdlib", "cli", "arguments"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/using/cmdline.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["pip", "requirements", "packages"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pip.pypa.io/en/stable/cli/pip_freeze/"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["pip", "uninstall", "packages"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pip.pypa.io/en/stable/cli/pip_uninstall/"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["pip", "upgrade", "packages"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pip.pypa.io/en/stable/cli/pip_install/"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["pathlib", "file", "io"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/library/pathlib.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["subprocess", "process", "shell"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/library/subprocess.html"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["dataclass", "classes", "typing"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/library/dataclasses.html"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["asyncio", "async", "event loop"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/library/asyncio-runner.html"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["logging", "debug", "scripts"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.python.org/3/library/logging.html"
     }

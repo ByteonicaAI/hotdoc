@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["filtering", "conditions"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#select"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["transformation", "arrays"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#map-map_values"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["objects", "introspection"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#keys-keys_unsorted-has"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["objects", "arrays"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#keys-keys_unsorted-has"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["grouping", "transformation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#group_by"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["sorting", "transformation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#sort-sort_by"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["deduplication", "transformation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#unique-unique_by"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["aggregation", "arithmetic"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#add"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["strings", "arrays"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#join"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["strings", "arrays"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#split"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["objects", "testing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#keys-keys_unsorted-has"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["strings", "testing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#contains-iscontained"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["introspection", "testing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#type"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["measurement", "strings", "arrays"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#length"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["aggregation", "iteration"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#reduce"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["introspection", "navigation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://jqlang.org/manual/#path-expressions"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["pretty", "identity", "json"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["field", "object", "extract"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["raw", "string", "output"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["slurp", "array", "inputs"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["compact", "jsonl", "output"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["variable", "arg", "shell"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["variable", "json", "arg"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["object", "entries", "keys"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["delete", "redact", "path"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["object", "transform", "entries"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["if", "condition", "branch"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["try", "catch", "error"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["recursive", "nested", "search"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["array", "flatten"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["json", "string", "parse"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["number", "string", "convert"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["input", "generate", "json"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["raw", "text", "input"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["exit", "status", "ci"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["sort", "keys", "format"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["array", "index", "slice"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["optional", "field", "safe"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["default", "fallback", "null"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["assignment", "update", "modify"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -618,6 +658,7 @@
         }
       ],
       "tags": ["boolean", "array", "condition"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     },
@@ -633,6 +674,7 @@
         }
       ],
       "tags": ["regex", "capture", "strings"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://jqlang.org/manual/"
     }

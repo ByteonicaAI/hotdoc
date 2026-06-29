@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["ps", "list", "running"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/ls/"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["ps", "list", "all", "stopped"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/ls/"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["images", "list", "local"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/ls/"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["run", "create", "start"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/run/"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["run", "rm", "ephemeral", "one-shot"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/run/"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["exec", "shell", "interactive"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/exec/"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["logs", "tail", "follow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/logs/"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["logs", "tail", "history"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/logs/"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["stop", "shutdown"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/stop/"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["start", "resume"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/start/"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["rm", "remove", "cleanup"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/rm/"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["rmi", "remove", "image", "cleanup"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/rm/"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["pull", "download", "registry"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/pull/"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["build", "dockerfile", "image", "docker"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/buildx/build/"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["prune", "cleanup", "disk"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/system/prune/"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["inspect", "debug", "json"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/inspect/"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["network", "list"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/network/ls/"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["volume", "list"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/volume/ls/"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["tag", "image", "registry"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/tag/"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["push", "registry", "upload"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/push/"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["save", "export", "archive"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/save/"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["load", "import", "archive"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/load/"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["rename", "container"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/rename/"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["update", "config", "resources"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/update/"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["attach", "logs", "interactive"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/container/attach/"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["history", "image", "layers"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.docker.com/reference/cli/docker/image/history/"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["run", "port", "publish"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["run", "env", "container"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["restart", "container"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["kill", "signal", "container"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["stats", "monitor", "resources"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["copy", "container", "files"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["cleanup", "container", "prune"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["cleanup", "image", "prune"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["registry", "auth", "login"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["info", "daemon", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["context", "remote", "switch"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["compose", "services", "up"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["compose", "services", "down"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["compose", "logs", "follow"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -618,6 +658,7 @@
         }
       ],
       "tags": ["run", "name", "container"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -633,6 +674,7 @@
         }
       ],
       "tags": ["run", "volume", "bind mount"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -648,6 +690,7 @@
         }
       ],
       "tags": ["network", "create"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -663,6 +706,7 @@
         }
       ],
       "tags": ["volume", "create", "storage"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -678,6 +722,7 @@
         }
       ],
       "tags": ["compose", "ps", "services"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -693,6 +738,7 @@
         }
       ],
       "tags": ["compose", "exec", "shell"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -708,6 +754,7 @@
         }
       ],
       "tags": ["compose", "services", "image"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     },
@@ -723,6 +770,7 @@
         }
       ],
       "tags": ["buildx", "platform", "image"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.docker.com/reference/cli/docker/"
     }

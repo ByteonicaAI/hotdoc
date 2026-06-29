@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["targets", "rules"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Rule-Introduction"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["recipes", "commands"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Recipe-Syntax"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["variables", "config"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Using-Variables"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["targets", "special", "phony", "makefile", "target"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["variables", "patterns"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Automatic-Variables"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["rules", "patterns"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Pattern-Rules"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["conditions", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Conditionals"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["structure", "modular"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Include"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["functions", "string-manipulation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Functions"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["patterns", "file-matching"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Wildcard-Function"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["targets", "default"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["cleanup", "phony", "build"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Phony-Targets"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["installation", "phony"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["documentation", "phony"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#Goals"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["search", "paths"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/make/manual/make.html#VPATH"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["target", "build", "run"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["parallel", "jobs", "build"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["dry run", "preview", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["default", "target", "goal"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["prerequisite", "order-only", "build"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["variable", "environment", "export"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["function", "shell", "variable"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["function", "loop", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["function", "filter", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["macro", "call", "eval"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["recursive", "subdir", "build"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["recipe", "shell", "state"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["cli", "directory", "target"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["cli", "makefile", "target"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["cli", "errors", "ci"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["cli", "rebuild", "force"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["debug", "database", "variables"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["variables", "override", "cli"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["debug", "functions", "diagnostics"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["metaprogramming", "eval", "variables"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/make/manual/make.html"
     }

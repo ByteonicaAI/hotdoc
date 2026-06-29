@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["search", "basic"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["filtering", "file-types", "file", "ripgrep", "search"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#manual-filtering-file-types"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["matching", "flags", "search", "case"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#case-sensitivity"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["matching", "boundaries"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["search", "recursion"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["filtering", "patterns"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#manual-filtering-globs"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["output", "counting"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["output", "context"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["filtering", "hidden"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#automatic-filtering"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["filtering", "git"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#automatic-filtering"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["patterns", "regex"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#regular-expressions"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["matching", "literal"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["listing", "files"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["output", "limits"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#basic-usage"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["output", "json"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md#json-output"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["line", "number", "search"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["output", "heading", "pipe"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["editor", "vimgrep", "quickfix"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["files", "matches", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["files", "missing", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["invert", "filter", "lines"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["extract", "match", "output"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["multiline", "regex", "search"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["symlink", "follow", "search"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["depth", "recursive", "limit"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["sort", "stable", "output"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["compressed", "gzip", "logs"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["ignore", "filter", "files"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["types", "list", "help"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["types", "custom", "glob"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["hidden", "ignored", "binary"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["regex", "pcre2", "lookaround"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["replace", "output", "regex"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["passthru", "highlight", "logs"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["stats", "debug", "counts"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["debug", "ignore", "glob"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["type", "exclude", "filter"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["preprocess", "search", "advanced"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md"
     }

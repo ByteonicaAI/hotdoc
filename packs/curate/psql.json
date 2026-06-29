@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["connection", "authentication"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["inspection", "databases"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["inspection", "tables"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["inspection", "schema"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["inspection", "functions"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["queries", "data-retrieval"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-select.html"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["queries", "data-modification"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-insert.html"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["queries", "data-modification"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-update.html"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["queries", "data-modification"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-delete.html"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["schema", "table-creation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-createtable.html"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["schema", "modification"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-altertable.html"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["schema", "optimization"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-createindex.html"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["queries", "joins"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-JOIN"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["queries", "aggregation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/functions-aggregate.html"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["import-export", "data-transfer"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/sql-copy.html"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["transactions", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/tutorial-transactions.html"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["meta", "connect", "database"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["meta", "schema", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["meta", "index", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["meta", "roles", "users"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["meta", "output", "wide"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["meta", "timing", "performance"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["meta", "file", "script"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["meta", "output", "file"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["meta", "watch", "monitor"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["meta", "variable", "script"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["sql", "performance", "plan"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["sql", "database", "create"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["sql", "role", "user"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["sql", "grant", "permissions"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["sql", "maintenance", "performance"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["meta", "quit", "exit"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["meta-command", "connection", "info"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["meta-command", "describe", "table"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["output", "expanded", "display"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["output", "pager", "display"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["meta-command", "dynamic sql", "execute"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["role", "password", "security"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["error", "debug", "meta-command"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["environment", "meta-command", "config"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     }
