@@ -643,13 +643,19 @@ fn score_classify_returns_weak_for_tool_only_match() {
 
 #[test]
 fn classify_exact_via_alias_is_exact() {
-    // Whole-query == alias string → Confidence::Exact even though the
-    // alias exact bonus (75) is below the title threshold (80).
+    // Whole-query == alias string → Confidence::Exact via alias-75 bonus.
+    // ponytail: title "Roll Back Changes" tokenises to ["roll","back","changes"]
+    // and syntax "git reset --soft HEAD~1" tokenises to ["git","reset","soft","head","1"];
+    // neither join equals "undo last commit", so EXACT_MATCH_TITLE (+80) and
+    // EXACT_MATCH_SYNTAX (+100) do NOT fire. Only the alias exact bonus (+75)
+    // contributes, giving b.exact_match == 75. This FAILS under the old
+    // threshold-80 path (75 < 80) and PASSES under the new threshold-75 path —
+    // true regression protection for the alias-75 fix.
     let e = entry(
         "git-reset-soft-head-1",
         "git",
         "git reset --soft HEAD~1",
-        "Undo Last Commit",
+        "Roll Back Changes",
         &[],
         &["undo last commit"],
         "",
@@ -658,6 +664,11 @@ fn classify_exact_via_alias_is_exact() {
     let n = normalize_entry("git", &e);
     let q = parse_query("undo last commit", &["git".into()]);
     let b = score(&n, &q);
+    assert_eq!(
+        b.exact_match, 75.0,
+        "only alias-75 must fire; got exact_match={} (title or syntax may have leaked)",
+        b.exact_match
+    );
     assert_eq!(score::classify(&n, &q, &b), Confidence::Exact);
 }
 
