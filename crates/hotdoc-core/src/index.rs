@@ -54,6 +54,11 @@ pub struct HotdocIndex {
     // Tantivy stays in the struct as a retrieval-side index for
     // future use; search() no longer touches it.
     entries: Vec<(String, Entry)>,
+    // ponytail: normalized corpus built ONCE at build()/open(). The
+    // search hot path scores against this slice rather than re-tokenizing
+    // 731 entries per keystroke (the prior per-query normalize was the
+    // real latency cost, not the scan itself).
+    normalized: Vec<crate::ranker::NormalizedEntry>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -135,12 +140,14 @@ impl HotdocIndex {
             .flat_map(|p| p.entries.iter().map(|e| (p.id.clone(), e.clone())))
             .collect();
         write_entries_sidecar(path, &entries).context("writing entries sidecar")?;
+        let normalized = build_normalized(&entries);
         Ok(Self {
             _index: index,
             reader,
             fields,
             entry_meta,
             entries,
+            normalized,
         })
     }
 
@@ -194,12 +201,14 @@ impl HotdocIndex {
             .try_into()?;
         let entry_meta = read_entry_meta_sidecar(path).context("reading entry_meta sidecar")?;
         let entries = read_entries_sidecar(path).context("reading entries sidecar")?;
+        let normalized = build_normalized(&entries);
         Ok(Self {
             _index: index,
             reader,
             fields,
             entry_meta,
             entries,
+            normalized,
         })
     }
 
@@ -217,7 +226,7 @@ impl HotdocIndex {
         if raw.is_empty() {
             return Ok(Vec::new());
         }
-        let ranked = crate::ranker::score_query(&self.entries, raw);
+        let ranked = crate::ranker::score_query_normalized(&self.normalized, raw);
         // ponytail: 5.3 — O(1) entry lookup by id for SearchHit
         // construction. RankedHit carries NormalizedEntry (id +
         // pack_id + token sets) but not the original strings; we need
@@ -424,6 +433,13 @@ fn read_entries_sidecar(dir: &Path) -> Result<Vec<(String, Entry)>> {
     let sidecar: EntriesSidecar =
         serde_json::from_slice(&raw).context("parsing entries sidecar")?;
     Ok(sidecar.entries)
+}
+
+fn build_normalized(entries: &[(String, Entry)]) -> Vec<crate::ranker::NormalizedEntry> {
+    entries
+        .iter()
+        .map(|(pid, e)| crate::ranker::normalize_entry(pid, e))
+        .collect()
 }
 
 #[cfg(test)]

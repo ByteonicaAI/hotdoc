@@ -18,24 +18,27 @@ pub use score::{score, sort_ranked, Confidence, CoverageTier, RankedHit, ScoreBr
 
 use crate::pack::Entry;
 
-/// ponytail: the facade takes raw `(pack_id, Entry)` pairs (what the
-/// index builder holds) and returns ranked hits. HotdocIndex::search
-/// will pass `self.entries` and clamp to its IPC `limit` after
-/// `score_query` returns. `score_query` does NOT apply the limit — the
-/// caller decides how many hits to surface.
-pub fn score_query(entries: &[(String, Entry)], raw: &str) -> Vec<RankedHit> {
-    let pack_ids: Vec<String> = entries.iter().map(|(pid, _)| pid.clone()).collect();
+/// Rank precomputed normalized entries against a raw query. This is the
+/// hot path: `normalized` is built ONCE at index build/open, never per
+/// query. `pack_ids` is derived from the normalized set for tool
+/// detection.
+pub fn score_query_normalized(normalized: &[NormalizedEntry], raw: &str) -> Vec<RankedHit> {
+    let pack_ids: Vec<String> = {
+        let mut v: Vec<String> = normalized.iter().map(|n| n.pack_id.clone()).collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    };
     let parsed = parse_query(raw, &pack_ids);
 
-    let mut hits: Vec<RankedHit> = entries
+    let mut hits: Vec<RankedHit> = normalized
         .iter()
-        .map(|(pack_id, entry)| {
-            let normalized = normalize_entry(pack_id, entry);
-            let breakdown = score(&normalized, &parsed);
+        .map(|n| {
+            let breakdown = score(n, &parsed);
             let total = breakdown.total;
-            let confidence = score::classify(&normalized, &parsed, &breakdown);
+            let confidence = score::classify(n, &parsed, &breakdown);
             RankedHit {
-                entry: normalized,
+                entry: n.clone(),
                 score: total,
                 confidence,
                 breakdown,
@@ -43,10 +46,19 @@ pub fn score_query(entries: &[(String, Entry)], raw: &str) -> Vec<RankedHit> {
         })
         .collect();
 
-    // ponytail: NEG_INFINITY entries (tool hard-filter) sink to the
-    // bottom by step 1 of `sort_ranked`. Drop them from the result so
-    // callers see only finite-scored hits, keeping the contract simple.
     hits.retain(|h| h.score.is_finite());
     sort_ranked(&mut hits);
     hits
+}
+
+/// Convenience wrapper that normalizes `(pack_id, Entry)` pairs on the
+/// fly. Used by ranker unit tests and any caller that doesn't hold a
+/// precomputed normalized set. Production search uses
+/// `score_query_normalized` against the index's cached normals.
+pub fn score_query(entries: &[(String, Entry)], raw: &str) -> Vec<RankedHit> {
+    let normalized: Vec<NormalizedEntry> = entries
+        .iter()
+        .map(|(pid, e)| normalize_entry(pid, e))
+        .collect();
+    score_query_normalized(&normalized, raw)
 }
