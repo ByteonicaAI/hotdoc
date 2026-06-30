@@ -33,7 +33,7 @@
           "code": "curl -I https://example.com"
         }
       ],
-      "tags": ["head", "headers", "response"],
+      "tags": ["head", "headers", "response", "http", "HEAD request"],
       "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-I"
@@ -289,7 +289,7 @@
           "code": "curl -O https://example.com/file.tar.gz"
         }
       ],
-      "tags": ["remote-name", "download", "filename"],
+      "tags": ["remote-name", "download", "filename", "file", "save"],
       "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-O"
@@ -535,22 +535,6 @@
       "source_url": "https://curl.se/docs/manpage.html"
     },
     {
-      "id": "curl-head-request",
-      "title": "Send HEAD request",
-      "syntax": "curl -I <url>",
-      "description": "Fetch response headers using an HTTP HEAD request.",
-      "examples": [
-        {
-          "description": "Check response headers",
-          "code": "curl -I https://example.com"
-        }
-      ],
-      "tags": ["headers", "head", "http"],
-      "aliases": [],
-      "source": "official",
-      "source_url": "https://curl.se/docs/manpage.html"
-    },
-    {
       "id": "curl-put-json",
       "title": "PUT JSON request",
       "syntax": "curl -X PUT -H 'Content-Type: application/json' -d '<json>' <url>",
@@ -578,22 +562,6 @@
         }
       ],
       "tags": ["delete", "http", "api"],
-      "aliases": [],
-      "source": "official",
-      "source_url": "https://curl.se/docs/manpage.html"
-    },
-    {
-      "id": "curl-remote-name",
-      "title": "Save with remote filename",
-      "syntax": "curl -O <url>",
-      "description": "Write output to a local file named like the remote file.",
-      "examples": [
-        {
-          "description": "Download tarball with remote name",
-          "code": "curl -O https://example.com/archive.tar.gz"
-        }
-      ],
-      "tags": ["download", "file", "remote-name"],
       "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
