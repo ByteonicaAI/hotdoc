@@ -130,8 +130,11 @@ mod tests {
         gf.queries.retain(|q| !q.adversarial.unwrap_or(false));
         let dir = tempfile::tempdir().expect("tempdir");
         let baseline_only = dir.path().join("baseline.json");
-        std::fs::write(&baseline_only, serde_json::to_string(&gf).unwrap())
-            .expect("write baseline-only fixture");
+        std::fs::write(
+            &baseline_only,
+            serde_json::to_string(&gf).expect("serialize GoldenFile"),
+        )
+        .expect("write baseline-only fixture");
         cmd_bench(&baseline_only, &index_dir, false).expect("baseline golden queries must pass");
         assert!(
             adv_count > 0,
