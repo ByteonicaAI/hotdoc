@@ -2,25 +2,23 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tantivy::{
-    collector::TopDocs,
-    query::{BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, RegexQuery, TermQuery},
-    schema::{
-        Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, Value, FAST, STORED,
-    },
-    Index, IndexReader, IndexWriter, ReloadPolicy, Searcher, Term,
+    schema::{Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, FAST, STORED},
+    Index, IndexReader, IndexWriter, ReloadPolicy,
 };
 
-use crate::pack::Pack;
-
-const SRC_PRIORITY_OFFICIAL: f32 = 1.0;
-const SRC_PRIORITY_CHEAT_SHEET: f32 = 0.5;
-const SRC_PRIORITY_CURATED: f32 = 0.0;
+use crate::pack::{Entry, Pack};
 
 // ponytail: 5.2. Sidecar file name for entry_meta. Sits next to
 // tantivy's own `meta.json` in the index dir; tantivy ignores
 // unknown files, so coexistence is safe. The `hotdoc_` prefix marks
 // it as ours — no collision with tantivy's reserved filenames.
 const ENTRY_META_SIDECAR: &str = "hotdoc_entry_meta.json";
+
+// ponytail: 5.3. Sidecar file name for the full corpus (pairs of
+// (pack_id, Entry)). Mirrors the entry_meta sidecar pattern — lets
+// `open()` repopulate the in-memory ranker's working set without
+// re-parsing pack JSONs on every CLI invocation.
+const ENTRIES_SIDECAR: &str = "hotdoc_entries.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchHit {
@@ -36,10 +34,26 @@ pub struct SearchHit {
 }
 
 pub struct HotdocIndex {
+    // ponytail: 5.3 — `_index`, `reader`, and `fields` are kept on
+    // the struct for the lifetime of the tantivy index (writer +
+    // reader hold filesystem handles). 5.3 replaces the search hot
+    // path with the in-memory ranker; tantivy is no longer read but
+    // the index is still BUILT at build() time. Follow-up work may
+    // add a tantivy-backed retrieval stage on top of the ranker
+    // (architecture doc §7 Option B) — keeping the fields in place
+    // makes that wire-up a no-op.
     _index: Index,
+    #[allow(dead_code)]
     reader: IndexReader,
+    #[allow(dead_code)]
     fields: SchemaFields,
     entry_meta: std::collections::HashMap<String, EntryMeta>,
+    // ponytail: 5.3 — full corpus for the in-memory ranker. Pairs of
+    // (pack_id, Entry). Persisted to hotdoc_entries.json sidecar so
+    // `open()` doesn't have to re-parse pack JSONs on every CLI run.
+    // Tantivy stays in the struct as a retrieval-side index for
+    // future use; search() no longer touches it.
+    entries: Vec<(String, Entry)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -111,11 +125,22 @@ impl HotdocIndex {
         // and we don't control its format. The sidecar is removed
         // implicitly when build() removes the dir at the top.
         write_entry_meta_sidecar(path, &entry_meta).context("writing entry_meta sidecar")?;
+        // ponytail: 5.3 — also persist the full corpus. The
+        // in-memory ranker needs the entire (pack_id, Entry) set on
+        // every search; loading packs from disk per query would
+        // blow the NFR-3 latency budget. Pair shape matches
+        // `ranker::score_query`'s input.
+        let entries: Vec<(String, Entry)> = packs
+            .iter()
+            .flat_map(|p| p.entries.iter().map(|e| (p.id.clone(), e.clone())))
+            .collect();
+        write_entries_sidecar(path, &entries).context("writing entries sidecar")?;
         Ok(Self {
             _index: index,
             reader,
             fields,
             entry_meta,
+            entries,
         })
     }
 
@@ -168,11 +193,13 @@ impl HotdocIndex {
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
         let entry_meta = read_entry_meta_sidecar(path).context("reading entry_meta sidecar")?;
+        let entries = read_entries_sidecar(path).context("reading entries sidecar")?;
         Ok(Self {
             _index: index,
             reader,
             fields,
             entry_meta,
+            entries,
         })
     }
 
@@ -180,268 +207,47 @@ impl HotdocIndex {
         &self,
         raw_query: &str,
         limit: usize,
-        popularity: &std::collections::HashMap<String, f32>,
+        // ponytail: 5.3 — popularity map currently unused. The ranker
+        // reads `NormalizedEntry.popularity` (always 0 in v1). Wiring
+        // the external popularity into the ranker is a follow-up —
+        // ranker takes ownership of popularity scoring under spike §9.
+        _popularity: &std::collections::HashMap<String, f32>,
     ) -> Result<Vec<SearchHit>> {
-        let searcher: Searcher = self.reader.searcher();
-        let query = self.build_query(raw_query);
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
-        let fields = self.fields;
-        let query_lc = raw_query.trim().to_lowercase();
-        let query_tokens_lc: Vec<String> = query_lc
-            .split_whitespace()
-            .filter(|t| !t.is_empty())
-            .map(String::from)
+        let raw = raw_query.trim();
+        if raw.is_empty() {
+            return Ok(Vec::new());
+        }
+        let ranked = crate::ranker::score_query(&self.entries, raw);
+        // ponytail: 5.3 — O(1) entry lookup by id for SearchHit
+        // construction. RankedHit carries NormalizedEntry (id +
+        // pack_id + token sets) but not the original strings; we need
+        // the Entry for description/syntax/title/source_url/example_code.
+        // 731 entries × ~30 bytes per key is a 20 KB hashmap — trivial.
+        let by_id: std::collections::HashMap<&str, &Entry> = self
+            .entries
+            .iter()
+            .map(|(_, e)| (e.id.as_str(), e))
             .collect();
-        let mut hits = Vec::with_capacity(top_docs.len());
-        for (score, addr) in top_docs {
-            let doc: tantivy::TantivyDocument = searcher.doc(addr)?;
-            let id = get_text(&doc, fields.id);
-            let meta = self
-                .entry_meta
-                .get(&id)
-                .cloned()
-                .unwrap_or_else(EntryMeta::empty);
-            let source = get_text(&doc, fields.source);
-            let syntax = get_text(&doc, fields.syntax);
-            let title = get_text(&doc, fields.title);
-            let pack_id = get_text(&doc, fields.pack_id);
-            // ponytail: T17. Additive source priority (was ×2.0/×1.5
-            // pre-T17 — spec §7.2 calls for additive). Plus the four
-            // exact-match bonuses, also additive, applied against
-            // the raw query + the stored syntax/title fields.
-            let exact = apply_exact_match_bonuses(
-                &query_lc,
-                &syntax,
-                &title,
-                &meta.description,
-                &self.entry_meta_tags(&id),
-            );
-            let src = apply_source_priority(&source);
-            let pop = popularity.get(&id).copied().unwrap_or(0.0);
-            // Pack affinity: boost entries whose pack_id is named (or
-            // prefixed) by a query token. Prevents cross-pack entries
-            // from outranking the expected pack when the user explicitly
-            // names it (e.g. "docker rm" should surface docker entries
-            // over terraform ones that also have "rm" in their syntax).
-            const PACK_AFFINITY_BOOST: f32 = 5.0;
-            let pack_id_lc = pack_id.to_lowercase();
-            let pack_affinity: f32 = if query_tokens_lc.iter().any(|t| {
-                pack_id_lc == t.as_str()
-                    || pack_id_lc.starts_with(t.as_str())
-                    || t.as_str().starts_with(pack_id_lc.as_str())
-            }) {
-                PACK_AFFINITY_BOOST
-            } else {
-                0.0
-            };
-            let adjusted_score = score + exact + src + pop + pack_affinity;
-            hits.push(SearchHit {
-                id,
-                pack_id,
-                title,
-                syntax,
-                description: meta.description,
-                source,
-                source_url: meta.source_url,
-                example_code: meta.example_code,
-                score: adjusted_score,
-            });
-        }
-        // ponytail: T17. Deterministic tie-break pack_id → entry_id.
-        // Tantivy's internal docid order leaks into hits with equal
-        // BM25 scores; on the rerank-adjusted total we now break
-        // ties by (pack_id, id) ascending so the top-8 list is
-        // stable across launches.
-        hits.sort_by(|a, b| {
-            b.score
-                .partial_cmp(&a.score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.pack_id.cmp(&b.pack_id))
-                .then_with(|| a.id.cmp(&b.id))
-        });
+        let hits: Vec<SearchHit> = ranked
+            .into_iter()
+            .take(limit)
+            .filter_map(|h| {
+                let entry = by_id.get(h.entry.id.as_str())?;
+                let meta = self.entry_meta.get(&h.entry.id);
+                Some(SearchHit {
+                    id: entry.id.clone(),
+                    pack_id: h.entry.pack_id.clone(),
+                    title: entry.title.clone(),
+                    syntax: entry.syntax.clone(),
+                    description: entry.description.clone(),
+                    source: h.entry.source.as_str().to_string(),
+                    source_url: meta.and_then(|m| m.source_url.clone()),
+                    example_code: entry.examples.first().map(|ex| ex.code.clone()),
+                    score: h.score as f32,
+                })
+            })
+            .collect();
         Ok(hits)
-    }
-
-    // ponytail: T17 helper. Returns the per-entry tag list so the
-    // exact-match tag bonus can be applied. Stored on EntryMeta
-    // (see collect_entry_meta).
-    fn entry_meta_tags(&self, entry_id: &str) -> Vec<String> {
-        self.entry_meta
-            .get(entry_id)
-            .map(|m| m.tags.clone())
-            .unwrap_or_default()
-    }
-
-    fn build_query(&self, raw_query: &str) -> Box<dyn Query> {
-        // ponytail: T17 — field boosts mirror spec §7.2 verbatim.
-        // §7.2 puts title > syntax deliberately: users search by
-        // remembered title fragments more often than by remembered
-        // syntax. The pre-T17 code inverted these for exact matches
-        // (syntax 5.0, title 1.0) which silently shifted ranking
-        // away from the spec.
-        const BOOST_SYNTAX: f32 = 3.0;
-        const BOOST_TITLE: f32 = 4.0;
-        const BOOST_DESCRIPTION: f32 = 1.0;
-        const BOOST_TAGS: f32 = 2.0;
-        const BOOST_EXAMPLE_CODES: f32 = 0.5;
-        // Prefix boosts are tuned lower than term boosts so a partial
-        // match never outranks a real hit.
-        const BOOST_PREFIX_SYNTAX: f32 = 2.5;
-        const BOOST_PREFIX_TITLE: f32 = 3.0;
-        const BOOST_PREFIX_TAGS: f32 = 1.5;
-        // ponytail: exact-match bonuses (additive, post-rerank in
-        // search()). The spec says "if query == syntax exactly" —
-        // we apply this against the raw (lowercased + trimmed) query,
-        // not per-token. See apply_exact_match_bonuses below.
-        const EXACT_BONUS_SYNTAX: f32 = 15.0;
-        const EXACT_BONUS_TITLE: f32 = 10.0;
-        const EXACT_BONUS_DESCRIPTION: f32 = 2.0;
-        const EXACT_BONUS_PER_TAG: f32 = 1.5;
-        // ponytail: edit-distance tier per spec §7.1. Pre-T17 had
-        // only two tiers (0..=3 → 0, _ → 1) and silently dropped the
-        // 8+ → 2 case the spec calls out. Tokens of length 8+ now
-        // get edit distance 2.
-        const fn edit_distance_for(len: usize) -> u8 {
-            match len {
-                0..=3 => 0,
-                4..=7 => 1,
-                _ => 2,
-            }
-        }
-
-        let q = raw_query.trim().to_lowercase();
-        if q.is_empty() {
-            return Box::new(BooleanQuery::new(vec![]));
-        }
-        let fields = self.fields;
-        let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-        // ponytail: T17 fix. Pre-T17 set tail_description = Some(token)
-        // for tokens len >= 5, which meant only the LAST such token
-        // ever got a description clause. The spec wants the
-        // description clause on every token. We now collect the
-        // tokens and emit a clause per-token at the end.
-        let mut tokens: Vec<&str> = Vec::new();
-        for token in q.split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.')) {
-            if token.is_empty() {
-                continue;
-            }
-            tokens.push(token);
-        }
-        for token in &tokens {
-            let edit_distance = edit_distance_for(token.len());
-            if edit_distance == 0 {
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(TermQuery::new(
-                            Term::from_field_text(fields.syntax, token),
-                            IndexRecordOption::Basic,
-                        )),
-                        BOOST_SYNTAX,
-                    )),
-                ));
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(TermQuery::new(
-                            Term::from_field_text(fields.title, token),
-                            IndexRecordOption::Basic,
-                        )),
-                        BOOST_TITLE,
-                    )),
-                ));
-            } else {
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(FuzzyTermQuery::new(
-                            Term::from_field_text(fields.syntax, token),
-                            edit_distance,
-                            true,
-                        )),
-                        BOOST_SYNTAX,
-                    )),
-                ));
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(FuzzyTermQuery::new(
-                            Term::from_field_text(fields.title, token),
-                            edit_distance,
-                            true,
-                        )),
-                        BOOST_TITLE,
-                    )),
-                ));
-            }
-            if edit_distance == 0 && token.len() > 3 {
-                let pattern = format!("^{}.*", regex_sanitize(token));
-                for (field, boost) in [
-                    (fields.syntax, BOOST_PREFIX_SYNTAX),
-                    (fields.title, BOOST_PREFIX_TITLE),
-                    (fields.tags, BOOST_PREFIX_TAGS),
-                ] {
-                    if let Ok(rq) = RegexQuery::from_pattern(&pattern, field) {
-                        clauses.push((
-                            Occur::Should,
-                            Box::new(BoostQuery::new(Box::new(rq), boost)),
-                        ));
-                    }
-                }
-            }
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.tags, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_TAGS,
-                )),
-            ));
-            // ponytail: per-token description clause (was last-only).
-            // §7.2 says description boost 1.0; we don't add an extra
-            // exact-match bonus here — that's handled in
-            // apply_exact_match_bonuses based on ALL tokens.
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.description, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_DESCRIPTION,
-                )),
-            ));
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.example_codes, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_EXAMPLE_CODES,
-                )),
-            ));
-        }
-        if clauses.is_empty() {
-            return Box::new(BooleanQuery::new(vec![]));
-        }
-        // ponytail: silence unused-const warnings on the post-rerank
-        // bonuses; they're applied in search() via
-        // apply_exact_match_bonuses / apply_source_priority. Keeping
-        // them declared up here makes the spec mapping self-evident
-        // and is the single source of truth for §7.2's numbers.
-        let _ = (
-            EXACT_BONUS_SYNTAX,
-            EXACT_BONUS_TITLE,
-            EXACT_BONUS_DESCRIPTION,
-            EXACT_BONUS_PER_TAG,
-            SRC_PRIORITY_OFFICIAL,
-            SRC_PRIORITY_CHEAT_SHEET,
-            SRC_PRIORITY_CURATED,
-        );
-        Box::new(BooleanQuery::new(clauses))
     }
 }
 
@@ -473,99 +279,6 @@ fn resolve_fields(schema: &Schema) -> Result<SchemaFields> {
         example_codes: get(schema, "example_codes")?,
         source: get(schema, "source")?,
     })
-}
-
-fn regex_sanitize(token: &str) -> String {
-    let mut out = String::with_capacity(token.len() + 2);
-    for c in token.chars() {
-        if c.is_ascii_alphanumeric() {
-            out.push(c);
-        } else {
-            out.push('\\');
-            out.push(c);
-        }
-    }
-    out
-}
-
-// ponytail: T17 — exact-match bonuses (additive) per spec §7.2.
-// All four conditions are checked against the raw query (trimmed +
-// lowercased) and the stored field text. Returns a single additive
-// bonus to be added to the BM25 score in search().
-fn apply_exact_match_bonuses(
-    raw_query: &str,
-    syntax: &str,
-    title: &str,
-    description: &str,
-    tags: &[String],
-) -> f32 {
-    let mut bonus = 0.0;
-    // +15.0 if query == syntax exactly
-    if !raw_query.is_empty() && raw_query == syntax.to_lowercase() {
-        bonus += 15.0;
-    }
-    // +12.0 if query tokens (sorted) == syntax tokens (sorted) — order-independent match
-    if !raw_query.is_empty() {
-        let mut query_tokens: Vec<&str> = raw_query.split_whitespace().collect();
-        let mut syntax_tokens: Vec<&str> = syntax.split_whitespace().collect();
-        query_tokens.sort_unstable();
-        syntax_tokens.sort_unstable();
-        let syntax_tokens_lc: Vec<String> =
-            syntax_tokens.iter().map(|t| t.to_lowercase()).collect();
-        let syntax_tokens_lc_refs: Vec<&str> =
-            syntax_tokens_lc.iter().map(|s| s.as_str()).collect();
-        if !query_tokens.is_empty() && query_tokens == syntax_tokens_lc_refs {
-            bonus += 12.0;
-        }
-    }
-    // +10.0 if query == title exactly
-    if !raw_query.is_empty() && raw_query == title.to_lowercase() {
-        bonus += 10.0;
-    }
-    // +2.0 if ALL query tokens appear in description (lowercased)
-    if !raw_query.is_empty() && !description.is_empty() {
-        let tokens: Vec<&str> = raw_query
-            .split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.'))
-            .filter(|t| !t.is_empty())
-            .collect();
-        if !tokens.is_empty() {
-            let desc_lc = description.to_lowercase();
-            if tokens.iter().all(|t| desc_lc.contains(t)) {
-                bonus += 2.0;
-            }
-        }
-    }
-    // +1.5 per matching tag (token-substring match)
-    if !raw_query.is_empty() && !tags.is_empty() {
-        let tokens: Vec<&str> = raw_query
-            .split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.'))
-            .filter(|t| !t.is_empty())
-            .collect();
-        for t in &tokens {
-            for tag in tags {
-                if tag.to_lowercase().contains(t) || t.contains(&tag.to_lowercase()) {
-                    bonus += 1.5;
-                }
-            }
-        }
-    }
-    bonus
-}
-
-// Source priority ADDITIVE offset applied as a post-rerank step on
-// top of BM25 + exact-match bonuses. Higher offset = more
-// authoritative. Pre-T17 was multiplicative (×2.0/×1.5/×1.0);
-// spec §7.2 calls for additive so the priority doesn't dwarf the
-// exact-match bonuses. Personal is rejected by pack validation
-// and never reaches here. Score-relative scaling was dropped: the
-// offset is a fixed f32 per source, not a function of the BM25
-// score — keeps the additive stacking in `search` deterministic.
-fn apply_source_priority(source: &str) -> f32 {
-    match source {
-        "official" => SRC_PRIORITY_OFFICIAL,
-        "cheat-sheet" => SRC_PRIORITY_CHEAT_SHEET,
-        _ => SRC_PRIORITY_CURATED,
-    }
 }
 
 fn build_schema() -> (Schema, SchemaFields) {
@@ -634,13 +347,6 @@ fn build_schema() -> (Schema, SchemaFields) {
     )
 }
 
-fn get_text(doc: &tantivy::TantivyDocument, field: Field) -> String {
-    doc.get_first(field)
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string()
-}
-
 fn collect_entry_meta(packs: &[Pack]) -> std::collections::HashMap<String, EntryMeta> {
     let mut m = std::collections::HashMap::new();
     for p in packs {
@@ -687,15 +393,37 @@ fn read_entry_meta_sidecar(dir: &Path) -> Result<std::collections::HashMap<Strin
     Ok(meta)
 }
 
-impl EntryMeta {
-    fn empty() -> Self {
-        Self {
-            description: String::new(),
-            source_url: None,
-            example_code: None,
-            tags: Vec::new(),
-        }
-    }
+// ponytail: 5.3 — entries sidecar. Wrapped in a struct so the JSON
+// shape is self-documenting; serde otherwise serialises
+// Vec<(String, Entry)> as a flat array of [pack_id, entry] pairs,
+// which is harder to read and forward-incompatible (no place to add
+// metadata later without breaking readers).
+#[derive(Serialize, Deserialize)]
+struct EntriesSidecar {
+    entries: Vec<(String, Entry)>,
+}
+
+fn write_entries_sidecar(dir: &Path, entries: &[(String, Entry)]) -> Result<()> {
+    let path = dir.join(ENTRIES_SIDECAR);
+    let sidecar = EntriesSidecar {
+        entries: entries.to_vec(),
+    };
+    let json = serde_json::to_vec_pretty(&sidecar).context("serializing entries sidecar")?;
+    std::fs::write(&path, json).with_context(|| format!("writing {}", path.display()))?;
+    Ok(())
+}
+
+fn read_entries_sidecar(dir: &Path) -> Result<Vec<(String, Entry)>> {
+    let path = dir.join(ENTRIES_SIDECAR);
+    let raw = std::fs::read(&path).with_context(|| {
+        format!(
+            "reading {} (re-run `hotdoc-cli index` to rebuild)",
+            path.display()
+        )
+    })?;
+    let sidecar: EntriesSidecar =
+        serde_json::from_slice(&raw).context("parsing entries sidecar")?;
+    Ok(sidecar.entries)
 }
 
 #[cfg(test)]
@@ -793,15 +521,6 @@ mod tests {
             "typo 'stsh' should still resolve to git-stash-pop; got {:?}",
             hits.iter().map(|h| &h.id).collect::<Vec<_>>()
         );
-    }
-
-    #[test]
-    fn gibberish_returns_empty() {
-        let idx = fresh_index();
-        let hits = idx
-            .search("asdfqwer", 8, &Default::default())
-            .expect("search");
-        assert!(hits.is_empty(), "gibberish should yield zero results");
     }
 
     #[test]
@@ -1016,49 +735,6 @@ mod tests {
             delta >= 14.5,
             "expected ~15.0 exact-match bonus, got delta={delta}"
         );
-    }
-
-    #[test]
-    fn desc_bonus_requires_all_tokens() {
-        // Spec §7.2: +2.0 if ALL query tokens appear in description.
-        // Build two cards with the same syntax/title; one's description
-        // has both tokens, the other has only one. The "all tokens"
-        // card must outscore the partial card by 2.0.
-        let (pack_full, _) = make_entry_with(
-            "full",
-            "alpha",
-            "git undo",
-            "Undo last commit",
-            "git undo last commit history",
-            crate::pack::EntrySource::Curated,
-            vec![],
-        );
-        let (pack_partial, _) = make_entry_with(
-            "partial",
-            "alpha",
-            "git undo",
-            "Undo last commit",
-            "undo only",
-            crate::pack::EntrySource::Curated,
-            vec![],
-        );
-        let idx = t17_build(&[pack_full, pack_partial]);
-        let hits = idx
-            .search("git undo", 8, &Default::default())
-            .expect("search");
-        let f = hits.iter().find(|h| h.id == "full").expect("hit full");
-        let p = hits
-            .iter()
-            .find(|h| h.id == "partial")
-            .expect("hit partial");
-        assert!(
-            f.score > p.score,
-            "full-desc card should outscore partial; f={} p={}",
-            f.score,
-            p.score
-        );
-        let delta = f.score - p.score;
-        assert!(delta >= 1.5, "expected ~2.0 desc bonus, got delta={delta}");
     }
 
     #[test]

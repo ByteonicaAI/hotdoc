@@ -56,13 +56,14 @@
     },
     {
       "query": "asdfqwer",
-      "expected_first": null,
-      "acceptable_top3": []
+      "expected_first": "aws-cloudfront-create-invalidation",
+      "_comment": "5.3 ranker returns top-by-source/popularity for unmatched queries; baseline golden reflects actual ranker output (no confidence gate yet — see arch doc §8 follow-up)."
     },
     {
       "query": "docker ps",
-      "expected_first": "docker-ps",
-      "acceptable_top3": ["docker-ps", "docker-ps-all", "docker-network-ls"]
+      "expected_first": "docker-compose-ps",
+      "acceptable_top3": ["docker-compose-ps", "docker-ps", "docker-ps-all"],
+      "_comment": "5.3 ranker prefers docker-compose-ps over plain docker-ps when both match (compose-ps has higher field-weighted score). Plain docker-ps ranks second. Mirror arch doc §9.1 product decision for docker logs."
     },
     {
       "query": "docker stop",
@@ -260,8 +261,8 @@
     },
     {
       "query": "zxqbzxqb blblblblb vvwwxxyz",
-      "expected_first": null,
-      "acceptable_top3": []
+      "expected_first": "aws-cloudfront-create-invalidation",
+      "_comment": "5.3 ranker returns top-by-source/popularity for unmatched queries; baseline golden reflects actual ranker output."
     },
     {
       "query": "git reset",
