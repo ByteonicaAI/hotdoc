@@ -195,18 +195,38 @@ impl HotdocIndex {
         })
     }
 
-    /// Tantivy BM25 candidate retrieval. Returns indices into `self.normalized`,
-    /// or `None` to signal "score the full corpus" (small corpus, thin
-    /// candidates, or empty query terms). Used only above
-    /// RETRIEVAL_FULLSCAN_MAX.
-    fn retrieve_candidates(&self, terms: &[String]) -> Option<Vec<usize>> {
+    /// Extract BM25 query terms from a raw query string. Reused by
+    /// `search()` and the injectable-threshold seam (`retrieve_candidates_with_max`).
+    fn bm25_terms_for(&self, raw: &str) -> Vec<String> {
+        let pack_ids: Vec<String> = {
+            let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
+            v.sort_unstable();
+            v.dedup();
+            v
+        };
+        let parsed = crate::ranker::parse_query(raw, &pack_ids);
+        let mut terms: Vec<String> = parsed.intents.clone();
+        terms.extend(parsed.options.iter().cloned());
+        terms
+    }
+
+    /// Tantivy BM25 candidate retrieval with an injectable fullscan threshold.
+    /// Returns indices into `self.normalized`, or `None` to signal "score the
+    /// full corpus" (corpus ≤ fullscan_max, thin candidates, or empty terms).
+    /// Production callers use `retrieve_candidates`; tests can pass `fullscan_max=0`
+    /// to force the BM25 path on a small hermetic corpus.
+    fn retrieve_candidates_with_max(
+        &self,
+        terms: &[String],
+        fullscan_max: usize,
+    ) -> Option<Vec<usize>> {
         use tantivy::collector::TopDocs;
         use tantivy::query::{BooleanQuery, Occur, Query, TermQuery};
         use tantivy::schema::document::Value;
         use tantivy::schema::IndexRecordOption;
         use tantivy::Term;
 
-        if self.normalized.len() <= RETRIEVAL_FULLSCAN_MAX || terms.is_empty() {
+        if self.normalized.len() <= fullscan_max || terms.is_empty() {
             return None;
         }
         let searcher = self.reader.searcher();
@@ -256,21 +276,19 @@ impl HotdocIndex {
         Some(idxs)
     }
 
+    /// Tantivy BM25 candidate retrieval. One-line wrapper around
+    /// `retrieve_candidates_with_max` using the production threshold.
+    fn retrieve_candidates(&self, terms: &[String]) -> Option<Vec<usize>> {
+        self.retrieve_candidates_with_max(terms, RETRIEVAL_FULLSCAN_MAX)
+    }
+
     pub fn search(&self, raw_query: &str, limit: usize) -> Result<Vec<SearchHit>> {
         let raw = raw_query.trim();
         if raw.is_empty() {
             return Ok(Vec::new());
         }
         // ponytail: parse once to get the intent terms tantivy retrieves on.
-        let pack_ids: Vec<String> = {
-            let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
-            v.sort_unstable();
-            v.dedup();
-            v
-        };
-        let parsed = crate::ranker::parse_query(raw, &pack_ids);
-        let mut terms: Vec<String> = parsed.intents.clone();
-        terms.extend(parsed.options.iter().cloned());
+        let terms = self.bm25_terms_for(raw);
 
         let ranked = match self.retrieve_candidates(&terms) {
             Some(idxs) => {
@@ -845,6 +863,63 @@ mod tests {
         assert!(
             first_pack < second_pack,
             "deterministic tie-break failed: first={first_pack} second={second_pack}"
+        );
+    }
+
+    #[test]
+    fn retrieve_candidates_with_max_forces_bm25_branch() {
+        // Small corpus — well below RETRIEVAL_FULLSCAN_MAX but with enough
+        // "git" entries (21 total) that the BM25 result set survives the
+        // RETRIEVAL_MIN_CANDIDATES (16) thin-candidate guard.
+        //
+        // Pack id is "alpha" (NOT "git") so parse_query does NOT consume
+        // "git" as the `tool` slot.  That keeps "git", "commit", "amend"
+        // all in `intents`, giving BM25 terms that match every entry.
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("git-cmd-{i}"),
+                "alpha",
+                &format!("git cmd-{i}"),
+                &format!("Git Cmd {i}"),
+                "git utility",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let (target, _) = make_entry_with(
+            "git-commit-amend",
+            "alpha",
+            "git commit --amend",
+            "Git Commit Amend",
+            "amend the most recent commit",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        let terms = idx.bm25_terms_for("git commit amend");
+        // fullscan_max=0 → corpus.len() (21) > 0 → BM25 branch engages.
+        let cands = idx.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands.is_some(),
+            "must take BM25 branch when corpus.len() > fullscan_max"
+        );
+        let ids: Vec<&str> = cands
+            .expect("Some")
+            .iter()
+            .map(|&i| idx.normalized[i].id.as_str())
+            .collect();
+        assert!(
+            ids.contains(&"git-commit-amend"),
+            "BM25 candidates must include the target; got {ids:?}"
+        );
+        // Real threshold on this small corpus → full scan (dormant branch).
+        assert!(
+            idx.retrieve_candidates(&terms).is_none(),
+            "real threshold must keep retrieval dormant on a small corpus"
         );
     }
 
