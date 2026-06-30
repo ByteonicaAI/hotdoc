@@ -150,7 +150,12 @@ fn title_near_dups(
             let (pack_j, id_j, tokens_j) = &normalized[j];
 
             // Skip pairs already reported as exact-syntax dups.
-            if syntax_dup_pairs.contains(&pair_key(id_i, id_j)) {
+            // Keys are pack-qualified ("pack/entry_id") to avoid false skips
+            // when two different packs share an entry_id.
+            if syntax_dup_pairs.contains(&pair_key(
+                &format!("{pack_i}/{id_i}"),
+                &format!("{pack_j}/{id_j}"),
+            )) {
                 continue;
             }
 
@@ -281,13 +286,15 @@ fn main() {
     let dup_findings = exact_syntax_dups(&flat);
 
     // Build the exact-syntax-dup pair set so title_near_dups can skip them.
+    // Keys are pack-qualified ("pack/entry_id") to prevent false skips when
+    // two different packs happen to share an entry_id.
     let syntax_dup_pairs: HashSet<(String, String)> = {
         let mut by_syntax: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        for (_, entry) in &flat {
+        for (pack_id, entry) in &flat {
             by_syntax
                 .entry(entry.syntax.clone())
                 .or_default()
-                .push(entry.id.clone());
+                .push(format!("{pack_id}/{}", entry.id));
         }
         let mut pairs: HashSet<(String, String)> = HashSet::new();
         for group in by_syntax.values() {
@@ -305,9 +312,16 @@ fn main() {
     let meta_findings = weak_metadata(&flat, min_tags);
     let near_findings = title_near_dups(&flat, threshold, &syntax_dup_pairs);
 
+    // ── Summary counts (used by both output paths) ────────────────────────
+    let total_entries: usize = report.loaded.iter().map(|p| p.entries.len()).sum();
+    let no_alias_count = flat.iter().filter(|(_, e)| e.aliases.is_empty()).count();
+    let thin_tag_count = flat.iter().filter(|(_, e)| e.tags.len() < min_tags).count();
+
     // ── Output ────────────────────────────────────────────────────────────
     match format.as_str() {
         "json" => {
+            // stdout must contain ONLY valid JSON so `jq`/programmatic consumers
+            // can parse it. Route the summary to stderr instead.
             let all: Vec<&Finding> = dup_findings
                 .iter()
                 .chain(meta_findings.iter())
@@ -318,6 +332,14 @@ fn main() {
                 serde_json::to_string_pretty(&all)
                     .expect("corpus-audit: JSON serialization failed")
             );
+            eprintln!();
+            eprintln!("--- SUMMARY ---");
+            eprintln!("Packs loaded             : {}", report.loaded.len());
+            eprintln!("Total entries            : {total_entries}");
+            eprintln!("Exact-syntax dup groups  : {}", dup_findings.len());
+            eprintln!("No-alias entries         : {no_alias_count}/{total_entries}");
+            eprintln!("Thin-tag entries         : {thin_tag_count}");
+            eprintln!("Title near-dup pairs     : {}", near_findings.len());
         }
         _ => {
             print_text_report(
@@ -327,22 +349,16 @@ fn main() {
                 min_tags,
                 threshold,
             );
+            println!();
+            println!("--- SUMMARY ---");
+            println!("Packs loaded             : {}", report.loaded.len());
+            println!("Total entries            : {total_entries}");
+            println!("Exact-syntax dup groups  : {}", dup_findings.len());
+            println!("No-alias entries         : {no_alias_count}/{total_entries}");
+            println!("Thin-tag entries         : {thin_tag_count}");
+            println!("Title near-dup pairs     : {}", near_findings.len());
         }
     }
-
-    // ── Summary ───────────────────────────────────────────────────────────
-    let total_entries: usize = report.loaded.iter().map(|p| p.entries.len()).sum();
-    let no_alias_count = flat.iter().filter(|(_, e)| e.aliases.is_empty()).count();
-    let thin_tag_count = flat.iter().filter(|(_, e)| e.tags.len() < min_tags).count();
-
-    println!();
-    println!("--- SUMMARY ---");
-    println!("Packs loaded             : {}", report.loaded.len());
-    println!("Total entries            : {total_entries}");
-    println!("Exact-syntax dup groups  : {}", dup_findings.len());
-    println!("No-alias entries         : {no_alias_count}/{total_entries}");
-    println!("Thin-tag entries         : {thin_tag_count}");
-    println!("Title near-dup pairs     : {}", near_findings.len());
 }
 
 // ─── Unit tests ───────────────────────────────────────────────────────────────
@@ -557,7 +573,8 @@ mod tests {
         let e2 = make_entry("e2", "Discard all changes", "git restore .", &[], &[]);
         let entries: Vec<(&str, &Entry)> = vec![("git", &e1), ("git", &e2)];
         let mut dup_pairs: HashSet<(String, String)> = HashSet::new();
-        dup_pairs.insert(pair_key("e1", "e2"));
+        // Keys are pack-qualified to match the production invariant.
+        dup_pairs.insert(pair_key("git/e1", "git/e2"));
 
         let findings = title_near_dups(&entries, 0.5, &dup_pairs);
 
