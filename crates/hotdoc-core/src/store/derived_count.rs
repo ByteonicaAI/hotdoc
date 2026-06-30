@@ -49,19 +49,39 @@ mod tests {
     }
 
     #[test]
-    fn derived_entry_count_matches_packs() {
-        let packs = small_packs();
+    fn derived_entry_count_matches_real_packs() {
+        use std::path::PathBuf;
+        let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .join("packs")
+            .join("curate");
+        let packs = crate::pack::load_dir(&dir).expect("load real packs").loaded;
+        let expected: usize = packs.iter().map(|p| p.entries.len()).sum();
+        let idxdir = tempfile::tempdir().expect("tempdir");
+        let idx = HotdocIndex::build(&packs, idxdir.path()).expect("build");
+        assert_eq!(
+            idx.entry_count(),
+            expected,
+            "entry_count must equal sum over REAL packs"
+        );
+    }
+
+    #[test]
+    fn derived_entry_count_counts_duplicate_ids() {
+        // ponytail: two packs sharing an entry id must BOTH count. The old
+        // entry_count() (deduped HashMap len) under-counted here; entries
+        // is a flat Vec so the true count is preserved.
+        let mut packs = small_packs();
+        // Force a cross-pack duplicate id.
+        packs[1].entries[0].id = packs[0].entries[0].id.clone();
         let expected: usize = packs.iter().map(|p| p.entries.len()).sum();
         let dir = tempfile::tempdir().expect("tempdir");
         let idx = HotdocIndex::build(&packs, dir.path()).expect("build");
         assert_eq!(
             idx.entry_count(),
             expected,
-            "entry_count must equal sum of pack entries"
+            "duplicate ids must not collapse the count"
         );
-        // ponytail: pack_count is derived from packs.len() — no fixture
-        // path can produce a different count, but assert explicitly to
-        // document the contract.
-        assert_eq!(packs.len(), 2);
     }
 }
