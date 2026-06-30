@@ -361,30 +361,34 @@ fn levenshtein(a: &str, b: &str) -> usize {
 }
 
 pub fn classify(entry: &NormalizedEntry, query: &ParsedQuery, b: &ScoreBreakdown) -> Confidence {
-    let tiers: Vec<CoverageTier> = b.tiers.iter().map(|(_, t)| *t).collect();
-    let has_intents = !tiers.is_empty();
+    // ponytail: an intent is "covered for confidence" if its static tier
+    // is non-Missing OR it was lifted by fuzzy rescue. The static `tiers`
+    // alone undercount coverage: a typo'd intent stays `Missing` even
+    // after `score_fuzzy_rescue` adds points, which previously dropped
+    // "kubectl roolout restrt" to Weak.
+    let fuzzy_lifted = b.fuzzy_rescue > 0.0;
+    let has_intents = !b.tiers.is_empty();
     let all_in_cmd = has_intents
-        && tiers
+        && b.tiers
             .iter()
-            .all(|t| matches!(t, CoverageTier::ExactCommand | CoverageTier::Prefix));
-    let all_anywhere = has_intents && tiers.iter().all(|t| !matches!(t, CoverageTier::Missing));
+            .all(|(_, t)| matches!(t, CoverageTier::ExactCommand | CoverageTier::Prefix));
+    let all_anywhere = has_intents
+        && b.tiers
+            .iter()
+            .all(|(_, t)| !matches!(t, CoverageTier::Missing));
+    // Missing intents are tolerated for "covered anywhere" only when the
+    // whole entry earned a fuzzy rescue (typo path).
+    let all_covered = all_anywhere || (fuzzy_lifted && has_intents);
 
-    if b.exact_match >= EXACT_MATCH_TITLE {
+    // Any whole-query exact field match (syntax 100 / title 80 / alias 75)
+    // is high-confidence — alias matches must not be excluded by the 80 cut.
+    if b.exact_match >= EXACT_MATCH_ALIAS {
         return Confidence::Exact;
     }
-    // ponytail: Fuzzy is acceptable inside Strong because the common
-    // case is "kubectl roolout restar" → all Fuzzy tiers but still the
-    // right card. Strict command-field match would downgrade that to
-    // Medium, which lies to the test fixture.
-    if query.tool.as_deref() == Some(entry.pack_id.as_str()) {
-        if all_in_cmd {
-            return Confidence::Strong;
-        }
-        if all_anywhere {
-            return Confidence::Strong;
-        }
+    if query.tool.as_deref() == Some(entry.pack_id.as_str()) && (all_in_cmd || all_covered) {
+        return Confidence::Strong;
     }
-    if all_in_cmd {
+    if all_covered {
         return Confidence::Medium;
     }
     Confidence::Weak

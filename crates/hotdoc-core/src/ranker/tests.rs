@@ -640,3 +640,82 @@ fn score_classify_returns_weak_for_tool_only_match() {
     let conf = score::classify(&normalized[0], &parsed, &b);
     assert_eq!(conf, Confidence::Weak);
 }
+
+#[test]
+fn classify_exact_via_alias_is_exact() {
+    // Whole-query == alias string → Confidence::Exact even though the
+    // alias exact bonus (75) is below the title threshold (80).
+    let e = entry(
+        "git-reset-soft-head-1",
+        "git",
+        "git reset --soft HEAD~1",
+        "Undo Last Commit",
+        &[],
+        &["undo last commit"],
+        "",
+        EntrySource::Curated,
+    );
+    let n = normalize_entry("git", &e);
+    let q = parse_query("undo last commit", &["git".into()]);
+    let b = score(&n, &q);
+    assert_eq!(score::classify(&n, &q, &b), Confidence::Exact);
+}
+
+#[test]
+fn classify_fuzzy_rescued_tool_match_is_strong() {
+    // "kubectl roolout restrt" — typos rescued by fuzzy; tool matches.
+    // Must be Strong, not Weak.
+    let e = entry(
+        "kubectl-rollout-restart",
+        "kubectl",
+        "kubectl rollout restart",
+        "Restart rollout",
+        &["rollout", "restart"],
+        &[],
+        "",
+        EntrySource::Official,
+    );
+    let n = normalize_entry("kubectl", &e);
+    let q = parse_query("kubectl roolout restrt", &["kubectl".into()]);
+    let b = score(&n, &q);
+    assert!(b.fuzzy_rescue > 0.0, "precondition: fuzzy rescue fired");
+    assert_eq!(score::classify(&n, &q, &b), Confidence::Strong);
+}
+
+#[test]
+fn classify_description_only_no_tool_is_medium() {
+    // All intents covered, but only in description, and no tool match.
+    // Per the Medium doc: "covered somewhere but NOT entirely in command fields".
+    let e = entry(
+        "xyz",
+        "openssl",
+        "xyz",
+        "Zzz",
+        &[],
+        &[],
+        "rotate the encryption key",
+        EntrySource::Curated,
+    );
+    let n = normalize_entry("openssl", &e);
+    let q = parse_query("rotate key", &["git".into()]); // tool not matched
+    let b = score(&n, &q);
+    assert_eq!(score::classify(&n, &q, &b), Confidence::Medium);
+}
+
+#[test]
+fn classify_tool_only_is_weak() {
+    let e = entry(
+        "git-stash",
+        "git",
+        "git stash",
+        "Stash",
+        &[],
+        &[],
+        "",
+        EntrySource::Curated,
+    );
+    let n = normalize_entry("git", &e);
+    let q = parse_query("git zzzzzz", &["git".into()]); // zzzzzz matches nothing
+    let b = score(&n, &q);
+    assert_eq!(score::classify(&n, &q, &b), Confidence::Weak);
+}
