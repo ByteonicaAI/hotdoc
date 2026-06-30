@@ -11,6 +11,10 @@ path = "src/lib.rs"
 name = "hotdoc-cli"
 path = "src/bin/hotdoc-cli.rs"
 
+[[bin]]
+name = "corpus-audit"
+path = "src/bin/corpus-audit.rs"
+
 [dependencies]
 tantivy = "0.22"
 serde = { version = "1", features = ["derive"] }
