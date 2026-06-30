@@ -50,7 +50,9 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
   }
 
   void indexStatus()
-    .then((s) => (refs.status.current = s))
+    .then((s) => {
+      if (!disposed) refs.status.current = s;
+    })
     .catch(() => {});
   track(
     listen("hotdoc://show", () => {
@@ -72,7 +74,9 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
     listen("hotdoc://reload-index", () => {
       void launcher.reloadIndex();
       void indexStatus()
-        .then((s) => (refs.status.current = s))
+        .then((s) => {
+          if (!disposed) refs.status.current = s;
+        })
         .catch(() => {});
     }),
   );
@@ -83,6 +87,7 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
   );
   void getAllSettings()
     .then((s) => {
+      if (disposed) return;
       launcher.applyTheme(s["theme"]);
       launcher.setRecentsEnabled(s["recents_enabled"] !== "false");
     })
@@ -90,7 +95,9 @@ export function setupLauncher(launcher: Launcher, refs: LifecycleRefs): Lifecycl
   void launcher.loadEmptyView();
   void launcher.initPalette();
   void getVersion()
-    .then((v) => (refs.appVersion.current = v))
+    .then((v) => {
+      if (!disposed) refs.appVersion.current = v;
+    })
     .catch(() => {});
 
   return {
