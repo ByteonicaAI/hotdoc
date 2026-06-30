@@ -16,8 +16,6 @@ pub struct AppState {
     pub index: RwLock<Arc<HotdocIndex>>,
     // rusqlite::Connection is not Sync in 0.31; Mutex serialises commands.
     pub db: Arc<Mutex<Connection>>,
-    // §7.2 popularity map built once on launcher open (not per keystroke).
-    pub popularity_map: Arc<std::collections::HashMap<String, f32>>,
 }
 
 /// ponytail: T14. The body used to be ~80 LOC of mixed "where to look

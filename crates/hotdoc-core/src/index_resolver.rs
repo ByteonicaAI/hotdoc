@@ -439,7 +439,7 @@ mod tests {
 
         // Build a valid index.
         let idx = HotdocIndex::build(&packs, &dir).expect("initial build");
-        let hits = idx.search("x", 8, &Default::default()).expect("search ok");
+        let hits = idx.search("x", 8).expect("search ok");
         assert!(!hits.is_empty(), "initial index must be searchable");
         drop(idx);
 
@@ -467,9 +467,7 @@ mod tests {
 
         // Rebuild must succeed (build() removes and recreates the dir).
         let rebuilt = HotdocIndex::build(&packs, &dir).expect("rebuild after corruption");
-        let hits = rebuilt
-            .search("x", 8, &Default::default())
-            .expect("search after rebuild");
+        let hits = rebuilt.search("x", 8).expect("search after rebuild");
         assert!(
             !hits.is_empty(),
             "rebuilt index must be searchable; got zero hits"

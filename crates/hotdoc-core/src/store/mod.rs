@@ -10,7 +10,6 @@ pub mod meta;
 pub mod migrations;
 pub mod packs;
 pub mod pinned;
-pub mod popularity;
 pub mod recents;
 pub mod search_log;
 pub mod settings;
@@ -39,9 +38,8 @@ pub enum StoreError {
 pub type Result<T> = std::result::Result<T, StoreError>;
 
 /// Search-log retention window (P2-11). Rows older than this are pruned
-/// from `search_log` on every `store::open()` call. 30d is wider than
-/// the 7d popularity signal so the FR-G2 diagnostics bundle can include
-/// a last-30d summary; the FR-G2 read path itself is unaffected.
+/// from `search_log` on every `store::open()` call. 30d gives the FR-G2
+/// diagnostics bundle a last-30d summary without bloating the DB.
 const SEARCH_LOG_RETENTION_MS: i64 = 30 * 86_400 * 1000;
 
 /// Open (or create) the SQLite database at `db_path`. Enables WAL mode and

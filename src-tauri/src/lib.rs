@@ -51,19 +51,10 @@ pub fn run() {
         }
     };
 
-    let popularity_map = hotdoc_core::store::popularity::weighted_counts(
-        &conn,
-        hotdoc_core::store::time::unix_now_ms(),
-    )
-    .unwrap_or_default();
     let db = Arc::new(Mutex::new(conn));
 
     tauri::Builder::default()
-        .manage(index_state::AppState {
-            index: RwLock::new(index),
-            db,
-            popularity_map: Arc::new(popularity_map),
-        })
+        .manage(index_state::AppState { index: RwLock::new(index), db })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 window_pos::center_on_active_monitor(app, &w);

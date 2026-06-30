@@ -24,9 +24,7 @@ use crate::settings as hotkey_settings;
 #[instrument(skip(state))]
 pub fn search(query: String, state: State<'_, AppState>) -> Result<Vec<SearchHit>, String> {
     let idx = state.index.read().map_err(|_| "index lock poisoned".to_string())?.clone();
-    let hits = idx
-        .search(&query, 8, &state.popularity_map)
-        .map_err(|e| format!("search failed: {e:#}"))?;
+    let hits = idx.search(&query, 8).map_err(|e| format!("search failed: {e:#}"))?;
     info!(query = %query, hits = hits.len(), "search");
     Ok(hits)
 }
