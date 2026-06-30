@@ -1060,4 +1060,100 @@ mod tests {
             typo.iter().map(|h| &h.id).collect::<Vec<_>>()
         );
     }
+
+    // M1 end-to-end guard (production search() path).
+    //
+    // Background: before commit 6b6989e, search() derived pack_ids from the
+    // BM25 candidate SUBSET rather than the full corpus. When the target tool
+    // pack ("ziptool") was absent from the BM25 candidates, parse_query could
+    // not recognize "ziptool" as a tool token, so TOOL_HARD_FILTER was never
+    // applied and the noise pack's entries leaked into results.
+    //
+    // Why the BM25 subset is alpha-only here:
+    // The target pack ("ziptool") has 3 entries that contain NO "download"
+    // token in any indexed field (title, syntax, description, tags). BM25
+    // retrieval searches for "download" (the only intent term on the fixed
+    // path) and returns the top-256 alpha entries, all of which have
+    // "download" prominently in title + syntax. The 3 ziptool entries score
+    // 0 for the "download" BM25 term and never appear in candidates.
+    //
+    // Fixed path (search parses against full corpus):
+    //   full_corpus_pack_ids = ["alpha", "ziptool"]
+    //   parse_query("ziptool download", ...) → tool="ziptool", intents=["download"]
+    //   BM25 subset = 256 alpha entries
+    //   score subset with tool="ziptool" → TOOL_HARD_FILTER for every alpha
+    //   entry → zero finite hits. Assertion holds vacuously (empty slice).
+    //
+    // Buggy path (search parses against subset):
+    //   subset pack_ids = ["alpha"]
+    //   parse_query("ziptool download", ["alpha"]) → tool=None ("ziptool"
+    //   absent from subset), intents=["ziptool","download"]
+    //   Score 256 alpha entries with tool=None → no hard filter.
+    //   Per alpha entry: "download" → INTENT_EXACT(25) + field_weighted(8);
+    //   "ziptool" → INTENT_MISSING(-25). Total = 8 > 0 → finite.
+    //   256 alpha entries survive → assertion `pack_id == "ziptool"` fails.
+    #[test]
+    fn above_threshold_search_scopes_hits_to_target_pack_m1() {
+        let dir = tempfile::tempdir().expect("create tempdir for m1 e2e test");
+        let mut packs = Vec::new();
+
+        // Noise pack: RETRIEVAL_FULLSCAN_MAX+50 entries, all with "download"
+        // in title + syntax + description → strong, uniform BM25 signal.
+        // This guarantees the BM25 candidate set is well above the 16-entry
+        // thin-candidate floor and is entirely populated by alpha entries.
+        for i in 0..(super::RETRIEVAL_FULLSCAN_MAX + 50) {
+            let (p, _) = make_entry_with(
+                &format!("alpha-{i}"),
+                "alpha",
+                &format!("alpha download cmd {i}"),
+                &format!("Alpha Download {i}"),
+                "download a file from the network",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+
+        // Target pack: 3 entries with NO "download" in any indexed field.
+        // They will not appear in the BM25 candidate set for "download",
+        // making the candidate subset alpha-only — the M1 adversarial shape.
+        for i in 0..3_usize {
+            let (p, _) = make_entry_with(
+                &format!("ziptool-archive-{i}"),
+                "ziptool",
+                &format!("ziptool archive files {i}"),
+                &format!("Ziptool Archive {i}"),
+                "compress and extract archive files",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+
+        let idx = HotdocIndex::build(&packs, dir.path()).expect("build m1 e2e index");
+
+        assert!(
+            idx.entry_count() > super::RETRIEVAL_FULLSCAN_MAX,
+            "corpus must exceed RETRIEVAL_FULLSCAN_MAX to exercise the BM25 \
+             candidate branch; got {}",
+            idx.entry_count()
+        );
+
+        // Production search() call — no injectable seam, no hand-crafted
+        // ParsedQuery. This is the path the fix guards.
+        let hits = idx.search("ziptool download", 8).expect("search m1 e2e");
+
+        // Every returned hit must belong to the target pack. On the fixed
+        // path this holds vacuously (the alpha-only BM25 subset is entirely
+        // hard-filtered by tool="ziptool", leaving zero finite hits). On the
+        // buggy path 256 alpha entries survive with score ≈ 8.0, and their
+        // pack_id "alpha" != "ziptool" causes this assertion to fail.
+        assert!(
+            hits.iter().all(|h| h.pack_id == "ziptool"),
+            "search must not return non-ziptool hits (M1 regression); got: {:?}",
+            hits.iter()
+                .map(|h| (h.id.as_str(), h.pack_id.as_str()))
+                .collect::<Vec<_>>()
+        );
+    }
 }
