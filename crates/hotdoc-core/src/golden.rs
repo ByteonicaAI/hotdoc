@@ -29,6 +29,120 @@ pub struct GoldenFile {
     pub queries: Vec<GoldenQuery>,
 }
 
+// Floors pinned to the 2026-06-30 baseline; regressions below these fail CI.
+// Measured: p@1=0.824 p@3=0.941 mrr=0.887 (n=68, full query set).
+// Floor = actual - 0.001 to absorb float jitter.
+const EVAL_MIN_P1: f64 = 0.823;
+const EVAL_MIN_P3: f64 = 0.940;
+const EVAL_MIN_MRR: f64 = 0.886;
+
+pub struct EvalMetrics {
+    pub p_at_1: f64,
+    pub p_at_3: f64,
+    pub mrr: f64,
+    pub n: usize,
+}
+
+impl EvalMetrics {
+    /// Compute precision@1, precision@3, and MRR over the positive-target
+    /// population (queries with `expected_first.is_some()`).
+    /// `search` is a pure closure: query string → ordered list of hit ids.
+    pub fn compute(file: &GoldenFile, search: impl Fn(&str) -> Vec<String>) -> EvalMetrics {
+        let population: Vec<&GoldenQuery> = file
+            .queries
+            .iter()
+            .filter(|q| q.expected_first.is_some())
+            .collect();
+        let n = population.len();
+        if n == 0 {
+            return EvalMetrics {
+                p_at_1: 0.0,
+                p_at_3: 0.0,
+                mrr: 0.0,
+                n: 0,
+            };
+        }
+        let mut p1_sum = 0.0f64;
+        let mut p3_sum = 0.0f64;
+        let mut mrr_sum = 0.0f64;
+        for q in &population {
+            let expected = q.expected_first.as_deref().expect("filtered to Some above");
+            let hits = search(&q.query);
+            let rank = hits.iter().position(|id| id == expected);
+            if rank == Some(0) {
+                p1_sum += 1.0;
+            }
+            let top3_len = hits.len().min(3);
+            let top3 = &hits[..top3_len];
+            let in_top3 = top3.iter().any(|id| id == expected)
+                || q.acceptable_top3
+                    .iter()
+                    .any(|a| top3.iter().any(|id| id == a));
+            if in_top3 {
+                p3_sum += 1.0;
+            }
+            if let Some(r) = rank {
+                mrr_sum += 1.0 / ((r as f64) + 1.0);
+            }
+        }
+        let n_f = n as f64;
+        EvalMetrics {
+            p_at_1: p1_sum / n_f,
+            p_at_3: p3_sum / n_f,
+            mrr: mrr_sum / n_f,
+            n,
+        }
+    }
+}
+
+pub fn cmd_eval(
+    queries_path: Option<&str>,
+    index_path: Option<&str>,
+    adversarial_only: bool,
+) -> Result<()> {
+    let golden_path = queries_path
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(default_golden_path);
+    let index_dir = index_path
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(crate::cli::default_index_dir);
+    let raw = fs::read_to_string(&golden_path).context("reading golden file")?;
+    let mut gf: GoldenFile = serde_json::from_str(&raw).context("parsing golden JSON")?;
+    if adversarial_only {
+        gf.queries.retain(|q| q.adversarial.unwrap_or(false));
+        if gf.queries.is_empty() {
+            println!(
+                "EVAL: no adversarial queries in {} (filter matched 0)",
+                golden_path.display()
+            );
+            return Ok(());
+        }
+    }
+    let idx = HotdocIndex::open(&index_dir)?;
+    let search = |q: &str| -> Vec<String> {
+        idx.search(q, 8)
+            .map(|hits| hits.into_iter().map(|h| h.id).collect())
+            .unwrap_or_default()
+    };
+    let m = EvalMetrics::compute(&gf, search);
+    println!(
+        "EVAL: p@1={:.3} p@3={:.3} mrr={:.3} (n={})",
+        m.p_at_1, m.p_at_3, m.mrr, m.n
+    );
+    if !adversarial_only {
+        if m.p_at_1 < EVAL_MIN_P1 {
+            anyhow::bail!("p@1 {:.3} dropped below floor {:.3}", m.p_at_1, EVAL_MIN_P1);
+        }
+        if m.p_at_3 < EVAL_MIN_P3 {
+            anyhow::bail!("p@3 {:.3} dropped below floor {:.3}", m.p_at_3, EVAL_MIN_P3);
+        }
+        if m.mrr < EVAL_MIN_MRR {
+            anyhow::bail!("mrr {:.3} dropped below floor {:.3}", m.mrr, EVAL_MIN_MRR);
+        }
+    }
+    Ok(())
+}
+
 pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool) -> Result<()> {
     let raw = fs::read_to_string(golden_path).context("reading golden file")?;
     let gf: GoldenFile = serde_json::from_str(&raw).context("parsing golden JSON")?;
@@ -185,6 +299,45 @@ mod tests {
             gf.queries.len(),
             path.display(),
         );
+    }
+
+    #[test]
+    fn eval_metrics_compute_basic() {
+        let file = GoldenFile {
+            queries: vec![
+                GoldenQuery {
+                    query: "a".into(),
+                    expected_first: Some("x".into()),
+                    acceptable_top3: vec![],
+                    forbidden_top3: vec![],
+                    adversarial: None,
+                },
+                GoldenQuery {
+                    query: "b".into(),
+                    expected_first: Some("y".into()),
+                    acceptable_top3: vec![],
+                    forbidden_top3: vec![],
+                    adversarial: None,
+                },
+                GoldenQuery {
+                    query: "gib".into(),
+                    expected_first: None,
+                    acceptable_top3: vec![],
+                    forbidden_top3: vec![],
+                    adversarial: None,
+                },
+            ],
+        };
+        // "a" → x at rank 0; "b" → y at rank 2; "gib" excluded.
+        let m = EvalMetrics::compute(&file, |q| match q {
+            "a" => vec!["x".into(), "z".into()],
+            "b" => vec!["p".into(), "q".into(), "y".into()],
+            _ => vec!["anything".into()],
+        });
+        assert_eq!(m.n, 2);
+        assert!((m.p_at_1 - 0.5).abs() < 1e-9); // only "a"
+        assert!((m.p_at_3 - 1.0).abs() < 1e-9); // both within top3
+        assert!((m.mrr - ((1.0 + 1.0 / 3.0) / 2.0)).abs() < 1e-9);
     }
 
     #[test]

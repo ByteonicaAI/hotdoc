@@ -118,6 +118,10 @@ jobs:
         working-directory: src-tauri
         run: cargo run -p hotdoc-core --bin hotdoc-cli -- bench --index target/bench-index
 
+      - name: Eval harness — precision@1/@3 + MRR floors (NFR-3)
+        working-directory: src-tauri
+        run: cargo run -p hotdoc-core --bin hotdoc-cli -- eval --index target/bench-index
+
       - name: Index size gate (NFR-6, T7)
         run: bash scripts/nfr-index-size.sh src-tauri/target/bench-index packs/curate
 

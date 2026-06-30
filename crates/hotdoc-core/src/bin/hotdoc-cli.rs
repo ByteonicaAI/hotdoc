@@ -106,6 +106,23 @@ fn main() -> ExitCode {
                 exit_code = 1;
             }
         }
+        Some("eval") => {
+            // ponytail: bare `--adversarial` == true; `--adversarial=<bool>` parses
+            // the value so `--adversarial=false` actually disables the filter
+            // (mirrors the same logic used in `bench`).
+            let adversarial = args.iter().any(|a| a == "--adversarial")
+                || args
+                    .iter()
+                    .find_map(|a| a.strip_prefix("--adversarial="))
+                    .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
+                    .unwrap_or(false);
+            let queries = kv.get("queries").map(String::as_str);
+            let index = kv.get("index").map(String::as_str);
+            if let Err(e) = golden::cmd_eval(queries, index, adversarial) {
+                eprintln!("eval: {e:#}");
+                exit_code = 1;
+            }
+        }
         Some("toggle") => {
             if let Err(e) = cli::cmd_toggle() {
                 eprintln!(
@@ -122,11 +139,12 @@ fn main() -> ExitCode {
 
 fn usage() {
     eprintln!(
-        "hotdoc-cli: index | query <text> | copy <text> | bench | toggle\n  \
+        "hotdoc-cli: index | query <text> | copy <text> | bench | eval | toggle\n  \
          index  [--packs PATH] [--out PATH]\n  \
          query  <text> [--limit N] [--index PATH]\n  \
          copy   <text> [--index PATH]\n  \
          bench  [--queries PATH] [--index PATH] [--adversarial]\n  \
+         eval   [--queries PATH] [--index PATH] [--adversarial]\n  \
          toggle  send a show/hide signal to the running hotdoc app (bind to your DE shortcut)"
     );
 }
