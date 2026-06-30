@@ -27,10 +27,13 @@ fn is_stopword(tok: &str) -> bool {
 /// a second `git` later in the query degrades to an intent. Spike §3
 /// rule — keeps `reset git` and `git reset` parsing identically.
 pub fn parse_query(raw: &str, pack_ids: &[String]) -> ParsedQuery {
+    // ponytail: split on any non-alphanumeric Unicode scalar EXCEPT `-`,
+    // which option tokens (`--since`) keep. Mirrors normalize::tokenize so
+    // a query term and an entry term fold to the same casing/shape.
     let tokens: Vec<String> = raw
-        .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
+        .split(|c: char| !(c.is_alphanumeric() || c == '-'))
         .filter(|t| !t.is_empty())
-        .map(|t| t.to_ascii_lowercase())
+        .map(|t| t.to_lowercase())
         .collect();
 
     let mut tool: Option<String> = None;
@@ -132,5 +135,11 @@ mod tests {
         let q = parse_query("docker kubectl logs", &pack_ids());
         assert_eq!(q.tool.as_deref(), Some("docker"));
         assert_eq!(q.intents, vec!["kubectl", "logs"]);
+    }
+
+    #[test]
+    fn parse_query_keeps_unicode_intent() {
+        let q = parse_query("café résumé", &["git".into()]);
+        assert_eq!(q.intents, vec!["café", "résumé"]);
     }
 }

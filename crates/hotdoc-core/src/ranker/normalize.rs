@@ -19,13 +19,14 @@ pub struct NormalizedEntry {
     pub source: EntrySource,
 }
 
-/// Lowercase ASCII alphanumeric token split. Preserves order and
+/// Lowercase Unicode alphanumeric token split. Preserves order and
 /// duplicates (phrase ordering cares about position, membership tests
-/// ignore duplicates).
+/// ignore duplicates). Splits on any non-alphanumeric Unicode scalar so
+/// accented terms (`café`) survive intact.
 fn tokenize(s: &str) -> Vec<String> {
-    s.split(|c: char| !c.is_ascii_alphanumeric())
-        .map(|t| t.to_ascii_lowercase())
+    s.split(|c: char| !c.is_alphanumeric())
         .filter(|t| !t.is_empty())
+        .map(|t| t.to_lowercase())
         .collect()
 }
 
@@ -39,7 +40,7 @@ pub fn normalize_entry(pack_id: &str, entry: &Entry) -> NormalizedEntry {
     let tag_tokens: Vec<String> = entry
         .tags
         .iter()
-        .map(|t| t.to_ascii_lowercase())
+        .map(|t| t.to_lowercase())
         .filter(|t| !t.is_empty())
         .collect();
 
@@ -138,5 +139,11 @@ mod tests {
         assert!(n.example_tokens.contains(&"running".to_string()));
         assert!(n.example_tokens.contains(&"docker".to_string()));
         assert!(n.example_tokens.contains(&"ps".to_string()));
+    }
+
+    #[test]
+    fn tokenize_preserves_unicode_alphanumerics() {
+        assert_eq!(tokenize("café RÉSUMÉ"), vec!["café", "résumé"]);
+        assert_eq!(tokenize("naïve_DÉJÀ"), vec!["naïve", "déjà"]);
     }
 }
