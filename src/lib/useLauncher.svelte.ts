@@ -198,38 +198,6 @@ export class Launcher {
     void this.loadEmptyView();
   }
 
-  // ponytail: FR-C5 — "Copy example" copies examples[0].code, falling back
-  // to syntax (same rule as Shift+Enter, FR-C2).
-  async copyExample(hit: SearchHit) {
-    await this.#copyAndToast(hit.example_code ?? hit.syntax);
-  }
-
-  // ponytail: FR-C5 — "Copy all" = syntax + description + first example,
-  // newline-joined, skipping absent parts.
-  async copyAll(hit: SearchHit) {
-    const text = [hit.syntax, hit.description, hit.example_code]
-      .filter((s): s is string => !!s && s.length > 0)
-      .join("\n");
-    await this.#copyAndToast(text);
-  }
-
-  // ponytail: FR-C5 / SEC-3 — "Open source" routes through the https-gated
-  // Rust open_url IPC (same path as Ctrl+Enter). No-op without a URL.
-  async openSource(hit: SearchHit) {
-    if (!hit.source_url) return;
-    if (!isHttpsUrl(hit.source_url)) {
-      this.#showToast(STRINGS.TOAST_OPEN_REJECTED);
-      return;
-    }
-    try {
-      await openUrl(hit.source_url);
-      await this.doHide();
-    } catch (e) {
-      log.error("open_url failed", { url: hit.source_url, error: String(e) });
-      this.#showToast(format(STRINGS.TOAST_OPEN_FAIL, String(e)));
-    }
-  }
-
   selectPinned(hit: SearchHit) {
     this.query = hit.syntax;
     void this.runSearch();
@@ -258,10 +226,6 @@ export class Launcher {
         }
       }
     }
-  }
-
-  async copyText(text: string) {
-    await this.#copyThenDismiss(text);
   }
 
   // ponytail: T11 — Ctrl+P on empty-view pins/unpins the selected pinned row.
