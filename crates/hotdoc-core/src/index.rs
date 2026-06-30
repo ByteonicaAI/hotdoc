@@ -237,6 +237,7 @@ impl HotdocIndex {
         use tantivy::query::{BooleanQuery, Occur, Query, TermQuery};
         use tantivy::schema::document::Value;
         use tantivy::schema::IndexRecordOption;
+        use tantivy::tokenizer::TokenStream;
         use tantivy::Term;
 
         if self.normalized.len() <= fullscan_max || terms.is_empty() {
@@ -251,11 +252,28 @@ impl HotdocIndex {
                 self.fields.tags,
                 self.fields.description,
             ] {
-                let term = Term::from_field_text(field, t);
-                clauses.push((
-                    Occur::Should,
-                    Box::new(TermQuery::new(term, IndexRecordOption::WithFreqs)),
-                ));
+                // M5: build candidate terms through the field's OWN analyzer
+                // so query tokens fold identically to what Tantivy indexed.
+                // `parse_query` keeps `--hard`/`foo-bar` as one token and
+                // retains >40-byte tokens, but the index analyzer splits on
+                // `-` (SimpleTokenizer) and drops long tokens
+                // (RemoveLongFilter(40)). Feeding the raw token to
+                // `Term::from_field_text` looks for a literal the index never
+                // stored, silently losing candidates on the >5000 BM25 path.
+                // If the analyzer is unavailable, skip this field (a clause
+                // less → at worst a full-scan fallback, never a wrong hit).
+                let mut analyzer = match self._index.tokenizer_for_field(field) {
+                    Ok(a) => a,
+                    Err(_) => continue,
+                };
+                let mut stream = analyzer.token_stream(t);
+                while stream.advance() {
+                    let term = Term::from_field_text(field, &stream.token().text);
+                    clauses.push((
+                        Occur::Should,
+                        Box::new(TermQuery::new(term, IndexRecordOption::WithFreqs)),
+                    ));
+                }
             }
         }
         if clauses.is_empty() {
@@ -937,6 +955,61 @@ mod tests {
         assert!(
             idx.retrieve_candidates(&terms).is_none(),
             "real threshold must keep retrieval dormant on a small corpus"
+        );
+    }
+
+    #[test]
+    fn bm25_terms_match_hyphenated_tokens() {
+        // M5: BM25 query terms must pass through the index analyzer so a
+        // hyphenated query option like `--hard` folds to the same `hard`
+        // token Tantivy indexed. Building `Term::from_field_text(field,
+        // "--hard")` directly (pre-fix) looks for a literal `--hard` token
+        // that the SimpleTokenizer never produces → the target is invisible
+        // to the BM25 branch even though its syntax clearly contains it.
+        //
+        // pack_id "git" → parse_query consumes "git" as the tool slot, so
+        // the live BM25 terms are ["reset", "--hard"]. The 20 filler rows
+        // match "reset" (NOT "hard"), clearing RETRIEVAL_MIN_CANDIDATES so
+        // the BM25 branch returns Some in BOTH worlds. The ONLY bridge to
+        // the target is the analyzer mapping "--hard" → "hard"; its
+        // searchable fields deliberately omit a bare "reset"/"hard" query
+        // term so its presence hinges solely on the hyphen fold.
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("git-reset-hunk-{i}"),
+                "git",
+                &format!("git reset hunk-{i}"),
+                &format!("Reset Hunk {i}"),
+                "unstage a reset hunk",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let (target, _) = make_entry_with(
+            "git-reset-hard",
+            "git",
+            "git switch --hard <ref>",
+            "Hard Switch",
+            "force overwrite the working tree using the hard flag",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        let terms = idx.bm25_terms_for("git reset --hard");
+        let cands = idx
+            .retrieve_candidates_with_max(&terms, 0)
+            .expect("bm25 branch");
+        let ids: Vec<&str> = cands
+            .iter()
+            .map(|&i| idx.normalized[i].id.as_str())
+            .collect();
+        assert!(
+            ids.contains(&"git-reset-hard"),
+            "hyphenated `--hard` must fold to the indexed `hard` token; got {ids:?}"
         );
     }
 
