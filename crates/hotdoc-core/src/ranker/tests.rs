@@ -212,6 +212,148 @@ fn score_docker_logs_prefers_plain_over_compose() {
 }
 
 #[test]
+fn score_command_specificity_breaks_score_ties_over_id() {
+    // task-5.1: the command-specificity comparator sits ABOVE the id
+    // fallback in `sort_ranked`. Two cards with IDENTICAL score must order
+    // by specificity (fewer uncovered command tokens first), overriding the
+    // alphabetical-id fallback. Here the LESS specific card ("x foo extra",
+    // carrying the unasked-for `extra`) has the alphabetically-SMALLER id,
+    // so without the tie-break it would win; the comparator must flip it.
+    let entries = vec![
+        (
+            "x".into(),
+            entry(
+                "aaa-extra", // sorts first by id — but is LESS specific
+                "x",
+                "x foo extra",
+                "T",
+                &["foo"],
+                &[],
+                "",
+                EntrySource::Curated,
+            ),
+        ),
+        (
+            "x".into(),
+            entry(
+                "zzz-plain", // sorts last by id — but is MORE specific
+                "x",
+                "x foo",
+                "T",
+                &["foo"],
+                &[],
+                "",
+                EntrySource::Curated,
+            ),
+        ),
+    ];
+    let hits = score_query(&entries, "x foo");
+    // Sanity: the two cards really are score-tied (the comparator only acts
+    // on ties; if scores diverged this test would prove nothing).
+    assert!(
+        (hits[0].score - hits[1].score).abs() < 1e-9,
+        "fixture must be score-tied, got {} vs {}",
+        hits[0].score,
+        hits[1].score
+    );
+    assert_eq!(
+        hits[0].entry.id, "zzz-plain",
+        "more-specific card must win the tie despite its larger id"
+    );
+}
+
+#[test]
+fn score_systemctl_restart_specificity_ordering() {
+    // task-5.1 DECISION GATE, outcome (b): `systemctl-restart` is the
+    // decisive #1 (exact title match). `systemctl-reload-or-restart` and
+    // `systemctl-try-restart` are SYMMETRIC — equal score, and each carries
+    // exactly ONE uncovered command token (`reload` vs `try`). No
+    // specificity signal can separate them, so `try-restart` legitimately
+    // remains a top-3 match alongside the accepted `reload-or-restart`.
+    // This test pins that truth; the golden `forbidden_top3:[try-restart]`
+    // is over-strict and is escalated to the owner, not forced here.
+    let entries = vec![
+        (
+            "systemctl".into(),
+            entry(
+                "systemctl-restart",
+                "systemctl",
+                "systemctl restart name",
+                "restart service",
+                &["services", "control"],
+                &[],
+                "",
+                EntrySource::Curated,
+            ),
+        ),
+        (
+            "systemctl".into(),
+            entry(
+                "systemctl-reload-or-restart",
+                "systemctl",
+                "systemctl reload-or-restart <unit>",
+                "Reload or restart unit",
+                &["reload", "restart", "service"],
+                &[],
+                "",
+                EntrySource::Official,
+            ),
+        ),
+        (
+            "systemctl".into(),
+            entry(
+                "systemctl-try-restart",
+                "systemctl",
+                "systemctl try-restart <unit>",
+                "Restart only if active",
+                &["restart", "active", "service"],
+                &[],
+                "",
+                EntrySource::Official,
+            ),
+        ),
+    ];
+    let hits = score_query(&entries, "systemctl restart service");
+    assert_eq!(
+        hits[0].entry.id, "systemctl-restart",
+        "the plain restart card must be the decisive first result"
+    );
+
+    // Symmetry: both variants carry exactly one uncovered command token, so
+    // the specificity penalty is identical and cannot evict try-restart.
+    let parsed = parse_query("systemctl restart service", &all_pack_ids(&entries));
+    let normalized = normalize_all(&entries);
+    let reload = normalized
+        .iter()
+        .find(|n| n.id == "systemctl-reload-or-restart")
+        .expect("reload present");
+    let tryr = normalized
+        .iter()
+        .find(|n| n.id == "systemctl-try-restart")
+        .expect("try present");
+    assert_eq!(
+        crate::ranker::score::uncovered_command_count(reload, &parsed),
+        1,
+        "reload-or-restart carries one uncovered command token (reload)"
+    );
+    assert_eq!(
+        crate::ranker::score::uncovered_command_count(tryr, &parsed),
+        crate::ranker::score::uncovered_command_count(reload, &parsed),
+        "try-restart and reload-or-restart are specificity-symmetric"
+    );
+    // Both variants tie on score AND on specificity → the determinism
+    // fallback (entry id) orders reload above try; try stays rank 3.
+    let try_pos = hits
+        .iter()
+        .position(|h| h.entry.id == "systemctl-try-restart")
+        .expect("try survives");
+    assert_eq!(
+        try_pos, 2,
+        "try-restart legitimately remains rank 3 (symmetric)"
+    );
+}
+
+#[test]
 fn score_tool_filter_excludes_other_packs() {
     let entries = vec![
         (

@@ -58,6 +58,18 @@ const EXACT_TIER_EPSILON: Score = 0.5;
 const SOURCE_OFFICIAL: Score = 1.0;
 const SOURCE_CHEATSHEET: Score = 0.5;
 
+// ponytail: command-specificity — a card carrying command/sub-command
+// tokens the user did NOT ask for (`docker compose logs` for query
+// `docker logs`, `systemctl try-restart` for `systemctl restart`) is less
+// specific than the plainer card. This is consumed ONLY as a tie-break key
+// (`sort_ranked`), never added to the score — see the note in `score()`.
+// The magnitude is irrelevant to ordering (only the sign/relative size
+// matters for the comparator); the constant is kept for readability and so
+// the count is capped, preventing a long multi-arg syntax from dominating
+// the comparator with noise.
+const COMMAND_SPECIFICITY_PENALTY: Score = 2.0;
+const COMMAND_SPECIFICITY_MAX_TOKENS: usize = 3;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CoverageTier {
     /// Exact token match in syntax/title/tag/alias fields.
@@ -94,6 +106,10 @@ pub struct ScoreBreakdown {
     pub phrase_order: Score,
     pub fuzzy_rescue: Score,
     pub source_tiebreak: Score,
+    /// Negative-or-zero penalty for uncovered command tokens (see
+    /// `COMMAND_SPECIFICITY_PENALTY`). Stored so the tie-break ladder and
+    /// tests can read the raw uncovered-token count back out.
+    pub command_specificity: Score,
     pub total: Score,
     pub tiers: Vec<(String, CoverageTier)>,
 }
@@ -165,6 +181,19 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         EntrySource::Curated | EntrySource::Personal => 0.0,
     };
 
+    // 9. Command-specificity — count of extra unasked-for command tokens,
+    // expressed as a negative-or-zero ordering key. DELIBERATELY NOT added
+    // to `total`: measurement (task-5.1) showed a score-level penalty is
+    // irreconcilable — `docker compose ps` MUST win "docker ps" (golden)
+    // while `docker compose logs` MUST lose "docker logs", and both are the
+    // same 1-point source-bonus near-tie with `compose` as the extra token.
+    // So specificity is applied ONLY as a tie-break in `sort_ranked` (it
+    // reorders entries that are otherwise SCORE-tied, where it cannot make
+    // such a contradictory call), never as a score term.
+    let uncovered = uncovered_command_count(entry, query);
+    let charged = uncovered.min(COMMAND_SPECIFICITY_MAX_TOKENS);
+    b.command_specificity = -(charged as Score) * COMMAND_SPECIFICITY_PENALTY;
+
     b.total = b.tool_scope
         + b.intent_coverage
         + b.all_intent_covered
@@ -175,6 +204,38 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         + b.source_tiebreak;
 
     b
+}
+
+/// Count an entry's significant command tokens that the query does NOT
+/// account for. A command token is "covered" when it equals the matched
+/// tool or one of the parsed intents; everything else (`compose`, `try`,
+/// `reload`) is an extra modifier the user did not ask for. Placeholders
+/// and option flags were already excluded when `command_tokens` was built,
+/// so this only ever weighs literal sub-command identity. Lower = more
+/// specific to the query.
+///
+/// GATE: returns 0 unless at least one command token is covered by a query
+/// *intent*. Specificity is only meaningful when comparing cards that
+/// actually match the user's sub-command intent — a garbage query, or one
+/// that matched only on tool scope, must not perturb the deterministic
+/// fallback ordering of non-matches (else the 50/50 baseline regresses).
+pub(crate) fn uncovered_command_count(entry: &NormalizedEntry, query: &ParsedQuery) -> usize {
+    let mut covered_by_intent = 0usize;
+    let mut uncovered = 0usize;
+    for t in &entry.command_tokens {
+        if query.tool.as_deref() == Some(t.as_str()) {
+            continue;
+        }
+        if query.intents.iter().any(|i| i == t) {
+            covered_by_intent += 1;
+        } else {
+            uncovered += 1;
+        }
+    }
+    if covered_by_intent == 0 {
+        return 0;
+    }
+    uncovered
 }
 
 fn classify_intent(intent: &str, entry: &NormalizedEntry) -> CoverageTier {
@@ -427,18 +488,34 @@ pub fn sort_ranked(hits: &mut [RankedHit]) {
             std::cmp::Ordering::Equal => {}
             other => return other,
         }
-        // 3. source priority
+        // 3. command-specificity: among score-tied entries, the one whose
+        // command tokens are MORE fully covered by the query (fewer extra
+        // unasked-for modifiers) wins. `command_specificity` is
+        // `-penalty × charged_uncovered`, so the LARGER (closer-to-zero)
+        // value is the more specific entry — compare a vs b descending.
+        // Pure reordering of ties; the score stage already separated
+        // decisively-scored results, so this cannot regress them.
+        match b
+            .breakdown
+            .command_specificity
+            .partial_cmp(&a.breakdown.command_specificity)
+            .unwrap_or(std::cmp::Ordering::Equal)
+        {
+            std::cmp::Ordering::Equal => {}
+            other => return other,
+        }
+        // 4. source priority
         match source_priority(b.entry.source.clone()).cmp(&source_priority(a.entry.source.clone()))
         {
             std::cmp::Ordering::Equal => {}
             other => return other,
         }
-        // 4. pack_id ascending
+        // 5. pack_id ascending
         match a.entry.pack_id.cmp(&b.entry.pack_id) {
             std::cmp::Ordering::Equal => {}
             other => return other,
         }
-        // 5. entry id ascending
+        // 6. entry id ascending
         a.entry.id.cmp(&b.entry.id)
     });
 }
