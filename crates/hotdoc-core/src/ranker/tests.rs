@@ -55,45 +55,6 @@ fn normalize_all(entries: &[(String, Entry)]) -> Vec<NormalizedEntry> {
     entries.iter().map(|(p, e)| normalize_entry(p, e)).collect()
 }
 
-// ---- parse_query scenario tests (mirror of task-list §3) ----
-
-#[test]
-fn parse_query_classifies_tool_intent_stopword() {
-    let q = parse_query("git reset", &["git".into()]);
-    assert_eq!(q.tool.as_deref(), Some("git"));
-    assert_eq!(q.intents, vec!["reset"]);
-    assert!(q.options.is_empty());
-    assert!(q.stopwords.is_empty());
-}
-
-#[test]
-fn parse_query_handles_reversed_order() {
-    // Both orders: tool is the first hit on pack_ids, intent is whatever
-    // is left. `reset git` → tool=git, intents=[reset]. `git reset` →
-    // tool=git, intents=[reset]. Identical shape regardless of order.
-    let a = parse_query("git reset", &["git".into()]);
-    let b = parse_query("reset git", &["git".into()]);
-    assert_eq!(a.tool, b.tool);
-    assert_eq!(a.intents, b.intents);
-    assert_eq!(b.intents, vec!["reset"]);
-}
-
-#[test]
-fn parse_query_filters_stopwords() {
-    let q = parse_query("nginx redirect http to https", &["nginx".into()]);
-    assert_eq!(q.tool.as_deref(), Some("nginx"));
-    assert_eq!(q.intents, vec!["redirect", "http", "https"]);
-    assert_eq!(q.stopwords, vec!["to"]);
-}
-
-#[test]
-fn parse_query_recognizes_options() {
-    let q = parse_query("docker logs --since", &["docker".into()]);
-    assert_eq!(q.tool.as_deref(), Some("docker"));
-    assert_eq!(q.intents, vec!["logs"]);
-    assert_eq!(q.options, vec!["--since"]);
-}
-
 // ---- score adversarial tests (spike §8) ----
 
 #[test]

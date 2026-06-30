@@ -45,6 +45,15 @@ const FUZZY_PER_RESCUE: Score = 10.0;
 pub(crate) const FUZZY_RESCUE_CAP: Score = 20.0;
 const FUZZY_MIN_LEN: usize = 4;
 const FUZZY_MAX_DIST: usize = 2;
+// ponytail: a 1-char intent prefix-matches an enormous token set and
+// inflates field weights with noise; require ≥2 chars to count as a
+// prefix hit. Exact (full-token) matches are unaffected.
+const PREFIX_MIN_LEN: usize = 2;
+
+// ponytail: float epsilon so a stored exact bonus that round-tripped
+// through f32 (index.rs SearchHit.score) still classifies into the right
+// tier bucket. 0.5 is half the smallest tie-break increment.
+const EXACT_TIER_EPSILON: Score = 0.5;
 
 const SOURCE_OFFICIAL: Score = 1.0;
 const SOURCE_CHEATSHEET: Score = 0.5;
@@ -201,6 +210,9 @@ fn field_contains_exact(field: &[String], tok: &str) -> bool {
 }
 
 fn field_contains_prefix(field: &[String], tok: &str) -> bool {
+    if tok.len() < PREFIX_MIN_LEN {
+        return false;
+    }
     field.iter().any(|t| t.starts_with(tok))
 }
 
@@ -432,11 +444,11 @@ pub fn sort_ranked(hits: &mut [RankedHit]) {
 }
 
 fn exact_tier(exact_bonus: Score) -> u8 {
-    if exact_bonus + 0.5 >= EXACT_MATCH_SYNTAX {
+    if exact_bonus + EXACT_TIER_EPSILON >= EXACT_MATCH_SYNTAX {
         3
-    } else if exact_bonus + 0.5 >= EXACT_MATCH_TITLE {
+    } else if exact_bonus + EXACT_TIER_EPSILON >= EXACT_MATCH_TITLE {
         2
-    } else if exact_bonus + 0.5 >= EXACT_MATCH_ALIAS {
+    } else if exact_bonus + EXACT_TIER_EPSILON >= EXACT_MATCH_ALIAS {
         1
     } else {
         0
