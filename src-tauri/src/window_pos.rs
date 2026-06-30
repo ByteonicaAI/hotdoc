@@ -42,18 +42,18 @@ pub fn center_on_active_monitor<R: Runtime>(app: &AppHandle<R>, window: &Webview
     }
 }
 
-/// Resolve the monitor the cursor sits on. Same algorithm as before.
+/// Resolve the monitor the cursor sits on, comparing the physical cursor
+/// position against each monitor's physical bounds. Mixing logical
+/// (per-monitor scale) and physical coords mis-selected the monitor on
+/// mixed-DPI multi-head setups; physical-vs-physical is scale-agnostic.
 fn cursor_monitor<R: Runtime>(app: &AppHandle<R>) -> Option<Monitor> {
-    let cursor = app.cursor_position().ok()?;
-    let primary_scale =
-        app.primary_monitor().ok().flatten().map(|m| m.scale_factor()).unwrap_or(1.0);
-    let (cx, cy) = (cursor.x / primary_scale, cursor.y / primary_scale);
+    let cursor = app.cursor_position().ok()?; // physical
+    let (cx, cy) = (cursor.x, cursor.y);
     app.available_monitors().ok()?.into_iter().find(|m| {
-        let s = m.scale_factor();
-        let o = m.position();
-        let sz = m.size();
-        let (ox, oy) = (o.x as f64 / s, o.y as f64 / s);
-        let (w, h) = (sz.width as f64 / s, sz.height as f64 / s);
+        let o = m.position(); // physical
+        let sz = m.size(); // physical
+        let (ox, oy) = (o.x as f64, o.y as f64);
+        let (w, h) = (sz.width as f64, sz.height as f64);
         cx >= ox && cx < ox + w && cy >= oy && cy < oy + h
     })
 }
