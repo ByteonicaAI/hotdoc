@@ -29,12 +29,12 @@ pub struct GoldenFile {
     pub queries: Vec<GoldenQuery>,
 }
 
-// Floors pinned to the 2026-06-30 baseline; regressions below these fail CI.
-// Measured: p@1=0.824 p@3=0.941 mrr=0.887 (n=68, full query set).
+// Floors pinned to the 2026-07-01 baseline; regressions below these fail CI.
+// Measured: p@1=0.909 p@3=1.000 mrr=0.955 (n=66, full query set).
 // Floor = actual - 0.001 to absorb float jitter.
-const EVAL_MIN_P1: f64 = 0.823;
-const EVAL_MIN_P3: f64 = 0.940;
-const EVAL_MIN_MRR: f64 = 0.886;
+const EVAL_MIN_P1: f64 = 0.908;
+const EVAL_MIN_P3: f64 = 0.999;
+const EVAL_MIN_MRR: f64 = 0.954;
 
 pub struct EvalMetrics {
     pub p_at_1: f64,
