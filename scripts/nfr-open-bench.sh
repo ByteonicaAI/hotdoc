@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # NFR-1 (T4): open-time bench — UDP toggle → window visible, p50 ≤ 150ms, p95 ≤ 300ms.
+# NFR-1 measures compact-height first paint (660px). The window snap to
+# tall (820px) on settings/about open happens later, post-paint, and is
+# not measured here.
 #
 # Drives the app via the UDP toggle mechanism (port TOGGLE_PORT, same as
 # `hotdoc-cli toggle`). The window starts visible on first launch, so each
