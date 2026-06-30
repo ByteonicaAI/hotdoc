@@ -1,7 +1,7 @@
 {
   "_meta": {
     "description": "Golden query set for NFR-3 (first-result accuracy). 50 baseline queries across 18 packs (CI gate for v1.0) + 18 adversarial queries (WS-A.1 baseline; normalized ranker wired in bfd5f76 — 12/18 adversarial pass pre-3.2, 6 fail on expected_first). Task 3.2 adds forbidden_top3 exclusion assertions to 7 adversarial queries; post-3.2 adversarial: 11/18 pass (systemctl-restart concern: forbidden id still in top-3). Authored 2026-06-21 (25 baseline) + 2026-06-24 (25 baseline) + 2026-06-29 (18 adversarial) + 2026-06-30 (3.2 de-tautologize).",
-    "_comment": "TODO(confidence-gate): gibberish queries (asdfqwer, zxqbzxqb blblblblb vvwwxxyz) return top-8 by source/popularity; expected_first pinned to deterministic top card (aws-cloudfront-create-invalidation) until a confidence-threshold gate lands (post-v1 backlog, arch doc §8).",
+    "_comment": "Gibberish queries (asdfqwer, zxqbzxqb blblblblb vvwwxxyz) now assert the empty state (expected_first=null): the task-5.2 confidence gate empties Weak-confidence top hits scoring below the floor (score.rs CONFIDENCE_SCORE_FLOOR). These queries still exist (draft_count unchanged) but leave the eval positive-target population.",
     "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Adversarial queries (adversarial: true) have expected_first pinned to the TARGET behavior the 5.3 rewrite must produce; the current ranker's actual output is recorded in each query's _comment field. The default bench runs all 68 queries; --adversarial filters to the 18. Neither is gated by verify:all until Phase 6 wires the adversarial gate in.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
@@ -57,8 +57,8 @@
     },
     {
       "query": "asdfqwer",
-      "expected_first": "aws-cloudfront-create-invalidation",
-      "_comment": "ponytail: task-3.2 branch decision — ranker returns non-empty top-8 for gibberish (no confidence gate). Keeping expected_first as the deterministic popularity-ranked top card rather than null. Null would fail until the post-v1 confidence gate lands (arch doc §8 backlog). Card held: aws-cloudfront-create-invalidation."
+      "expected_first": null,
+      "_comment": "confidence-gate returns empty"
     },
     {
       "query": "docker ps",
@@ -262,8 +262,8 @@
     },
     {
       "query": "zxqbzxqb blblblblb vvwwxxyz",
-      "expected_first": "aws-cloudfront-create-invalidation",
-      "_comment": "ponytail: task-3.2 branch decision — ranker returns non-empty top-8 for gibberish (no confidence gate). Keeping expected_first as the deterministic popularity-ranked top card rather than null. Null would fail until the post-v1 confidence gate lands (arch doc §8 backlog). Card held: aws-cloudfront-create-invalidation."
+      "expected_first": null,
+      "_comment": "confidence-gate returns empty"
     },
     {
       "query": "git reset",

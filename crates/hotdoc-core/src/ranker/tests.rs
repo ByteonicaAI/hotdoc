@@ -881,3 +881,61 @@ fn fuzzy_rescue_accumulates_two_typos() {
         b.fuzzy_rescue
     );
 }
+
+// ---- WS task-5.2: confidence gate for gibberish / low-confidence ----
+
+fn confidence_gate_corpus() -> Vec<(String, Entry)> {
+    vec![(
+        "git".into(),
+        entry(
+            "git-stash",
+            "git",
+            "git stash",
+            "Stash changes",
+            &["stash", "save"],
+            &[],
+            "",
+            EntrySource::Official,
+        ),
+    )]
+}
+
+#[test]
+fn score_gibberish_query_returns_empty_via_confidence_gate() {
+    // Gibberish: no tool, no field match anywhere. The top hit is
+    // Weak confidence with a net-negative score (intent-missing penalty
+    // dominates). The confidence gate must empty the result list rather
+    // than surface a deterministic tie-break "winner".
+    let entries = confidence_gate_corpus();
+    let hits = score_query(&entries, "asdfqwer");
+    assert!(
+        hits.is_empty(),
+        "gibberish must return empty after the confidence gate, got {:?}",
+        hits.iter()
+            .map(|h| (&h.entry.id, h.score))
+            .collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn score_legit_weak_query_survives_confidence_gate() {
+    // Regression guard: a tool-only match ("git" matches the pack, the
+    // intent token is uncovered) is Weak confidence but earns a net
+    // POSITIVE score (TOOL_MATCH outweighs INTENT_MISSING). It must NOT
+    // be emptied — the gate only drops Weak hits below the score floor.
+    let entries = confidence_gate_corpus();
+    let hits = score_query(&entries, "git xyzzy");
+    assert!(
+        !hits.is_empty(),
+        "a positive-score weak tool-match must survive the confidence gate"
+    );
+    assert_eq!(
+        hits[0].confidence,
+        Confidence::Weak,
+        "guard precondition: top hit is Weak"
+    );
+    assert!(
+        hits[0].score > 0.0,
+        "guard precondition: top hit scores above the floor"
+    );
+}

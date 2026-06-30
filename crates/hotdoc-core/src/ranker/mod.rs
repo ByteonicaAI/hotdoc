@@ -14,6 +14,7 @@ mod tests;
 
 pub use normalize::{normalize_entry, NormalizedEntry};
 pub use parse_query::{parse_query, ParsedQuery, STOPWORDS};
+use score::CONFIDENCE_SCORE_FLOOR;
 pub use score::{score, sort_ranked, Confidence, CoverageTier, RankedHit, ScoreBreakdown};
 
 use crate::pack::Entry;
@@ -63,6 +64,20 @@ pub fn score_query_normalized_with(
 
     hits.retain(|h| h.score.is_finite());
     sort_ranked(&mut hits);
+
+    // ponytail: task-5.2 confidence gate. Both production `search()` and
+    // headless callers reach this one choke point, so gating here AFTER
+    // `sort_ranked` empties low-confidence gibberish on every path. A
+    // `Weak` top hit scoring below `CONFIDENCE_SCORE_FLOOR` (0.0) has no
+    // net positive evidence — return empty rather than surface a
+    // tie-break "winner". Strong/Medium/Exact and positive-score Weak
+    // hits (legitimate weak queries) are untouched.
+    if let Some(top) = hits.first() {
+        if top.confidence == Confidence::Weak && top.score < CONFIDENCE_SCORE_FLOOR {
+            return Vec::new();
+        }
+    }
+
     hits
 }
 

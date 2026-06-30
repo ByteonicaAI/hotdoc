@@ -73,6 +73,19 @@ const SOURCE_CHEATSHEET: Score = 0.5;
 const COMMAND_SPECIFICITY_PENALTY: Score = 2.0;
 const COMMAND_SPECIFICITY_MAX_TOKENS: usize = 3;
 
+// ponytail: task-5.2 — confidence gate floor. A `Weak`-confidence top hit
+// scoring below this floor carries no net positive evidence and is
+// emptied (gibberish, e.g. `asdfqwer`). Measured on the full 731-entry
+// corpus (2026-07-01): the two gibberish golden queries top out at Weak
+// scores of -74.0 and -24.0 (intent-missing penalties dominate, no tool
+// or field match); the LOWEST-scoring legitimate golden query tops out at
+// +43.0 (Strong) and the lowest legitimate *Weak* query at +77.0. 0.0 is
+// the principled boundary strictly between the populations: every
+// legitimate query nets positive, gibberish nets negative. The 24-point
+// margin below and 43-point margin above leave no overlap. Only `Weak`
+// confidence is gated, so Strong/Medium/Exact hits are never emptied.
+pub(crate) const CONFIDENCE_SCORE_FLOOR: Score = 0.0;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CoverageTier {
     /// Exact token match in syntax/title/tag/alias fields.
