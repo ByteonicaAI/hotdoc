@@ -3,11 +3,18 @@ import { setupLauncher, type LifecycleRefs } from "./lifecycle";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { Launcher } from "../useLauncher.svelte";
 
+const unlistenSpies: Array<ReturnType<typeof vi.fn>> = [];
+const handlers = new Map<string, (e: unknown) => void>();
 vi.mock("@tauri-apps/api/event", () => ({
-  listen: vi.fn().mockResolvedValue(() => {}),
+  listen: vi.fn((event: string, handler: (e: unknown) => void) => {
+    handlers.set(event, handler);
+    const spy = vi.fn();
+    unlistenSpies.push(spy);
+    return Promise.resolve(spy);
+  }),
 }));
 vi.mock("@tauri-apps/api/app", () => ({
-  getVersion: vi.fn().mockResolvedValue("0.4.0"),
+  getVersion: vi.fn(() => Promise.resolve("9.9.9-test")),
 }));
 vi.mock("../tauri", () => ({
   getAllSettings: vi.fn().mockResolvedValue({ theme: "system", recents_enabled: "true" }),
@@ -33,6 +40,8 @@ function fakeLauncher() {
 describe("setupLauncher", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    unlistenSpies.length = 0;
+    handlers.clear();
     document.body.innerHTML = '<input id="q" />';
   });
 
@@ -136,5 +145,49 @@ describe("setupLauncher", () => {
 
     earlyResult.cleanup();
     expect(earlyUnlistenCalls).toBe(1);
+  });
+
+  it("registers all five IPC event listeners", async () => {
+    const launcher = fakeLauncher();
+    const refs: LifecycleRefs = { status: { current: null }, appVersion: { current: "" } };
+    setupLauncher(launcher, refs);
+    await new Promise((r) => setTimeout(r, 0));
+    for (const ev of [
+      "hotdoc://show",
+      "hotdoc://refresh-empty-view",
+      "hotdoc://open-settings",
+      "hotdoc://reload-index",
+      "hotdoc://copy-diagnostics",
+    ]) {
+      expect(handlers.has(ev)).toBe(true);
+    }
+  });
+
+  it("hotdoc://show handler resets the launcher", async () => {
+    const launcher = fakeLauncher();
+    const refs: LifecycleRefs = { status: { current: null }, appVersion: { current: "" } };
+    setupLauncher(launcher, refs);
+    await new Promise((r) => setTimeout(r, 0));
+    handlers.get("hotdoc://show")!(undefined);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(launcher.reset).toHaveBeenCalled();
+  });
+
+  it("cleanup detaches every registered listener", async () => {
+    const launcher = fakeLauncher();
+    const refs: LifecycleRefs = { status: { current: null }, appVersion: { current: "" } };
+    const { cleanup } = setupLauncher(launcher, refs);
+    await new Promise((r) => setTimeout(r, 0));
+    cleanup();
+    expect(unlistenSpies.length).toBe(5);
+    for (const spy of unlistenSpies) expect(spy).toHaveBeenCalledOnce();
+  });
+
+  it("getVersion overwrites the appVersion default", async () => {
+    const launcher = fakeLauncher();
+    const refs: LifecycleRefs = { status: { current: null }, appVersion: { current: "" } };
+    setupLauncher(launcher, refs);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(refs.appVersion.current).toBe("9.9.9-test");
   });
 });
