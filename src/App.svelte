@@ -18,7 +18,7 @@
   const launcher = new Launcher();
   const refs = $state<LifecycleRefs>({
     status: { current: null },
-    appVersion: { current: "0.4.0" },
+    appVersion: { current: "" },
   });
 
   const showResults = $derived(
