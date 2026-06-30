@@ -84,15 +84,15 @@ fn main() -> ExitCode {
             }
         }
         Some("bench") => {
-            // ponytail: handle both `--adversarial` (bare boolean) and
-            // `--adversarial=true|false` (key=value). `parse_kv` only inserts
-            // key=value pairs and drops bare flags, so we can't rely on
-            // `kv.contains_key` alone — it misses the bare form. Args scan
-            // covers both: equality catches bare, `starts_with("--adversarial=")`
-            // catches the value form.
-            let adversarial = args
-                .iter()
-                .any(|a| *a == "--adversarial" || a.starts_with("--adversarial="));
+            // ponytail: bare `--adversarial` == true; `--adversarial=<bool>` parses
+            // the value so `--adversarial=false` actually disables the filter
+            // (presence-only detection silently enabled it before).
+            let adversarial = args.iter().any(|a| a == "--adversarial")
+                || args
+                    .iter()
+                    .find_map(|a| a.strip_prefix("--adversarial="))
+                    .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
+                    .unwrap_or(false);
             let golden_path = kv
                 .get("queries")
                 .map(PathBuf::from)
