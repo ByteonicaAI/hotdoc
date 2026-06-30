@@ -141,7 +141,9 @@ impl HotdocIndex {
     // Caller decides when to invoke — build() stays tantivy-only.
     /// ponytail: true entry count = number of (pack_id, Entry) pairs, NOT
     /// a deduped id-map length. Two packs sharing an entry id both count;
-    /// this matches `sum(packs.entries.len())` and the SQLite-backed IPC.
+    /// this equals `sum(packs.entries.len())`. The SQLite IPC count dedups
+    /// by id (`ON CONFLICT(id)`), so the two agree only when entry ids are
+    /// globally unique — which real packs guarantee.
     pub fn entry_count(&self) -> usize {
         self.entries.len()
     }
@@ -167,15 +169,14 @@ impl HotdocIndex {
         Ok(())
     }
 
-    // ponytail: 5.2. Approach B (sidecar JSON) — tantivy can't
-    // round-trip entry_meta through its own meta.json (that's a
-    // schema descriptor we don't own), so build() writes
-    // hotdoc_entry_meta.json next to the tantivy index and open()
-    // reads it back. Signature stays (path) — no upstream call
-    // site changes vs Approach A. Missing sidecar → Err so the
-    // Tauri resolver's open-failure fallthrough (in
-    // index_resolver::resolve_one) rebuilds. Direct CLI users
-    // get a clear error pointing them at `hotdoc-cli index`.
+    // ponytail: Approach B (sidecar JSON) — the in-memory ranker's corpus
+    // can't ride in tantivy's own meta.json (a schema descriptor we don't
+    // own), so build() writes hotdoc_entries.json next to the tantivy
+    // index and open() reads it back. Signature stays (path) — no upstream
+    // call-site changes. A missing or version-mismatched sidecar → Err so
+    // the Tauri resolver's open-failure fallthrough (in
+    // index_resolver::resolve_one) rebuilds. Direct CLI users get a clear
+    // error pointing them at `hotdoc-cli index`.
     pub fn open(path: &Path) -> Result<Self> {
         let index = Index::open_in_dir(path).context("opening index dir")?;
         let fields = resolve_fields(&index.schema()).context("resolving schema fields")?;
