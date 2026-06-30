@@ -146,7 +146,7 @@
         }
       ],
       "tags": ["routing", "redirect"],
-      "aliases": [],
+      "aliases": ["http to https", "redirect http to https"],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return"
     },

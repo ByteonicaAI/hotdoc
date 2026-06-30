@@ -34,7 +34,7 @@
         }
       ],
       "tags": ["keys", "setup"],
-      "aliases": [],
+      "aliases": ["copy key to server", "ssh key auth", "key auth"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh-copy-id.1.html"
     },
@@ -98,7 +98,7 @@
         }
       ],
       "tags": ["file-transfer", "remote"],
-      "aliases": [],
+      "aliases": ["copy file to server"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/scp.1.html"
     },
