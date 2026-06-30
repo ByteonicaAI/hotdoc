@@ -730,3 +730,26 @@ fn classify_tool_only_is_weak() {
     let b = score(&n, &q);
     assert_eq!(score::classify(&n, &q, &b), Confidence::Weak);
 }
+
+#[test]
+fn fuzzy_rescue_accumulates_two_typos() {
+    // Two typo'd intents, both rescued → 20 (2 × 10), not flat 10.
+    let e = entry(
+        "kubectl-rollout-restart",
+        "kubectl",
+        "kubectl rollout restart",
+        "Rollout restart",
+        &["rollout", "restart"],
+        &[],
+        "",
+        EntrySource::Official,
+    );
+    let n = normalize_entry("kubectl", &e);
+    let q = parse_query("roolout restrt", &["kubectl".into()]);
+    let b = score(&n, &q);
+    assert!(
+        (b.fuzzy_rescue - 20.0).abs() < 0.001,
+        "two rescued typos should sum to 20, got {}",
+        b.fuzzy_rescue
+    );
+}

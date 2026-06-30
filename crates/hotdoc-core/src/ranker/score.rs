@@ -39,7 +39,10 @@ const PHRASE_ADJACENT: Score = 20.0;
 const PHRASE_QUERY_ORDER: Score = 10.0;
 
 const FUZZY_PER_RESCUE: Score = 10.0;
-pub(crate) const FUZZY_RESCUE_CAP: Score = 10.0;
+// ponytail: cap = 2 × FUZZY_PER_RESCUE so up to two typo'd intents can
+// each earn +10 (ranker-design §4 "+10 per rescue"). A third rescue is
+// capped — fuzzy stays a rescue, never an intent-exact-grade win (25).
+pub(crate) const FUZZY_RESCUE_CAP: Score = 20.0;
 const FUZZY_MIN_LEN: usize = 4;
 const FUZZY_MAX_DIST: usize = 2;
 
