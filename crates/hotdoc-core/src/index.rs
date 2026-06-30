@@ -195,19 +195,32 @@ impl HotdocIndex {
         })
     }
 
-    /// Extract BM25 query terms from a raw query string. Reused by
-    /// `search()` and the injectable-threshold seam (`retrieve_candidates_with_max`).
-    fn bm25_terms_for(&self, raw: &str) -> Vec<String> {
-        let pack_ids: Vec<String> = {
-            let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
-            v.sort_unstable();
-            v.dedup();
-            v
-        };
-        let parsed = crate::ranker::parse_query(raw, &pack_ids);
+    /// Deterministic, deduped pack_ids over the FULL corpus. Tool
+    /// detection in `parse_query` depends entirely on this set, so it
+    /// must always be derived from `self.normalized` (never a candidate
+    /// subset) — the M1 invariant.
+    fn full_corpus_pack_ids(&self) -> Vec<String> {
+        let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    }
+
+    /// BM25 query terms (intents + options) drawn from an already-parsed
+    /// query. Pure projection — does NOT parse, so `search()` can parse
+    /// the query exactly once (M2).
+    fn bm25_terms_of(parsed: &crate::ranker::ParsedQuery) -> Vec<String> {
         let mut terms: Vec<String> = parsed.intents.clone();
         terms.extend(parsed.options.iter().cloned());
         terms
+    }
+
+    /// Extract BM25 query terms from a raw query string. Test seam reused
+    /// by the injectable-threshold tests (`retrieve_candidates_with_max`).
+    #[cfg(test)]
+    fn bm25_terms_for(&self, raw: &str) -> Vec<String> {
+        let parsed = crate::ranker::parse_query(raw, &self.full_corpus_pack_ids());
+        Self::bm25_terms_of(&parsed)
     }
 
     /// Tantivy BM25 candidate retrieval with an injectable fullscan threshold.
@@ -287,8 +300,12 @@ impl HotdocIndex {
         if raw.is_empty() {
             return Ok(Vec::new());
         }
-        // ponytail: parse once to get the intent terms tantivy retrieves on.
-        let terms = self.bm25_terms_for(raw);
+        // ponytail: parse ONCE against full-corpus pack_ids. The same
+        // `parsed` drives BM25 retrieval AND scoring, so tool detection is
+        // stable regardless of which rows survive retrieval (M1), and the
+        // dormant path no longer parses twice (M2).
+        let parsed = crate::ranker::parse_query(raw, &self.full_corpus_pack_ids());
+        let terms = Self::bm25_terms_of(&parsed);
 
         let ranked = match self.retrieve_candidates(&terms) {
             Some(idxs) => {
@@ -296,9 +313,9 @@ impl HotdocIndex {
                     .into_iter()
                     .map(|i| self.normalized[i].clone())
                     .collect();
-                crate::ranker::score_query_normalized(&subset, raw)
+                crate::ranker::score_query_normalized_with(&subset, &parsed)
             }
-            None => crate::ranker::score_query_normalized(&self.normalized, raw),
+            None => crate::ranker::score_query_normalized_with(&self.normalized, &parsed),
         };
         // ponytail: 5.3 — O(1) entry lookup by id for SearchHit
         // construction. RankedHit carries NormalizedEntry (id +
@@ -920,6 +937,78 @@ mod tests {
         assert!(
             idx.retrieve_candidates(&terms).is_none(),
             "real threshold must keep retrieval dormant on a small corpus"
+        );
+    }
+
+    #[test]
+    fn scoring_uses_full_corpus_pack_ids_above_threshold() {
+        // M1: the above-threshold path scores a candidate SUBSET. Tool
+        // detection must use pack_ids from the FULL corpus, never the
+        // subset — otherwise a query token like "beta" goes unrecognized
+        // whenever no candidate row happens to be in the "beta" pack, and
+        // the TOOL_HARD_FILTER pack scoping silently disappears.
+        //
+        // Full corpus: many "alpha" rows + one "beta" row. The candidate
+        // subset is deliberately beta-sparse (alpha rows only), mimicking
+        // a BM25 result set that missed the weak beta entry.
+        let mut full: Vec<crate::ranker::NormalizedEntry> = Vec::new();
+        let mut alpha_subset: Vec<crate::ranker::NormalizedEntry> = Vec::new();
+        for i in 0..5_usize {
+            let (p, _) = make_entry_with(
+                &format!("alpha-thing-{i}"),
+                "alpha",
+                &format!("thing widget {i}"),
+                &format!("Thing {i}"),
+                "configure a thing",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            let n = crate::ranker::normalize_entry(&p.id, &p.entries[0]);
+            full.push(n.clone());
+            alpha_subset.push(n);
+        }
+        let (beta_pack, _) = make_entry_with(
+            "beta-thing",
+            "beta",
+            "beta thing",
+            "Beta Thing",
+            "a beta thing",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        full.push(crate::ranker::normalize_entry(
+            &beta_pack.id,
+            &beta_pack.entries[0],
+        ));
+
+        // Full-corpus pack_ids include "beta" → parse recognizes the tool.
+        let full_pack_ids: Vec<String> = {
+            let mut v: Vec<String> = full.iter().map(|n| n.pack_id.clone()).collect();
+            v.sort_unstable();
+            v.dedup();
+            v
+        };
+        let parsed = crate::ranker::parse_query("beta thing", &full_pack_ids);
+        assert_eq!(
+            parsed.tool.as_deref(),
+            Some("beta"),
+            "full-corpus parse must recognize 'beta' as the tool"
+        );
+
+        // Score the beta-sparse subset with the full-corpus parse. Every
+        // alpha row must be hard-filtered (NEG_INFINITY → dropped), so no
+        // finite-scored hit may belong to any pack other than "beta".
+        let hits = crate::ranker::score_query_normalized_with(&alpha_subset, &parsed);
+        assert!(
+            hits.iter().all(|h| h.entry.pack_id == "beta"),
+            "alpha rows must be hard-filtered when tool=beta is recognized \
+             from the full corpus; leaked: {:?}",
+            hits.iter().map(|h| &h.entry.id).collect::<Vec<_>>()
+        );
+        // And the alpha-only subset yields zero survivors (tool filter bites).
+        assert!(
+            hits.is_empty(),
+            "beta-sparse subset must produce no finite hits under tool=beta"
         );
     }
 

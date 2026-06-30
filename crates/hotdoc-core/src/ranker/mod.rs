@@ -30,13 +30,28 @@ pub fn score_query_normalized(normalized: &[NormalizedEntry], raw: &str) -> Vec<
         v
     };
     let parsed = parse_query(raw, &pack_ids);
+    score_query_normalized_with(normalized, &parsed)
+}
 
+/// Rank precomputed normalized entries against an already-parsed query.
+///
+/// Identical scoring body to `score_query_normalized`, but takes a
+/// `ParsedQuery` directly instead of deriving pack_ids and parsing
+/// internally. This is the M1 fix: when `normalized` is a candidate
+/// SUBSET (the above-threshold path), pack_ids derived from that subset
+/// can omit a query token's pack, silently disabling the tool hard
+/// filter. Callers must pass `parsed` built against the FULL corpus so
+/// tool detection is stable regardless of which rows survived retrieval.
+pub fn score_query_normalized_with(
+    normalized: &[NormalizedEntry],
+    parsed: &ParsedQuery,
+) -> Vec<RankedHit> {
     let mut hits: Vec<RankedHit> = normalized
         .iter()
         .map(|n| {
-            let breakdown = score(n, &parsed);
+            let breakdown = score(n, parsed);
             let total = breakdown.total;
-            let confidence = score::classify(n, &parsed, &breakdown);
+            let confidence = score::classify(n, parsed, &breakdown);
             RankedHit {
                 entry: n.clone(),
                 score: total,
