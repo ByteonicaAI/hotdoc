@@ -16,5 +16,9 @@ docs/seed-data/**
 # Internal docs (PRD, spec, plans, handoffs) — hand-written, not CI-gated
 docs/internal/**
 
+# Gitignored scratch + plans (SDD progress/briefs/reports, superpowers plans)
+.superpowers/**
+docs/superpowers/**
+
 # Editor config files (managed by the editor, not prettier)
 .vscode/**
