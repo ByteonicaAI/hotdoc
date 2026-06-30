@@ -317,6 +317,8 @@ fn build_schema() -> (Schema, SchemaFields) {
     )
 }
 
+const ENTRIES_SIDECAR_VERSION: u32 = 1;
+
 // ponytail: 5.3 — entries sidecar. Wrapped in a struct so the JSON
 // shape is self-documenting; serde otherwise serialises
 // Vec<(String, Entry)> as a flat array of [pack_id, entry] pairs,
@@ -324,16 +326,26 @@ fn build_schema() -> (Schema, SchemaFields) {
 // metadata later without breaking readers).
 #[derive(Serialize, Deserialize)]
 struct EntriesSidecar {
+    // ponytail: bumped whenever the on-disk Entry shape changes in a way
+    // a prior reader would misinterpret. open() rejects a mismatch so the
+    // resolver rebuilds rather than ranking a stale/misread corpus.
+    version: u32,
     entries: Vec<(String, Entry)>,
 }
 
 fn write_entries_sidecar(dir: &Path, entries: &[(String, Entry)]) -> Result<()> {
     let path = dir.join(ENTRIES_SIDECAR);
+    let tmp = dir.join(format!("{ENTRIES_SIDECAR}.tmp"));
     let sidecar = EntriesSidecar {
+        version: ENTRIES_SIDECAR_VERSION,
         entries: entries.to_vec(),
     };
     let json = serde_json::to_vec_pretty(&sidecar).context("serializing entries sidecar")?;
-    std::fs::write(&path, json).with_context(|| format!("writing {}", path.display()))?;
+    // ponytail: write to a sibling temp then rename — rename is atomic on
+    // the same filesystem, so a crash/ENOSPC mid-write can never leave a
+    // truncated sidecar that open() would parse as a partial corpus.
+    std::fs::write(&tmp, json).with_context(|| format!("writing {}", tmp.display()))?;
+    std::fs::rename(&tmp, &path).with_context(|| format!("renaming into {}", path.display()))?;
     Ok(())
 }
 
@@ -347,6 +359,13 @@ fn read_entries_sidecar(dir: &Path) -> Result<Vec<(String, Entry)>> {
     })?;
     let sidecar: EntriesSidecar =
         serde_json::from_slice(&raw).context("parsing entries sidecar")?;
+    if sidecar.version != ENTRIES_SIDECAR_VERSION {
+        anyhow::bail!(
+            "entries sidecar version {} != expected {} (re-run `hotdoc-cli index`)",
+            sidecar.version,
+            ENTRIES_SIDECAR_VERSION
+        );
+    }
     Ok(sidecar.entries)
 }
 
@@ -677,6 +696,28 @@ mod tests {
             o.score,
             c.score
         );
+    }
+
+    #[test]
+    fn open_rejects_wrong_sidecar_version() {
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-ver-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        HotdocIndex::build(&packs_for_test(), &dir).expect("build");
+        // Corrupt the sidecar version.
+        let p = dir.join(ENTRIES_SIDECAR);
+        let raw = std::fs::read_to_string(&p).expect("read sidecar");
+        let bumped = raw.replacen("\"version\": 1", "\"version\": 999", 1);
+        std::fs::write(&p, bumped).expect("rewrite sidecar");
+        let res = HotdocIndex::open(&dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(res.is_err(), "open must reject an unknown sidecar version");
     }
 
     #[test]
