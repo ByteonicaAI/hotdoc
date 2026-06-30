@@ -62,9 +62,9 @@
     },
     {
       "query": "docker ps",
-      "expected_first": "docker-compose-ps",
-      "acceptable_top3": ["docker-compose-ps", "docker-ps", "docker-ps-all"],
-      "_comment": "5.3 ranker prefers docker-compose-ps over plain docker-ps when both match (compose-ps has higher field-weighted score). Plain docker-ps ranks second. Mirror arch doc §9.1 product decision for docker logs."
+      "expected_first": "docker-ps",
+      "acceptable_top3": ["docker-ps", "docker-ps-all", "docker-compose-ps"],
+      "_comment": "task-5.1b owner decision 'plain command wins': bare `docker ps` (no compose intent) ranks plain docker-ps first. Base syntax scores are EQUAL (docker-ps and docker-compose-ps both exact-match at 100); the variant only led earlier via its +1 official-source bonus. The command-modifier penalty (-2 per uncovered command token, here `compose`) now overcomes that bonus so the plain card wins. Reverses the prior fixture, mirroring the docker-logs decision."
     },
     {
       "query": "docker stop",
@@ -308,7 +308,7 @@
       "expected_first": "docker-logs",
       "acceptable_top3": ["docker-logs", "docker-logs-tail"],
       "adversarial": true,
-      "_comment": "TARGET: docker-logs. Current ranker returns docker-compose-logs above docker-logs despite no 'compose' in the query. 5.3 rewrite must return docker-logs when the query has no compose intent — exact-subcommand match must beat default-popularity/curated bonuses."
+      "_comment": "RESOLVED (task-5.1b): docker-logs now ranks first. Base syntax scores tie at 105; docker-compose-logs previously edged ahead only on its +1 official-source bonus. The command-modifier penalty (-2 for the uncovered `compose` token) overcomes that bonus, so the plain exact-subcommand card wins when the query carries no compose intent."
     },
     {
       "query": "ssh copy file to server",
@@ -387,9 +387,8 @@
       "query": "systemctl restart service",
       "expected_first": "systemctl-restart",
       "acceptable_top3": ["systemctl-restart", "systemctl-reload-or-restart"],
-      "forbidden_top3": ["systemctl-try-restart"],
       "adversarial": true,
-      "_comment": "TARGET: systemctl-restart. Current ranker returns systemctl-try-restart above systemctl-restart. 5.3 rewrite must return systemctl-restart — exact-syntax match for the dominant verb must win over option variants. forbidden_top3 added by task-3.2; CONCERN: systemctl-try-restart still appears in top-3 (rank 3) post-bfd5f76 — this assertion intentionally fails until the ranker pushes try-restart below rank 3."
+      "_comment": "RESOLVED (task-5.1b owner decision): systemctl-restart is the decisive #1 (exact match on the dominant verb). The prior forbidden_top3:[systemctl-try-restart] was removed — try-restart and reload-or-restart are symmetric, equally-legitimate restart variants (each carries exactly one uncovered command token, so the command-modifier penalty hits both equally and cannot separate them). Excluding one but accepting the other was arbitrary; restart already wins rank 1, which is what matters."
     },
     {
       "query": "ssh key auth",

@@ -163,20 +163,24 @@ fn score_nginx_redirect_beats_jq_to_entries() {
 
 #[test]
 fn score_docker_logs_prefers_plain_over_compose() {
+    // task-5.1b "plain command wins": a CURATED plain card must beat an
+    // OFFICIAL variant carrying an uncovered command token (`compose`),
+    // purely via the command-modifier penalty. Field weights are identical
+    // ("logs" hits syntax+title+tags on both), and the variant even has the
+    // +1 official-source bonus — so without the penalty the variant would
+    // win. The -2 penalty (one uncovered `compose` token) overcomes the +1
+    // bonus, giving the plain card a net 1.0 lead. No alias crutch: the
+    // penalty alone is the deciding signal.
     let entries = vec![
         (
             "docker".into(),
-            // ponytail: alias "view container logs" gives a 4× alias hit on
-            // "logs" that the compose entry lacks — that's the signal the
-            // spec formula needs to break the otherwise-identical field
-            // weights when both cards carry "logs" in syntax/title/tags.
             entry(
                 "docker-logs",
                 "docker",
                 "docker logs <container>",
                 "View container logs",
                 &["logs"],
-                &["view container logs"],
+                &[],
                 "",
                 EntrySource::Curated,
             ),
@@ -187,11 +191,11 @@ fn score_docker_logs_prefers_plain_over_compose() {
                 "docker-compose-logs",
                 "docker",
                 "docker compose logs -f <service>",
-                "View service logs",
+                "View compose logs",
                 &["logs", "compose"],
-                &["compose service management"],
+                &[],
                 "",
-                EntrySource::Curated,
+                EntrySource::Official, // +1 source bonus the penalty must overcome
             ),
         ),
     ];
@@ -199,26 +203,45 @@ fn score_docker_logs_prefers_plain_over_compose() {
     assert!(!hits.is_empty());
     assert_eq!(
         hits[0].entry.id, "docker-logs",
-        "plain docker-logs must outrank docker-compose-logs when 'compose' is absent"
+        "plain docker-logs must outrank the OFFICIAL docker-compose-logs via the penalty"
     );
-    let compose_pos = hits
+    let plain = hits
         .iter()
-        .position(|h| h.entry.id == "docker-compose-logs")
+        .find(|h| h.entry.id == "docker-logs")
+        .expect("plain entry must survive");
+    let compose = hits
+        .iter()
+        .find(|h| h.entry.id == "docker-compose-logs")
         .expect("compose entry must survive");
+    // The penalty must be the load-bearing signal: the variant carries a
+    // negative command_specificity, the plain card carries zero.
+    assert_eq!(
+        plain.breakdown.command_specificity, 0.0,
+        "plain card has no uncovered command token"
+    );
     assert!(
-        compose_pos >= 1,
-        "docker-compose-logs must rank below docker-logs"
+        compose.breakdown.command_specificity < 0.0,
+        "compose variant must carry a negative command-specificity penalty, got {}",
+        compose.breakdown.command_specificity
+    );
+    assert!(
+        plain.score > compose.score + 1e-9,
+        "plain must outscore the official variant, got {} vs {}",
+        plain.score,
+        compose.score
     );
 }
 
 #[test]
 fn score_command_specificity_breaks_score_ties_over_id() {
-    // task-5.1: the command-specificity comparator sits ABOVE the id
-    // fallback in `sort_ranked`. Two cards with IDENTICAL score must order
-    // by specificity (fewer uncovered command tokens first), overriding the
-    // alphabetical-id fallback. Here the LESS specific card ("x foo extra",
-    // carrying the unasked-for `extra`) has the alphabetically-SMALLER id,
-    // so without the tie-break it would win; the comparator must flip it.
+    // task-5.1b: command-specificity is now a SCORE PENALTY in `total`, not a
+    // pure tie-break. Two cards that would otherwise tie on every component
+    // are now separated by the penalty: the LESS specific card ("x foo
+    // extra", carrying the unasked-for `extra`) loses `COMMAND_SPECIFICITY_
+    // PENALTY` and so scores BELOW the plain card — even though its
+    // alphabetically-SMALLER id ("aaa-extra") would otherwise win the
+    // deterministic id fallback. This proves the penalty overrides the id
+    // tie-break by lowering the score outright.
     let entries = vec![
         (
             "x".into(),
@@ -248,30 +271,32 @@ fn score_command_specificity_breaks_score_ties_over_id() {
         ),
     ];
     let hits = score_query(&entries, "x foo");
-    // Sanity: the two cards really are score-tied (the comparator only acts
-    // on ties; if scores diverged this test would prove nothing).
+    // The plain card must now score STRICTLY higher — the penalty separates
+    // what was previously a score tie.
     assert!(
-        (hits[0].score - hits[1].score).abs() < 1e-9,
-        "fixture must be score-tied, got {} vs {}",
+        hits[0].score > hits[1].score + 1e-9,
+        "plain card must outscore the less-specific one, got {} vs {}",
         hits[0].score,
         hits[1].score
     );
     assert_eq!(
         hits[0].entry.id, "zzz-plain",
-        "more-specific card must win the tie despite its larger id"
+        "more-specific card must win via the penalty despite its larger id"
     );
 }
 
 #[test]
 fn score_systemctl_restart_specificity_ordering() {
-    // task-5.1 DECISION GATE, outcome (b): `systemctl-restart` is the
-    // decisive #1 (exact title match). `systemctl-reload-or-restart` and
+    // task-5.1b owner decision: `systemctl-restart` is the decisive #1
+    // (exact title match). `systemctl-reload-or-restart` and
     // `systemctl-try-restart` are SYMMETRIC — equal score, and each carries
-    // exactly ONE uncovered command token (`reload` vs `try`). No
-    // specificity signal can separate them, so `try-restart` legitimately
-    // remains a top-3 match alongside the accepted `reload-or-restart`.
-    // This test pins that truth; the golden `forbidden_top3:[try-restart]`
-    // is over-strict and is escalated to the owner, not forced here.
+    // exactly ONE uncovered command token (`reload` vs `try`). The command-
+    // modifier penalty is now a SCORE term, but it hits both variants by the
+    // SAME -2 (one uncovered token each), so it cannot separate them — they
+    // stay tied and order only by the deterministic id fallback. The golden
+    // `forbidden_top3:[try-restart]` was removed (owner): try-restart is a
+    // legitimate restart variant symmetric with the accepted reload-or-
+    // restart, and restart already wins rank 1.
     let entries = vec![
         (
             "systemctl".into(),

@@ -61,12 +61,15 @@ const SOURCE_CHEATSHEET: Score = 0.5;
 // ponytail: command-specificity — a card carrying command/sub-command
 // tokens the user did NOT ask for (`docker compose logs` for query
 // `docker logs`, `systemctl try-restart` for `systemctl restart`) is less
-// specific than the plainer card. This is consumed ONLY as a tie-break key
-// (`sort_ranked`), never added to the score — see the note in `score()`.
-// The magnitude is irrelevant to ordering (only the sign/relative size
-// matters for the comparator); the constant is kept for readability and so
-// the count is capped, preventing a long multi-arg syntax from dominating
-// the comparator with noise.
+// specific than the plainer card. Owner decision (task-5.1b, "plain command
+// wins"): this is a SMALL BOUNDED SCORE PENALTY added into `total`, not just
+// a tie-break. The magnitude must exceed the +1 official-source bonus so a
+// curated plain card beats an official variant carrying one extra modifier
+// token — and be as SMALL as possible to minimise collateral reordering.
+// 2.0 is the minimum that clears +1 with a 1.0 margin per uncovered token.
+// The count is capped (MAX_TOKENS) so a long multi-arg syntax cannot pile up
+// an unbounded penalty. The `sort_ranked` tie-break stage is retained as a
+// harmless secondary key (now redundant for score-separated entries).
 const COMMAND_SPECIFICITY_PENALTY: Score = 2.0;
 const COMMAND_SPECIFICITY_MAX_TOKENS: usize = 3;
 
@@ -182,14 +185,17 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
     };
 
     // 9. Command-specificity — count of extra unasked-for command tokens,
-    // expressed as a negative-or-zero ordering key. DELIBERATELY NOT added
-    // to `total`: measurement (task-5.1) showed a score-level penalty is
-    // irreconcilable — `docker compose ps` MUST win "docker ps" (golden)
-    // while `docker compose logs` MUST lose "docker logs", and both are the
-    // same 1-point source-bonus near-tie with `compose` as the extra token.
-    // So specificity is applied ONLY as a tie-break in `sort_ranked` (it
-    // reorders entries that are otherwise SCORE-tied, where it cannot make
-    // such a contradictory call), never as a score term.
+    // expressed as a negative-or-zero penalty. Owner decision (task-5.1b,
+    // "plain command wins"): this IS added into `total` so a plain card beats
+    // an official variant carrying an extra modifier (`docker logs` →
+    // docker-logs over docker-compose-logs; `docker ps` → docker-ps over
+    // docker-compose-ps). The earlier task-5.1 "irreconcilable" note no
+    // longer holds — the owner reversed the `docker ps` golden so plain wins
+    // there too, removing the contradiction. The `uncovered_command_count`
+    // GATE (returns 0 unless an intent covers a command token) keeps queries
+    // that don't match a sub-command from being perturbed. `charged` is
+    // finite (`min` of two finite values), so `command_specificity` is never
+    // NaN/-inf.
     let uncovered = uncovered_command_count(entry, query);
     let charged = uncovered.min(COMMAND_SPECIFICITY_MAX_TOKENS);
     b.command_specificity = -(charged as Score) * COMMAND_SPECIFICITY_PENALTY;
@@ -201,7 +207,8 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         + b.exact_match
         + b.phrase_order
         + b.fuzzy_rescue
-        + b.source_tiebreak;
+        + b.source_tiebreak
+        + b.command_specificity;
 
     b
 }
