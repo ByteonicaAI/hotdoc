@@ -196,9 +196,19 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
     // that don't match a sub-command from being perturbed. `charged` is
     // finite (`min` of two finite values), so `command_specificity` is never
     // NaN/-inf.
+    //
+    // task-5.1b cap (robustness): the SCORE contribution is bounded at one
+    // uncovered token (-2.0 max) so a multi-token canonical answer cannot be
+    // hard-demoted below a near-tied competitor by the -6 floor. Every
+    // measured win (docker compose, systemctl) is a single uncovered token
+    // (-2.0), so no golden outcome changes. `command_specificity` retains the
+    // full-count penalty and is used only by the `sort_ranked` tie-break stage
+    // to finely order score-tied variants (finer ordering preserved).
     let uncovered = uncovered_command_count(entry, query);
     let charged = uncovered.min(COMMAND_SPECIFICITY_MAX_TOKENS);
     b.command_specificity = -(charged as Score) * COMMAND_SPECIFICITY_PENALTY;
+    // Score contribution capped at one uncovered token; tie-break keeps full count.
+    let command_penalty = -(uncovered.min(1) as Score) * COMMAND_SPECIFICITY_PENALTY;
 
     b.total = b.tool_scope
         + b.intent_coverage
@@ -208,7 +218,7 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         + b.phrase_order
         + b.fuzzy_rescue
         + b.source_tiebreak
-        + b.command_specificity;
+        + command_penalty;
 
     b
 }
