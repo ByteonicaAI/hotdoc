@@ -14,6 +14,19 @@ use crate::pack::{Entry, Pack};
 // re-parsing pack JSONs on every CLI invocation.
 const ENTRIES_SIDECAR: &str = "hotdoc_entries.json";
 
+// ponytail: below this corpus size, the full in-memory scan (p50≈2ms at
+// 731 entries, 8× under NFR-3) is already optimal and Tantivy retrieval
+// can only LOSE recall (BM25 misses typos the ranker would rescue). So
+// retrieval is dormant here and engages only when the corpus grows past
+// the point where full-scan would threaten the latency budget.
+const RETRIEVAL_FULLSCAN_MAX: usize = 5000;
+// ponytail: when the candidate set is this thin, fall back to a full scan
+// so the ranker's fuzzy/prefix rescue still sees every entry.
+const RETRIEVAL_MIN_CANDIDATES: usize = 16;
+// ponytail: Tantivy candidate cap — generous so the ranker, not BM25,
+// decides order.
+const RETRIEVAL_CANDIDATE_CAP: usize = 256;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchHit {
     pub id: String,
@@ -30,16 +43,14 @@ pub struct SearchHit {
 pub struct HotdocIndex {
     // ponytail: 5.3 — `_index`, `reader`, and `fields` are kept on
     // the struct for the lifetime of the tantivy index (writer +
-    // reader hold filesystem handles). 5.3 replaces the search hot
-    // path with the in-memory ranker; tantivy is no longer read but
-    // the index is still BUILT at build() time. Follow-up work may
-    // add a tantivy-backed retrieval stage on top of the ranker
-    // (architecture doc §7 Option B) — keeping the fields in place
-    // makes that wire-up a no-op.
+    // reader hold filesystem handles). Tantivy retrieval is now WIRED
+    // (Task 2.6, architecture doc §7 Option B): `reader`/`fields` are
+    // load-bearing — `retrieve_candidates()` reads them to supply BM25
+    // candidates ABOVE RETRIEVAL_FULLSCAN_MAX. At v1 scale the corpus
+    // is below the threshold so retrieval stays dormant and search()
+    // takes the full-scan branch (golden byte-identical).
     _index: Index,
-    #[allow(dead_code)]
     reader: IndexReader,
-    #[allow(dead_code)]
     fields: SchemaFields,
     // ponytail: 5.3 — full corpus for the in-memory ranker. Pairs of
     // (pack_id, Entry). Persisted to hotdoc_entries.json sidecar so
@@ -183,12 +194,93 @@ impl HotdocIndex {
         })
     }
 
+    /// Tantivy BM25 candidate retrieval. Returns indices into `self.normalized`,
+    /// or `None` to signal "score the full corpus" (small corpus, thin
+    /// candidates, or empty query terms). Used only above
+    /// RETRIEVAL_FULLSCAN_MAX.
+    fn retrieve_candidates(&self, terms: &[String]) -> Option<Vec<usize>> {
+        use tantivy::collector::TopDocs;
+        use tantivy::query::{BooleanQuery, Occur, Query, TermQuery};
+        use tantivy::schema::document::Value;
+        use tantivy::schema::IndexRecordOption;
+        use tantivy::Term;
+
+        if self.normalized.len() <= RETRIEVAL_FULLSCAN_MAX || terms.is_empty() {
+            return None;
+        }
+        let searcher = self.reader.searcher();
+        let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+        for t in terms {
+            for field in [
+                self.fields.title,
+                self.fields.syntax,
+                self.fields.tags,
+                self.fields.description,
+            ] {
+                let term = Term::from_field_text(field, t);
+                clauses.push((
+                    Occur::Should,
+                    Box::new(TermQuery::new(term, IndexRecordOption::WithFreqs)),
+                ));
+            }
+        }
+        if clauses.is_empty() {
+            return None;
+        }
+        let query = BooleanQuery::new(clauses);
+        let top = searcher
+            .search(&query, &TopDocs::with_limit(RETRIEVAL_CANDIDATE_CAP))
+            .ok()?;
+        // ponytail: map retrieved doc ids back to normalized indices via the
+        // stored entry id. Build a one-time id→index map.
+        let id_to_idx: std::collections::HashMap<&str, usize> = self
+            .normalized
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.id.as_str(), i))
+            .collect();
+        let id_field = self.fields.id;
+        let mut idxs = Vec::with_capacity(top.len());
+        for (_score, addr) in top {
+            let doc: tantivy::TantivyDocument = searcher.doc(addr).ok()?;
+            if let Some(val) = doc.get_first(id_field).and_then(|v| v.as_str()) {
+                if let Some(&i) = id_to_idx.get(val) {
+                    idxs.push(i);
+                }
+            }
+        }
+        if idxs.len() < RETRIEVAL_MIN_CANDIDATES {
+            return None; // thin candidates → fall back to full scan
+        }
+        Some(idxs)
+    }
+
     pub fn search(&self, raw_query: &str, limit: usize) -> Result<Vec<SearchHit>> {
         let raw = raw_query.trim();
         if raw.is_empty() {
             return Ok(Vec::new());
         }
-        let ranked = crate::ranker::score_query_normalized(&self.normalized, raw);
+        // ponytail: parse once to get the intent terms tantivy retrieves on.
+        let pack_ids: Vec<String> = {
+            let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
+            v.sort_unstable();
+            v.dedup();
+            v
+        };
+        let parsed = crate::ranker::parse_query(raw, &pack_ids);
+        let mut terms: Vec<String> = parsed.intents.clone();
+        terms.extend(parsed.options.iter().cloned());
+
+        let ranked = match self.retrieve_candidates(&terms) {
+            Some(idxs) => {
+                let subset: Vec<crate::ranker::NormalizedEntry> = idxs
+                    .into_iter()
+                    .map(|i| self.normalized[i].clone())
+                    .collect();
+                crate::ranker::score_query_normalized(&subset, raw)
+            }
+            None => crate::ranker::score_query_normalized(&self.normalized, raw),
+        };
         // ponytail: 5.3 — O(1) entry lookup by id for SearchHit
         // construction. RankedHit carries NormalizedEntry (id +
         // pack_id + token sets) but not the original strings; we need
@@ -752,6 +844,55 @@ mod tests {
         assert!(
             first_pack < second_pack,
             "deterministic tie-break failed: first={first_pack} second={second_pack}"
+        );
+    }
+
+    #[test]
+    fn retrieval_engages_above_threshold_and_fuzzy_falls_back() {
+        // Build a synthetic corpus larger than RETRIEVAL_FULLSCAN_MAX so
+        // the tantivy candidate path activates. A clean query must hit its
+        // card via candidates; a typo'd query must still resolve via the
+        // full-scan fallback (fuzzy recall preserved).
+        let mut packs = Vec::new();
+        for i in 0..(super::RETRIEVAL_FULLSCAN_MAX + 50) {
+            let (p, _) = make_entry_with(
+                &format!("card-{i}"),
+                "alpha",
+                &format!("widget {i} configure"),
+                &format!("Widget {i}"),
+                "configure a widget",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        // A distinctive target for the fuzzy case.
+        let (target, _) = make_entry_with(
+            "kubernetes-card",
+            "beta",
+            "kubernetes orchestrate",
+            "Kubernetes",
+            "container orchestrator",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        // Clean query → candidate path returns the right card.
+        let clean = idx.search("widget 7 configure", 8).expect("search");
+        assert!(
+            clean.iter().any(|h| h.id == "card-7"),
+            "clean query must find its card"
+        );
+
+        // Typo query (BM25 won't match "kubernates") → fallback full-scan
+        // lets the ranker's fuzzy rescue resolve it.
+        let typo = idx.search("kubernates", 8).expect("search");
+        assert!(
+            typo.iter().any(|h| h.id == "kubernetes-card"),
+            "typo must still resolve via fallback; got {:?}",
+            typo.iter().map(|h| &h.id).collect::<Vec<_>>()
         );
     }
 }
