@@ -597,45 +597,6 @@ fn score_field_weights_match_spec() {
 }
 
 #[test]
-fn score_popularity_is_capped_at_two() {
-    // popularity = 1_000_000 → `ln(1e6)*0.1 ≈ 1.38`. With raw=10_000 →
-    // `ln(10001)*0.1 ≈ 0.92`. Either way, the cap (2.0) must hold.
-    let mut n = NormalizedEntry {
-        id: "x".into(),
-        pack_id: "git".into(),
-        title_tokens: vec![],
-        syntax_tokens: vec!["git".into()],
-        description_tokens: vec![],
-        tag_tokens: vec![],
-        example_tokens: vec![],
-        aliases: vec![],
-        source: EntrySource::Curated,
-        popularity: 1_000_000,
-    };
-    let q = ParsedQuery {
-        raw: "git".into(),
-        tool: Some("git".into()),
-        intents: vec![],
-        options: vec![],
-        stopwords: vec![],
-    };
-    let b = score(&n, &q);
-    assert!(
-        b.popularity_tiebreak <= 2.0 + 0.001,
-        "popularity tiebreak must cap at 2, got {}",
-        b.popularity_tiebreak
-    );
-
-    n.popularity = 0;
-    let b0 = score(&n, &q);
-    assert!(
-        b0.popularity_tiebreak.abs() < 0.001,
-        "popularity=0 → ~0 bonus, got {}",
-        b0.popularity_tiebreak
-    );
-}
-
-#[test]
 fn score_classify_returns_strong_when_tool_matches_and_intents_in_cmd() {
     let entries = vec![(
         "git".into(),

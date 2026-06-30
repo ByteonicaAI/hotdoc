@@ -17,11 +17,6 @@ pub struct NormalizedEntry {
     /// intentionally lost (spike §9 decision 2 → v1 substring approach).
     pub aliases: Vec<String>,
     pub source: EntrySource,
-    /// ponytail: Phase B wires this from `entry_meta` (SQLite activation
-    /// log); Phase A leaves it at 0 so the module is testable in
-    /// isolation. The popularity tie-break is capped so a non-zero value
-    /// can't dominate intent coverage.
-    pub popularity: u32,
 }
 
 /// Lowercase ASCII alphanumeric token split. Preserves order and
@@ -72,7 +67,6 @@ pub fn normalize_entry(pack_id: &str, entry: &Entry) -> NormalizedEntry {
         example_tokens,
         aliases,
         source: entry.source.clone(),
-        popularity: 0,
     }
 }
 
@@ -120,7 +114,6 @@ mod tests {
         assert_eq!(n.syntax_tokens, vec!["git", "reset", "soft", "head", "1"]);
         assert_eq!(n.title_tokens, vec!["undo", "last", "commit"]);
         assert_eq!(n.tag_tokens, vec!["reset", "soft", "uncommit"]);
-        assert_eq!(n.popularity, 0);
     }
 
     #[test]

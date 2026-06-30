@@ -46,9 +46,6 @@ const FUZZY_MAX_DIST: usize = 2;
 const SOURCE_OFFICIAL: Score = 1.0;
 const SOURCE_CHEATSHEET: Score = 0.5;
 
-const POPULARITY_COEF: Score = 0.1;
-const POPULARITY_CAP: Score = 2.0;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CoverageTier {
     /// Exact token match in syntax/title/tag/alias fields.
@@ -85,7 +82,6 @@ pub struct ScoreBreakdown {
     pub phrase_order: Score,
     pub fuzzy_rescue: Score,
     pub source_tiebreak: Score,
-    pub popularity_tiebreak: Score,
     pub total: Score,
     pub tiers: Vec<(String, CoverageTier)>,
 }
@@ -157,14 +153,6 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         EntrySource::Curated | EntrySource::Personal => 0.0,
     };
 
-    // 9. Popularity tiebreak — `ln(1+raw)*0.1`, capped at +2.
-    let pop = ((1.0 + entry.popularity as Score).ln()) * POPULARITY_COEF;
-    b.popularity_tiebreak = if pop > POPULARITY_CAP {
-        POPULARITY_CAP
-    } else {
-        pop
-    };
-
     b.total = b.tool_scope
         + b.intent_coverage
         + b.all_intent_covered
@@ -172,8 +160,7 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         + b.exact_match
         + b.phrase_order
         + b.fuzzy_rescue
-        + b.source_tiebreak
-        + b.popularity_tiebreak;
+        + b.source_tiebreak;
 
     b
 }
@@ -427,17 +414,12 @@ pub fn sort_ranked(hits: &mut [RankedHit]) {
             std::cmp::Ordering::Equal => {}
             other => return other,
         }
-        // 4. popularity descending
-        match b.entry.popularity.cmp(&a.entry.popularity) {
-            std::cmp::Ordering::Equal => {}
-            other => return other,
-        }
-        // 5. pack_id ascending
+        // 4. pack_id ascending
         match a.entry.pack_id.cmp(&b.entry.pack_id) {
             std::cmp::Ordering::Equal => {}
             other => return other,
         }
-        // 6. entry id ascending
+        // 5. entry id ascending
         a.entry.id.cmp(&b.entry.id)
     });
 }
