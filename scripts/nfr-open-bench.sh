@@ -20,7 +20,8 @@
 # Requires: Xvfb (DISPLAY set), xdotool, netcat (nc).
 set -euo pipefail
 
-BINARY="${1:-src-tauri/target/release/hotdoc}"
+# ponytail: workspace builds to target/release (not src-tauri/target).
+BINARY="${1:-target/release/hotdoc}"
 ITERATIONS="${2:-30}"
 TOGGLE_PORT=47474
 P50_LIMIT_MS=150
