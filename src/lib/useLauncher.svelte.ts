@@ -180,8 +180,9 @@ export class Launcher {
     await this.togglePinHit(hit);
   }
 
-  // ponytail: FR-C5 — hover/secondary actions operate on a specific hit
-  // (the hovered card) rather than the keyboard-selected one.
+  // ponytail: FR-C5 — pinning a hit is a per-card action. Keyboard
+  // (Ctrl+P) toggles the keyboard-selected hit; programmatic callers
+  // pass any hit explicitly.
   async togglePinHit(hit: SearchHit | undefined) {
     if (!hit) return;
     const next = await pinned.toggle(hit.id, this.pinnedIds.has(hit.id));
