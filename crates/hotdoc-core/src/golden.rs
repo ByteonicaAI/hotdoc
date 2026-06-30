@@ -11,6 +11,11 @@ pub struct GoldenQuery {
     pub expected_first: Option<String>,
     #[serde(default)]
     pub acceptable_top3: Vec<String>,
+    // ponytail: ids that must NOT appear in the top-3. Lets an adversarial
+    // query assert a real exclusion ("git-stash must drop out of top-3")
+    // instead of only a positive expected_first.
+    #[serde(default)]
+    pub forbidden_top3: Vec<String>,
     // ponytail: Option<bool> (not bool + #[serde(default)]) preserves the
     // distinction between "not tagged" (None → filtered out) and "explicitly
     // non-adversarial" (Some(false) → filtered out). Both behave identically
@@ -52,7 +57,7 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool)
         durations_ms.push(elapsed);
         let first = hits.first().map(|h| h.id.clone());
         let top3: Vec<String> = hits.iter().take(3).map(|h| h.id.clone()).collect();
-        let ok = match &q.expected_first {
+        let positive = match &q.expected_first {
             None => hits.is_empty(),
             Some(expected) => {
                 first.as_deref() == Some(expected.as_str())
@@ -62,11 +67,13 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool)
                             .any(|a| first.as_deref() == Some(a.as_str())))
             }
         };
+        let forbidden_hit = q.forbidden_top3.iter().any(|f| top3.iter().any(|t| t == f));
+        let ok = positive && !forbidden_hit;
         if !ok {
             failed += 1;
             eprintln!(
-                "FAIL  {:?}: expected_first={:?} got={:?} top3={:?}",
-                q.query, q.expected_first, first, top3
+                "FAIL  {:?}: expected_first={:?} got={:?} top3={:?} forbidden_hit={}",
+                q.query, q.expected_first, first, top3, forbidden_hit
             );
         } else {
             passed += 1;
@@ -199,5 +206,32 @@ mod tests {
         qs.retain(|q| q.adversarial.unwrap_or(false));
         assert_eq!(qs.len(), 1);
         assert_eq!(qs[0].query, "b");
+    }
+
+    #[test]
+    fn forbidden_top3_fails_when_excluded_id_present() {
+        // A query whose expected_first matches but a forbidden id sits in
+        // top-3 must FAIL — proving forbidden_top3 is enforced.
+        let packs_dir = crate::cli::default_packs_dir();
+        let packs = crate::pack::load_dir(&packs_dir).expect("load").loaded;
+        // ponytail: use a distinct dir suffix so this test does not race the
+        // index lock with golden_returns_expected_hits when run in parallel.
+        let index_dir =
+            std::env::temp_dir().join(format!("hotdoc-golden-forbidden-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&index_dir);
+        crate::index::HotdocIndex::build(&packs, &index_dir).expect("build");
+        let dir = tempfile::tempdir().expect("tempdir");
+        let f = dir.path().join("g.json");
+        // 'git stash' returns git-stash first; forbid it → must fail.
+        std::fs::write(
+            &f,
+            r#"{"_meta":{"draft_count":1},"queries":[
+              {"query":"git stash","expected_first":"git-stash","forbidden_top3":["git-stash"]}
+            ]}"#,
+        )
+        .expect("write");
+        let res = cmd_bench(&f, &index_dir, false);
+        let _ = std::fs::remove_dir_all(&index_dir);
+        assert!(res.is_err(), "forbidden id in top-3 must fail the bench");
     }
 }
