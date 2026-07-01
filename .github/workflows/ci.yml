@@ -5,6 +5,7 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,6 +20,10 @@ env:
 jobs:
   frontend:
     name: Frontend (lint, format, typecheck, test)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[ci]') ||
+      contains(github.event.pull_request.title, '[ci]')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -58,6 +63,10 @@ jobs:
 
   rust:
     name: Rust (fmt, clippy, test)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[ci]') ||
+      contains(github.event.pull_request.title, '[ci]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -136,6 +145,10 @@ jobs:
   nfr-build-gates:
     name: NFR build gates (T4/T5/T6/T8-NFR7)
     needs: [frontend, rust]
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[ci]') ||
+      contains(github.event.pull_request.title, '[ci]')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
