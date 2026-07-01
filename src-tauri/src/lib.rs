@@ -148,6 +148,17 @@ pub fn run() {
             // hearing it, instead of relying solely on the focus refire.
             app.manage(index_state::AppState { index: RwLock::new(index), db });
 
+            // Bind the toggle listener FIRST, before any windowing-system
+            // query. `center_on_active_monitor` below enumerates monitors via
+            // the display server; under some window managers (e.g. openbox on
+            // a headless Xvfb CI runner) that call can stall for many seconds.
+            // The toggle listener only needs the AppHandle — it resolves the
+            // window lazily on each datagram — so binding it up front makes
+            // `hotdoc-cli toggle` (and the NFR-1 open-time bench) reachable as
+            // soon as core state is managed, independent of monitor/window/
+            // tray/hotkey init timing.
+            toggle::spawn(app.handle().clone());
+
             if let Some(w) = app.get_webview_window("main") {
                 // ponytail: FR-L2 / §8.2 — center both axes on the cursor
                 // monitor (or primary if cursor unresolvable), accounting for
@@ -156,7 +167,6 @@ pub fn run() {
                 // 60px top margin if the monitor is shorter than the window.
                 window_pos::center_on_active_monitor(app.handle(), &w);
             }
-            toggle::spawn(app.handle().clone());
             hotkey::register(app.handle(), hotkey::default_combo())?;
             tray::build(app.handle())?;
             // ponytail: FR-T3 first-launch notification. Reads the

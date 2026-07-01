@@ -48,7 +48,7 @@ Press `Ctrl+Shift+Space`, type a few fuzzy words, get the command, copy it, past
 - **Zero-result state** — shows "No matches" when query finds nothing
 - **Single-instance** — only one process runs; second launch focuses the existing window
 - **Structured logging** — `tracing` with daily file rotation under `~/.local/share/hotdoc/logs/`
-- **NFR benches** — `bench-open` (index-build p50 ≤ 150ms) and `bench-search` (search p50 ≤ 16ms)
+- **NFR benches** — `bench-index-build` (index build p50 ≤ 150ms) and `bench-search` (search p50 ≤ 16ms)
 - **CI-gated golden queries** — 68 search-precision queries with committed precision/MRR floors
 - **18 curated packs** — 729 command cards spanning common CLI tools
 - **Security** — strict CSP, https-only URL allowlist, escape-then-highlight rendering, `unwrap_used = deny`, `unsafe_code = forbid`

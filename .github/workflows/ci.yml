@@ -125,9 +125,9 @@ jobs:
       - name: Index size gate (NFR-6, T7)
         run: bash scripts/nfr-index-size.sh src-tauri/target/bench-index packs/curate
 
-      - name: Open-time bench (NFR-1 index-build portion)
+      - name: Index-build bench
         working-directory: src-tauri
-        run: cargo run --release -p hotdoc-core --bin bench-open
+        run: cargo run --release -p hotdoc-core --bin bench-index-build
 
       - name: Search p50 bench (NFR-2)
         working-directory: src-tauri
@@ -177,9 +177,7 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             xvfb \
-            xdotool \
-            netcat-openbsd \
-            openbox
+            netcat-openbsd
 
       - name: Build Tauri app (release)
         run: pnpm tauri build --bundles deb
@@ -198,34 +196,24 @@ jobs:
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
           sleep 1
 
-      # NFR-4 measures IDLE memory — the window is visible:false (hidden) until
-      # the hotkey. Run it under bare Xvfb, BEFORE starting a window manager: a
-      # WM maps and composites the hidden window, forcing WebKit to allocate
-      # render buffers (~+100MB) that a genuinely idle app never holds. The
-      # memory gate needs no window (pure launch + soak), only the open-time
-      # bench does.
+      # No window manager is started. A headless Xvfb runner (software llvmpipe,
+      # no compositor) cannot map/composite the transparent `main` window, so
+      # neither the memory gate (idle, window hidden) nor the toggle-liveness
+      # gate needs a WM. NFR-1's actual warm-open LATENCY is measured on a real
+      # display (developer machine / release QA via `verify:all`), which is the
+      # only place the window can be painted and timed. See
+      # scripts/nfr-open-liveness.sh for the rationale.
       - name: Idle memory gate (NFR-4, T5)
         env:
           SOAK_SECONDS: "30"
         run: bash scripts/nfr-memory.sh target/release/hotdoc
 
-      - name: Start window manager
-        run: |
-          # A window manager is required for the webview to expose EWMH
-          # properties (WM_NAME/visibility) that the open-time bench detects
-          # via xdotool; bare Xvfb leaves windows unnamed and unfindable.
-          DISPLAY=:99 openbox &
-          echo "WM_PID=$!" >> "$GITHUB_ENV"
-          sleep 1
-
-      - name: Open-time E2E bench (NFR-1, T4)
-        run: bash scripts/nfr-open-bench.sh target/release/hotdoc 30
+      - name: Toggle liveness gate (NFR-1, T4)
+        run: bash scripts/nfr-open-liveness.sh target/release/hotdoc
 
       - name: Network monitor gate (NFR-7, T8)
         run: sudo --preserve-env=DISPLAY bash scripts/nfr-network.sh target/release/hotdoc 60
 
-      - name: Stop Xvfb + window manager
+      - name: Stop Xvfb
         if: always()
-        run: |
-          kill "$WM_PID" 2>/dev/null || true
-          kill "$XVFB_PID" 2>/dev/null || true
+        run: kill "$XVFB_PID" 2>/dev/null || true

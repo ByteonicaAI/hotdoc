@@ -26,7 +26,7 @@ pub struct AppState {
 /// function as a thin shell. Spec §11 NFR-1 (open p50 <= 150ms) is met
 /// by the tantivy-open fast path inside the resolver — a typical
 /// second launch is a single SQLite migrate + an `Index::open_in_dir`,
-/// well under 50ms (see `bench-open`).
+/// well under 50ms (see `bench-index-build`).
 ///
 /// `bundled_packs` is the caller-resolved "shipped packs" directory —
 /// in production this is the Tauri resource dir (see
