@@ -48,6 +48,7 @@
       <li class:active={pinnedOffset + i === selectedIndex} role="presentation">
         <button
           type="button"
+          id="option-pinned-{p.id}"
           role="option"
           aria-selected={pinnedOffset + i === selectedIndex}
           class="pinned-row"
@@ -67,6 +68,7 @@
       <li class:active={recentsOffset + i === selectedIndex} role="presentation">
         <button
           type="button"
+          id="option-recent-{i}"
           role="option"
           aria-selected={recentsOffset + i === selectedIndex}
           class="recent-row"

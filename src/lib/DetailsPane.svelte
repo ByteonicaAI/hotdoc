@@ -2,7 +2,7 @@
   import type { SearchHit } from "./types";
   import { sourceLabel } from "./types";
   import { openUrl } from "./tauri";
-  import { STRINGS } from "./strings";
+  import { STRINGS, format } from "./strings";
   import { isHttpsUrl } from "./url";
 
   type Props = {
@@ -25,8 +25,8 @@
     }
     try {
       await openUrl(hit.source_url);
-    } catch (e) {
-      onToast(STRINGS.TOAST_OPEN_FAIL.replace("$1", String(e)));
+    } catch (err) {
+      onToast(format(STRINGS.TOAST_OPEN_FAIL, String(err)));
     }
   }
 </script>

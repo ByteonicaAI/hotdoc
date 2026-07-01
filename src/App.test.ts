@@ -278,6 +278,29 @@ describe("App launcher", () => {
     expect(wrapped.className).toContain("active");
   });
 
+  it("aria-activedescendant tracks the active result row for screen readers", async () => {
+    const hits = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? hits : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    const alphaLi = screen.getByText("alpha").closest("li")!;
+    expect(alphaLi.id).toBeTruthy();
+    expect(input.getAttribute("aria-activedescendant")).toBe(alphaLi.id);
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    const betaLi = screen.getByText("beta").closest("li")!;
+    expect(input.getAttribute("aria-activedescendant")).toBe(betaLi.id);
+  });
+
   it("ArrowUp wraps to last result when at top", async () => {
     const hits = [
       { ...mockHit, id: "a", syntax: "alpha" },

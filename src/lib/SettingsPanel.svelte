@@ -66,7 +66,7 @@
     status = null;
     const next = normaliseTheme(v);
     theme = next;
-    launcher.applyTheme(next);
+    (externalLauncher ?? launcher).applyTheme(next);
     try {
       await setSetting("theme", next);
     } catch (e) {

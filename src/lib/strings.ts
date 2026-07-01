@@ -25,7 +25,6 @@ export const STRINGS = {
   // Empty-view aria-labels (NFR-10: static aria-label text must live in STRINGS)
   ARIA_RECENT_QUERY: "Recent query",
   ARIA_PINNED: "Pinned",
-  PIN_ARIA: "pinned",
   // About panel
   ABOUT_ARIA: "About hotdoc",
   ABOUT_TITLE: "About hotdoc",

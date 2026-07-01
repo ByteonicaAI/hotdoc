@@ -24,6 +24,28 @@
   // Internal fade for the results list appearing/collapsing (independent of the
   // dismiss choreography's exit fade on the whole view).
   const resultsMs = $derived(prefersReducedMotion.current ? 0 : 140);
+
+  // a11y: id of the currently-active row in the listbox below, so the input
+  // can point at it via aria-activedescendant (screen readers announce the
+  // active option during arrow-key nav without moving DOM focus off the
+  // input). Mirrors the same pinned/recent/result index math useLauncher
+  // uses to drive the `active` classes — see EmptyView/ResultItem `id`s.
+  const activeOptionId = $derived.by(() => {
+    if (!showResults) return undefined;
+    const i = launcher.selectedIndex;
+    if (i < 0) return undefined;
+    if (launcher.emptyQuery) {
+      const pLen = launcher.pinnedList.length;
+      if (i < pLen) {
+        const p = launcher.pinnedList[i];
+        return p ? `option-pinned-${p.id}` : undefined;
+      }
+      const r = launcher.recentList[i - pLen];
+      return r ? `option-recent-${i - pLen}` : undefined;
+    }
+    const r = launcher.results[i];
+    return r ? `option-result-${r.id}` : undefined;
+  });
 </script>
 
 <!-- Wraps input + results + footer so the whole launcher fades out as one on
@@ -49,6 +71,7 @@
     <input
       id="q"
       aria-label={STRINGS.SEARCH_INPUT_ARIA}
+      aria-activedescendant={activeOptionId}
       placeholder={STRINGS.SEARCH_PLACEHOLDER}
       bind:value={launcher.query}
       oninput={(e) => launcher.onInput(e.currentTarget.value)}
@@ -77,6 +100,7 @@
         {:else}
           {#each launcher.results as r, i (r.id)}
             <ResultItem
+              id="option-result-{r.id}"
               hit={r}
               active={i === launcher.selectedIndex}
               pinned={launcher.pinnedIds.has(r.id)}
