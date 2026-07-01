@@ -29,27 +29,33 @@ pub struct GoldenFile {
     pub queries: Vec<GoldenQuery>,
 }
 
-// Floors pinned to the 2026-07-01 baseline; regressions below these fail CI.
-// Measured: p@1=0.909 p@3=1.000 mrr=0.955 (n=66, full query set).
-// Floor = actual - 0.001 to absorb float jitter.
+// Floors; regressions below these fail CI.
+// Measured 2026-07-01 (post alias-curation): p@1=1.000 p@3=1.000 mrr=1.000
+// (n=66, full query set).
 //
-// NFR-3 target vs. reality (owner decision 2026-07-01): NFR-3 wants strict
-// first-result accuracy ≥0.95. `p_at_1` below is already STRICT (it only
-// counts `expected_first` landing at rank 1 — `acceptable_top3` plays no
-// part). The real number is ~0.909, a known gap against the 0.95 target;
-// closing it is tracked as alias-curation follow-up work, NOT a reason to
-// relax the ranker or fudge this floor. We are NOT raising EVAL_MIN_P1 to
-// 0.95 today — 0.908 reflects where the corpus actually is.
+// NFR-3 (strict first-result accuracy ≥0.95) is now MET. `p_at_1` is STRICT
+// (only counts `expected_first` at rank 1 — `acceptable_top3` plays no part).
+// It rose 0.909→1.000 after curating natural-language aliases onto the six
+// cards that previously lost rank 1 to a sibling variant (nginx-test-config,
+// psql-connect, psql-list-tables, ssh-tunneling, tmux-new-session,
+// curl-follow-redirects).
+//
+// EVAL_MIN_P1 is deliberately pinned at the NFR-3 CONTRACT (0.95), NOT at
+// measured−0.001. A 1.000 measurement on a 66-query set that aliases were
+// curated against is not a generalisation claim; the meaningful gate is the
+// spec requirement (≥0.95, i.e. ≥63/66), which leaves honest headroom for
+// benign corpus churn while still failing CI the moment NFR-3 is violated.
 //
 // EVAL_MIN_P3 is near-vacuous as a gate: `p_at_3` is lenient (any id in a
 // query's `acceptable_top3` counts as a hit), and the golden set's
 // permissive alternates over-determine a 1.000 measurement — p@3 basically
 // can't drop below its floor without a real regression elsewhere already
 // having tripped p@1 or MRR. Strict p@1 and MRR are the load-bearing gates;
-// p@3 is a secondary tripwire.
-const EVAL_MIN_P1: f64 = 0.908;
+// p@3 is a secondary tripwire. MRR floor (0.97) sits below the 1.000
+// measurement with headroom — a single rank-1→rank-2 slip costs ~0.008.
+const EVAL_MIN_P1: f64 = 0.95;
 const EVAL_MIN_P3: f64 = 0.999;
-const EVAL_MIN_MRR: f64 = 0.954;
+const EVAL_MIN_MRR: f64 = 0.97;
 
 pub struct EvalMetrics {
     /// Strict precision@1: fraction of queries where `expected_first` lands
