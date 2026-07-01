@@ -5,6 +5,10 @@ node_modules
 coverage
 src-tauri/target
 src-tauri/gen
+
+# Standalone docs site build artifacts (site source IS formatted; these are generated)
+site/dist
+site/.astro
 src-tauri/Cargo.lock
 pnpm-lock.yaml
 *.min.js

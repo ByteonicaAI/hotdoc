@@ -23,6 +23,8 @@ export default [
       "build/**",
       "release/**",
       "pnpm-lock.yaml",
+      "site/dist/**",
+      "site/.astro/**",
     ],
   },
 
