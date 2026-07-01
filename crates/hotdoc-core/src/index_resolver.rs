@@ -415,29 +415,50 @@ mod tests {
         let _ = std::fs::remove_dir_all(&index_dir);
     }
 
-    // T1 (post-v1 bundling fix): proves the dev fallback in
-    // `resolve_and_build` is intact. `bundled_packs: None` mirrors what
-    // production now passes when the Tauri resource dir is unavailable
-    // (see `src-tauri/src/index_state.rs::resource_packs_dir`) and what
-    // `cargo test` / `hotdoc-cli` implicitly rely on: the resolver must
-    // still find packs via `dev_packs_dir()` (this repo's real
-    // `packs/curate/` — not overridable, same caveat as
-    // `resolve_and_build_populates_store` above re: the real
-    // persistent index dir).
+    // T1 (post-v1 bundling fix): proves the dev-fallback path (the
+    // `dev_packs_dir()` two-`..` fix) resolves to this repo's real
+    // `packs/curate/` dir and that it actually contains pack JSONs.
+    //
+    // This deliberately does NOT call `resolve_and_build` (as the old
+    // version of this test did): that function routes through
+    // `persistent_index_dir()` → `cli::default_index_dir_option()`,
+    // which is not test-injectable and resolves to the developer's/CI's
+    // REAL `~/.local/share/hotdoc/index`. Driving it end-to-end here
+    // would let the test contend for the real tantivy index lock (if
+    // the app is running) and make the reuse-vs-rebuild path
+    // nondeterministic depending on whatever is cached on the machine
+    // — exactly the hazard `resolve_and_build_populates_store` (above)
+    // was already written to avoid. A lighter, path-only assertion is
+    // enough to prove the off-by-one fix without touching persistent
+    // state.
     #[test]
-    fn resolve_and_build_uses_dev_fallback_when_no_bundled_dir() {
-        let (_dbdir, conn) = open_test_db();
-        let res = resolve_and_build(&conn, None).expect("resolve_and_build with no bundled dir");
+    fn dev_packs_dir_resolves_to_repo_packs_curate() {
+        let dir = dev_packs_dir();
         assert!(
-            !res.packs.is_empty(),
-            "resolve_and_build(None) must fall back to dev_packs_dir() and find packs"
+            dir.is_dir(),
+            "dev_packs_dir() must resolve to an existing directory, got {}",
+            dir.display()
         );
-        let n_entries: i64 = conn
-            .query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0))
-            .expect("count entries");
         assert!(
-            n_entries > 0,
-            "populate_store must mirror entries into sqlite"
+            dir.ends_with("packs/curate"),
+            "dev_packs_dir() must end with packs/curate, got {}",
+            dir.display()
+        );
+        // A known curated pack must be present (proves this is the real
+        // repo packs dir, not an empty/unrelated one).
+        assert!(
+            dir.join("git.json").is_file(),
+            "expected packs/curate/git.json to exist at {}",
+            dir.display()
+        );
+        let json_count = std::fs::read_dir(&dir)
+            .expect("readdir dev_packs_dir")
+            .filter_map(|e| e.ok())
+            .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("json"))
+            .count();
+        assert!(
+            json_count > 0,
+            "dev_packs_dir() must contain at least one pack JSON"
         );
     }
 

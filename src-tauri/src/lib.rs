@@ -123,6 +123,29 @@ pub fn run() {
                     }
                 }
             };
+            // T1 (reviewed): `app.manage(AppState)` now runs here, inside
+            // `.setup()`, AFTER the window is built — a consequence of
+            // needing `app.path().resource_dir()` (only available on
+            // `App`, not `Builder`) to resolve the bundled packs dir above.
+            // That means a frontend `onMount` invoke can race ahead of
+            // this line and briefly hit "state not managed" during
+            // cold-start index build.
+            //
+            // This is intentional and safe, not an oversight:
+            //   - Tauri's `State` extractor returns a graceful
+            //     `InvokeError` on an unmanaged type; it does not panic.
+            //   - The window is created `visible: false` and only shown
+            //     on the global-hotkey toggle, so a user can't observe a
+            //     command failing before the state is ready.
+            //   - `hotdoc://refresh-empty-view` refires on window focus
+            //     (see `.on_window_event` above), so even if an early
+            //     invoke silently failed, the frontend gets a second
+            //     chance to populate once the window is actually shown.
+            //
+            // Possible future hardening (not implemented): emit a
+            // `backend-ready` event once `.manage()` completes and have
+            // the frontend retry a failed cold-start invoke once on
+            // hearing it, instead of relying solely on the focus refire.
             app.manage(index_state::AppState { index: RwLock::new(index), db });
 
             if let Some(w) = app.get_webview_window("main") {
