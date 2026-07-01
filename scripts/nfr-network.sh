@@ -21,7 +21,7 @@
 # Requires: tcpdump (run as root or with CAP_NET_RAW), Xvfb (DISPLAY set).
 set -euo pipefail
 
-BINARY="${1:-src-tauri/target/release/hotdoc}"
+BINARY="${1:-target/release/hotdoc}"
 SOAK="${2:-600}"  # spec §13/NFR-7: 10 min pre-release smoke; CI overrides with 60
 TOGGLE_PORT=47474
 

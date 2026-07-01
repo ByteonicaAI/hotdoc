@@ -178,36 +178,45 @@ jobs:
             librsvg2-dev \
             xvfb \
             xdotool \
-            netcat-openbsd
+            netcat-openbsd \
+            openbox
 
       - name: Build Tauri app (release)
-        run: pnpm tauri build --bundles deb,appimage
+        run: pnpm tauri build --bundles deb
         env:
           # Silence Tauri's interactive update prompts in CI.
           TAURI_SIGNING_PRIVATE_KEY: ""
           CI: "true"
 
       - name: Install size gate (NFR-5, T6)
-        run: bash scripts/nfr-install-size.sh src-tauri/target/release/bundle
+        run: bash scripts/nfr-install-size.sh target/release/bundle
 
-      - name: Start Xvfb
+      - name: Start Xvfb + window manager
         run: |
           Xvfb :99 -screen 0 1024x768x24 &
           echo "XVFB_PID=$!" >> "$GITHUB_ENV"
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
           sleep 1
+          # A window manager is required for the webview to expose EWMH
+          # properties (WM_NAME/visibility) that the open-time bench detects
+          # via xdotool; bare Xvfb leaves windows unnamed and unfindable.
+          DISPLAY=:99 openbox &
+          echo "WM_PID=$!" >> "$GITHUB_ENV"
+          sleep 1
 
       - name: Idle memory gate (NFR-4, T5)
         env:
           SOAK_SECONDS: "30"
-        run: bash scripts/nfr-memory.sh src-tauri/target/release/hotdoc
+        run: bash scripts/nfr-memory.sh target/release/hotdoc
 
       - name: Open-time E2E bench (NFR-1, T4)
-        run: bash scripts/nfr-open-bench.sh src-tauri/target/release/hotdoc 30
+        run: bash scripts/nfr-open-bench.sh target/release/hotdoc 30
 
       - name: Network monitor gate (NFR-7, T8)
-        run: sudo --preserve-env=DISPLAY bash scripts/nfr-network.sh src-tauri/target/release/hotdoc 60
+        run: sudo --preserve-env=DISPLAY bash scripts/nfr-network.sh target/release/hotdoc 60
 
-      - name: Stop Xvfb
+      - name: Stop Xvfb + window manager
         if: always()
-        run: kill "$XVFB_PID" 2>/dev/null || true
+        run: |
+          kill "$WM_PID" 2>/dev/null || true
+          kill "$XVFB_PID" 2>/dev/null || true
