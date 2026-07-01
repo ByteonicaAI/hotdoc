@@ -65,11 +65,28 @@ const SOURCE_CHEATSHEET: Score = 0.5;
 // wins"): this is a SMALL BOUNDED SCORE PENALTY added into `total`, not just
 // a tie-break. The magnitude must exceed the +1 official-source bonus so a
 // curated plain card beats an official variant carrying one extra modifier
-// token — and be as SMALL as possible to minimise collateral reordering.
-// 2.0 is the minimum that clears +1 with a 1.0 margin per uncovered token.
-// The count is capped (MAX_TOKENS) so a long multi-arg syntax cannot pile up
-// an unbounded penalty. The `sort_ranked` tie-break stage is retained as a
-// harmless secondary key (now redundant for score-separated entries).
+// token.
+//
+// Two notions of "uncovered count" exist from here on, and they are NOT the
+// same value:
+//   - the SCORE contribution (`command_penalty` in `score()`) is a BINARY
+//     flag — capped at `min(uncovered, 1)` — so it is either 0 or exactly
+//     one `-COMMAND_SPECIFICITY_PENALTY` (-2.0), never scaled per token.
+//     Capping at one token (task-5.1b robustness fix) stops a multi-token
+//     canonical answer from being hard-demoted below a near-tied competitor
+//     by an unbounded per-token penalty; every measured win (docker
+//     compose, systemctl) is a single uncovered token, so this cap changes
+//     no golden outcome.
+//   - `command_specificity` (stored on `ScoreBreakdown`, NOT added into
+//     `total`) keeps the FULL uncovered count, capped only at
+//     `COMMAND_SPECIFICITY_MAX_TOKENS`, and exists solely as a rare
+//     secondary key in the `sort_ranked` tie-break ladder — finer ordering
+//     among score-tied entries after the score stage has already separated
+//     everything else. Whether this tie-break key is ever load-bearing (vs.
+//     redundant with the id fallback) is not proven either way; keep it
+//     labelled rather than delete it.
+// 2.0 is the minimum penalty that clears the +1 official-source bonus with
+// a 1.0 margin.
 const COMMAND_SPECIFICITY_PENALTY: Score = 2.0;
 const COMMAND_SPECIFICITY_MAX_TOKENS: usize = 3;
 
@@ -115,6 +132,14 @@ pub enum Confidence {
 #[derive(Debug, Clone, Default)]
 pub struct ScoreBreakdown {
     pub tool_scope: Score,
+    /// True when the query named a tool AND this entry's `pack_id` matched
+    /// it (i.e. `tool_scope == TOOL_MATCH`, not the hard-filter sentinel or
+    /// the untyped-tool default of 0.0). This is the signal the confidence
+    /// gate (`ranker/mod.rs`) uses to exempt tool-matched hits: a query
+    /// naming a real tool is evidence even when the rest of the query is
+    /// nonsense, whereas a query with no tool at all defaults this to
+    /// `false` and stays subject to the gate.
+    pub has_tool_match: bool,
     pub intent_coverage: Score,
     pub all_intent_covered: Score,
     pub field_weighted: Score,
@@ -122,9 +147,12 @@ pub struct ScoreBreakdown {
     pub phrase_order: Score,
     pub fuzzy_rescue: Score,
     pub source_tiebreak: Score,
-    /// Negative-or-zero penalty for uncovered command tokens (see
-    /// `COMMAND_SPECIFICITY_PENALTY`). Stored so the tie-break ladder and
-    /// tests can read the raw uncovered-token count back out.
+    /// Negative-or-zero, FULL-count uncovered-command-token penalty (see
+    /// `COMMAND_SPECIFICITY_PENALTY` / `COMMAND_SPECIFICITY_MAX_TOKENS`).
+    /// NOT added into `total` — the score contribution is a separate,
+    /// binary-capped value computed locally in `score()`. This field exists
+    /// only for the `sort_ranked` tie-break ladder (and tests) to read the
+    /// full uncovered-token count back out.
     pub command_specificity: Score,
     pub total: Score,
     pub tiers: Vec<(String, CoverageTier)>,
@@ -152,6 +180,7 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
             return b;
         }
         b.tool_scope = TOOL_MATCH;
+        b.has_tool_match = true;
     }
 
     // 2. Intent coverage per token.
@@ -197,26 +226,24 @@ pub fn score(entry: &NormalizedEntry, query: &ParsedQuery) -> ScoreBreakdown {
         EntrySource::Curated | EntrySource::Personal => 0.0,
     };
 
-    // 9. Command-specificity — count of extra unasked-for command tokens,
-    // expressed as a negative-or-zero penalty. Owner decision (task-5.1b,
-    // "plain command wins"): this IS added into `total` so a plain card beats
-    // an official variant carrying an extra modifier (`docker logs` →
-    // docker-logs over docker-compose-logs; `docker ps` → docker-ps over
-    // docker-compose-ps). The earlier task-5.1 "irreconcilable" note no
-    // longer holds — the owner reversed the `docker ps` golden so plain wins
-    // there too, removing the contradiction. The `uncovered_command_count`
-    // GATE (returns 0 unless an intent covers a command token) keeps queries
-    // that don't match a sub-command from being perturbed. `charged` is
-    // finite (`min` of two finite values), so `command_specificity` is never
-    // NaN/-inf.
+    // 9. Command-specificity — count of extra unasked-for command tokens.
+    // Owner decision (task-5.1b, "plain command wins"): a BINARY version of
+    // this penalty (`command_penalty` below, 0 or -2.0) IS added into
+    // `total` so a plain card beats an official variant carrying an extra
+    // modifier (`docker logs` → docker-logs over docker-compose-logs;
+    // `docker ps` → docker-ps over docker-compose-ps). The earlier task-5.1
+    // "irreconcilable" note no longer holds — the owner reversed the
+    // `docker ps` golden so plain wins there too, removing the
+    // contradiction. The `uncovered_command_count` GATE (returns 0 unless
+    // an intent covers a command token) keeps queries that don't match a
+    // sub-command from being perturbed. `charged` is finite (`min` of two
+    // finite values), so `command_specificity` is never NaN/-inf.
     //
-    // task-5.1b cap (robustness): the SCORE contribution is bounded at one
-    // uncovered token (-2.0 max) so a multi-token canonical answer cannot be
-    // hard-demoted below a near-tied competitor by the -6 floor. Every
-    // measured win (docker compose, systemctl) is a single uncovered token
-    // (-2.0), so no golden outcome changes. `command_specificity` retains the
-    // full-count penalty and is used only by the `sort_ranked` tie-break stage
-    // to finely order score-tied variants (finer ordering preserved).
+    // `b.command_specificity` itself is NOT added into `total` — it retains
+    // the FULL uncovered-token count (capped at `COMMAND_SPECIFICITY_MAX_
+    // TOKENS`) and is read only by the `sort_ranked` tie-break stage as a
+    // rare secondary key. See the `COMMAND_SPECIFICITY_PENALTY` doc comment
+    // above for why the score contribution and the tie-break key diverge.
     let uncovered = uncovered_command_count(entry, query);
     let charged = uncovered.min(COMMAND_SPECIFICITY_MAX_TOKENS);
     b.command_specificity = -(charged as Score) * COMMAND_SPECIFICITY_PENALTY;

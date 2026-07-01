@@ -67,13 +67,22 @@ pub fn score_query_normalized_with(
 
     // ponytail: task-5.2 confidence gate. Both production `search()` and
     // headless callers reach this one choke point, so gating here AFTER
-    // `sort_ranked` empties low-confidence gibberish on every path. A
-    // `Weak` top hit scoring below `CONFIDENCE_SCORE_FLOOR` (0.0) has no
-    // net positive evidence — return empty rather than surface a
-    // tie-break "winner". Strong/Medium/Exact and positive-score Weak
-    // hits (legitimate weak queries) are untouched.
+    // `sort_ranked` empties gibberish on every path. A `Weak` top hit that
+    // is BOTH net-negative (score < CONFIDENCE_SCORE_FLOOR, strictly below
+    // 0.0 — a hit scoring exactly 0.0 is kept) AND has no tool match is
+    // gibberish and is suppressed. A matched tool is real evidence the user
+    // typed something meaningful, even if the rest of the query is
+    // nonsense (e.g. `git foobar bazqux quux` nets TOOL_MATCH +40 +
+    // 3×INTENT_MISSING -75 = -35, Weak, net-negative — but `git` is a real
+    // tool, so this must NOT be emptied). Tool-matched hits are therefore
+    // exempt from the gate regardless of score. Strong/Medium/Exact hits,
+    // positive-score Weak hits, and Weak-but-tool-matched hits are all
+    // untouched; only a Weak, net-negative, tool-less top hit is gated.
     if let Some(top) = hits.first() {
-        if top.confidence == Confidence::Weak && top.score < CONFIDENCE_SCORE_FLOOR {
+        if top.confidence == Confidence::Weak
+            && top.score < CONFIDENCE_SCORE_FLOOR
+            && !top.breakdown.has_tool_match
+        {
             return Vec::new();
         }
     }

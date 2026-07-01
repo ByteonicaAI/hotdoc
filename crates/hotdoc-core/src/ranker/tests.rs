@@ -918,6 +918,55 @@ fn score_gibberish_query_returns_empty_via_confidence_gate() {
 }
 
 #[test]
+fn score_tool_match_survives_confidence_gate_despite_net_negative_score() {
+    // CRITICAL fix regression: a query naming a VALID tool plus several
+    // nonsense intent tokens nets negative (TOOL_MATCH +40 +
+    // 3×INTENT_MISSING -75 = -35) and classifies Weak — but the user typed
+    // a REAL tool, which is genuine evidence, not gibberish. The gate must
+    // exempt tool-matched hits and NOT empty the result list.
+    let entries = confidence_gate_corpus();
+    let hits = score_query(&entries, "git foobar bazqux quux");
+    assert!(
+        !hits.is_empty(),
+        "a tool-matched query must survive the confidence gate even when net-negative, got {:?}",
+        hits.iter()
+            .map(|h| (&h.entry.id, h.score))
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        hits[0].confidence,
+        Confidence::Weak,
+        "guard precondition: top hit is Weak"
+    );
+    assert!(
+        hits[0].score < 0.0,
+        "guard precondition: top hit is net-negative, got {}",
+        hits[0].score
+    );
+    assert!(
+        hits[0].breakdown.has_tool_match,
+        "guard precondition: query tool-matched this entry"
+    );
+}
+
+#[test]
+fn score_pure_gibberish_with_no_tool_still_empties() {
+    // Companion regression: without a tool match, a Weak net-negative top
+    // hit must still be gated — only a tool match exempts a hit, not the
+    // mere presence of query tokens. Matches the golden gibberish query
+    // shape (`zxqbzxqb blblblblb vvwwxxyz`): no tool token, no field match.
+    let entries = confidence_gate_corpus();
+    let hits = score_query(&entries, "zxqbzxqb blblblblb vvwwxxyz");
+    assert!(
+        hits.is_empty(),
+        "pure gibberish (no tool match) must still be gated, got {:?}",
+        hits.iter()
+            .map(|h| (&h.entry.id, h.score))
+            .collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn score_legit_weak_query_survives_confidence_gate() {
     // Regression guard: a tool-only match ("git" matches the pack, the
     // intent token is uncovered) is Weak confidence but earns a net
