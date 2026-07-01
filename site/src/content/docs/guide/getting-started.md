@@ -53,7 +53,7 @@ hotdoc-cli toggle
 ```
 
 This opens or closes the launcher the same way the hotkey does. See the
-[CLI reference](../reference/cli/) for the full command.
+[CLI reference](../../reference/cli/) for the full command.
 
 ## Next
 
