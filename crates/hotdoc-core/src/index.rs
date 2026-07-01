@@ -67,6 +67,13 @@ pub struct HotdocIndex {
 
 impl HotdocIndex {
     pub fn build(packs: &[Pack], path: &Path) -> Result<Self> {
+        // 4c: entry ids are validated unique only WITHIN a pack
+        // (pack::validate_into); the "globally unique" claim `entry_count()`
+        // documents above was previously unenforced across packs. Fail
+        // fast, before touching disk, so a curator id collision can't
+        // silently corrupt the doc→entry lookup in `search()` (which keys
+        // on `entry.id` alone and keeps the last writer on a collision).
+        validate_cross_pack_id_uniqueness(packs)?;
         // ponytail: T13 fix. Distinguish NotFound (legitimate: dir never
         // existed) from real errors (busy, permission, etc). Previously
         // .ok() silently swallowed EACCES/EBUSY and the subsequent
@@ -140,10 +147,12 @@ impl HotdocIndex {
     // mid-build failure can't leave a half-populated entries table.
     // Caller decides when to invoke — build() stays tantivy-only.
     /// ponytail: true entry count = number of (pack_id, Entry) pairs, NOT
-    /// a deduped id-map length. Two packs sharing an entry id both count;
-    /// this equals `sum(packs.entries.len())`. The SQLite IPC count dedups
-    /// by id (`ON CONFLICT(id)`), so the two agree only when entry ids are
-    /// globally unique — which real packs guarantee.
+    /// a deduped id-map length; this equals `sum(packs.entries.len())`.
+    /// The SQLite IPC count dedups by id (`ON CONFLICT(id)`), so the two
+    /// agree only when entry ids are globally unique. That claim is no
+    /// longer just a convention: `validate_cross_pack_id_uniqueness`
+    /// (4c, called from `build()`) enforces it at build time, so `build()`
+    /// itself can never produce an `Self` with a cross-pack id collision.
     pub fn entry_count(&self) -> usize {
         self.entries.len()
     }
@@ -280,9 +289,22 @@ impl HotdocIndex {
             return None;
         }
         let query = BooleanQuery::new(clauses);
-        let top = searcher
-            .search(&query, &TopDocs::with_limit(RETRIEVAL_CANDIDATE_CAP))
-            .ok()?;
+        // ponytail: 4b — a persistent BM25 query failure silently falls
+        // back to a full scan (safe, correctness-preserving), but that
+        // fallback must be OBSERVABLE: at scale (>RETRIEVAL_FULLSCAN_MAX)
+        // a search()/IO error here means every query is paying the
+        // full-scan cost the retrieval path exists to avoid, and nothing
+        // would otherwise say why.
+        let top = match searcher.search(&query, &TopDocs::with_limit(RETRIEVAL_CANDIDATE_CAP)) {
+            Ok(top) => top,
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "BM25 candidate search failed; falling back to full scan"
+                );
+                return None;
+            }
+        };
         // ponytail: map retrieved doc ids back to normalized indices via the
         // stored entry id. Build a one-time id→index map.
         let id_to_idx: std::collections::HashMap<&str, usize> = self
@@ -294,7 +316,18 @@ impl HotdocIndex {
         let id_field = self.fields.id;
         let mut idxs = Vec::with_capacity(top.len());
         for (_score, addr) in top {
-            let doc: tantivy::TantivyDocument = searcher.doc(addr).ok()?;
+            // ponytail: 4a — a single bad doc fetch must not abort the
+            // whole candidate set (a `?`/`.ok()?` here previously turned
+            // one failed fetch into a silent full-scan by discarding every
+            // OTHER candidate already collected). Skip just this address
+            // and keep collecting the rest.
+            let doc: tantivy::TantivyDocument = match searcher.doc(addr) {
+                Ok(doc) => doc,
+                Err(e) => {
+                    tracing::warn!(error = %e, "BM25 candidate doc fetch failed; skipping candidate");
+                    continue;
+                }
+            };
             if let Some(val) = doc.get_first(id_field).and_then(|v| v.as_str()) {
                 if let Some(&i) = id_to_idx.get(val) {
                     idxs.push(i);
@@ -325,6 +358,10 @@ impl HotdocIndex {
         let parsed = crate::ranker::parse_query(raw, &self.full_corpus_pack_ids());
         let terms = Self::bm25_terms_of(&parsed);
 
+        // KNOWN LIMITATION (dormant ≤5000): BM25 candidate path scores only
+        // the retrieved subset; ranking may diverge from full-scan for
+        // entries BM25 did not retrieve. Ranking-equivalence is not tested.
+        // Revisit before the corpus crosses RETRIEVAL_FULLSCAN_MAX.
         let ranked = match self.retrieve_candidates(&terms) {
             Some(idxs) => {
                 let subset: Vec<crate::ranker::NormalizedEntry> = idxs
@@ -515,6 +552,32 @@ fn read_entries_sidecar(dir: &Path) -> Result<Vec<(String, Entry)>> {
     Ok(sidecar.entries)
 }
 
+// 4c: load-time global-uniqueness gate. `pack::validate_into` only checks
+// for duplicate ids WITHIN one pack; across packs there was no check at
+// all. A cross-pack collision would make the `by_id`/`id_to_idx` maps in
+// this file keep whichever pack happened to be inserted last, silently
+// rendering the WRONG pack's entry for a retrieved doc — a data-integrity
+// bug that would be invisible until someone noticed the wrong card. This
+// gate turns that into a fail-fast, descriptive build error instead.
+fn validate_cross_pack_id_uniqueness(packs: &[Pack]) -> Result<()> {
+    let mut seen: std::collections::HashMap<&str, &str> = std::collections::HashMap::new();
+    for pack in packs {
+        for entry in &pack.entries {
+            if let Some(&first_pack_id) = seen.get(entry.id.as_str()) {
+                return Err(anyhow::anyhow!(
+                    "entry id {:?} appears in more than one pack ({:?} and {:?}); \
+                     entry ids must be globally unique across all packs",
+                    entry.id,
+                    first_pack_id,
+                    pack.id
+                ));
+            }
+            seen.insert(entry.id.as_str(), pack.id.as_str());
+        }
+    }
+    Ok(())
+}
+
 fn build_normalized(entries: &[(String, Entry)]) -> Vec<crate::ranker::NormalizedEntry> {
     entries
         .iter()
@@ -680,6 +743,68 @@ mod tests {
             msg.contains("removing old index dir") || msg.contains("creating index dir"),
             "expected remove-or-create error, got: {msg}"
         );
+    }
+
+    // 4c — cross-pack entry-id uniqueness gate. `entry.id` is validated
+    // unique only WITHIN a pack (pack.rs); the "globally unique" claim
+    // documented on `entry_count()` above was previously unenforced. On a
+    // real cross-pack collision the doc→entry / hit→Entry maps in
+    // `search()` key on `entry.id` alone and keep the last writer, so a
+    // retrieved doc would silently render the WRONG pack's entry. Fail
+    // fast at build time instead.
+    #[test]
+    fn build_rejects_cross_pack_duplicate_entry_id() {
+        let (pack_a, _) = make_entry_with(
+            "dup-id",
+            "alpha",
+            "foo bar",
+            "Foo",
+            "foo desc",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let (pack_b, _) = make_entry_with(
+            "dup-id",
+            "beta",
+            "baz qux",
+            "Baz",
+            "baz desc",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-dup-id-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        let res = HotdocIndex::build(&[pack_a, pack_b], &dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            res.is_err(),
+            "a cross-pack duplicate entry id must fail the build, got Ok"
+        );
+        let msg = format!("{:#}", res.err().expect("err"));
+        assert!(
+            msg.contains("dup-id"),
+            "error should name the colliding id; got: {msg}"
+        );
+        assert!(
+            msg.contains("alpha") && msg.contains("beta"),
+            "error should name both colliding pack ids; got: {msg}"
+        );
+    }
+
+    // 4c — no false positive on the real 18-pack corpus (729 distinct
+    // entry ids per the corpus audit). Guards the gate above against
+    // ever blocking a legitimate build.
+    #[test]
+    fn build_succeeds_on_real_corpus_with_globally_unique_ids() {
+        let idx = fresh_index();
+        assert!(idx.entry_count() > 0, "real corpus must build and load");
     }
 
     // T17 tests — each one asserts a specific clause of spec §7.2.
@@ -955,6 +1080,105 @@ mod tests {
         assert!(
             idx.retrieve_candidates(&terms).is_none(),
             "real threshold must keep retrieval dormant on a small corpus"
+        );
+    }
+
+    // 4f — boundary test for the fullscan_max comparison itself
+    // (`self.normalized.len() <= fullscan_max`). Existing coverage only
+    // exercised MAX+50 (well clear of the edge); this pins the actual `<=`
+    // vs `>` boundary so a future off-by-one (e.g. `<` instead of `<=`)
+    // fails a test instead of silently changing when retrieval engages.
+    #[test]
+    fn retrieve_candidates_fullscan_boundary_exact_vs_plus_one() {
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("card-{i}"),
+                "alpha",
+                &format!("widget item {i}"),
+                &format!("Widget {i}"),
+                "a widget",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let idx = t17_build(&packs);
+        let terms = vec!["widget".to_string()];
+        let n = idx.normalized.len(); // 20
+
+        // corpus.len() == fullscan_max → full-scan (dormant).
+        assert!(
+            idx.retrieve_candidates_with_max(&terms, n).is_none(),
+            "corpus.len() == fullscan_max must stay full-scan"
+        );
+        // corpus.len() == fullscan_max + 1 (fullscan_max = n - 1) → BM25 engages.
+        assert!(
+            idx.retrieve_candidates_with_max(&terms, n - 1).is_some(),
+            "corpus.len() == fullscan_max + 1 must engage the BM25 branch"
+        );
+    }
+
+    // 4f — boundary test for RETRIEVAL_MIN_CANDIDATES (the thin-candidate
+    // full-scan fallback: `idxs.len() < RETRIEVAL_MIN_CANDIDATES`).
+    // Existing coverage never pinned the exact edge between "BM25 result
+    // set kept" and "too thin, fall back". fullscan_max=0 forces every
+    // call into the BM25 branch so only the candidate-count guard is
+    // under test.
+    #[test]
+    fn retrieve_candidates_min_candidates_boundary() {
+        fn build_with_matches(n_matches: usize) -> HotdocIndex {
+            let mut packs = Vec::new();
+            for i in 0..n_matches {
+                let (p, _) = make_entry_with(
+                    &format!("match-{i}"),
+                    "alpha",
+                    &format!("widget item {i}"),
+                    &format!("Widget {i}"),
+                    "a widget",
+                    crate::pack::EntrySource::Curated,
+                    vec![],
+                );
+                packs.push(p);
+            }
+            // Filler entries that never contain "widget" in any indexed
+            // field, so they can't leak into the BM25 candidate set and
+            // skew the count under test.
+            for i in 0..5_usize {
+                let (p, _) = make_entry_with(
+                    &format!("filler-{i}"),
+                    "alpha",
+                    &format!("gadget item {i}"),
+                    &format!("Gadget {i}"),
+                    "a gadget",
+                    crate::pack::EntrySource::Curated,
+                    vec![],
+                );
+                packs.push(p);
+            }
+            t17_build(&packs)
+        }
+        let terms = vec!["widget".to_string()];
+
+        // Exactly RETRIEVAL_MIN_CANDIDATES matches → kept (>= not >).
+        let idx_at_min = build_with_matches(super::RETRIEVAL_MIN_CANDIDATES);
+        let cands = idx_at_min.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands.is_some(),
+            "exactly RETRIEVAL_MIN_CANDIDATES matches must be kept, not treated as thin"
+        );
+        assert_eq!(
+            cands.expect("Some").len(),
+            super::RETRIEVAL_MIN_CANDIDATES,
+            "candidate count should equal the number of matching entries"
+        );
+
+        // One below RETRIEVAL_MIN_CANDIDATES → thin, falls back to full scan.
+        let idx_below_min = build_with_matches(super::RETRIEVAL_MIN_CANDIDATES - 1);
+        let cands_below = idx_below_min.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands_below.is_none(),
+            "one below RETRIEVAL_MIN_CANDIDATES must fall back to full scan"
         );
     }
 

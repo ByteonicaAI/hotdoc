@@ -68,20 +68,24 @@ mod tests {
     }
 
     #[test]
-    fn derived_entry_count_counts_duplicate_ids() {
-        // ponytail: two packs sharing an entry id must BOTH count. The old
-        // entry_count() (deduped HashMap len) under-counted here; entries
-        // is a flat Vec so the true count is preserved.
+    fn build_rejects_cross_pack_duplicate_ids() {
+        // ponytail: this test used to prove that two packs sharing an
+        // entry id both counted in entry_count() (a flat Vec sum, not a
+        // deduped HashMap len). That premise is now obsolete: the 4c
+        // cross-pack id uniqueness gate (index.rs) rejects this state at
+        // build() time, because a live collision would make the
+        // doc→entry lookup in search() silently keep the last writer and
+        // render the WRONG pack's entry for a retrieved doc. So the
+        // correct assertion is now "build() fails", not "the count is
+        // right anyway".
         let mut packs = small_packs();
         // Force a cross-pack duplicate id.
         packs[1].entries[0].id = packs[0].entries[0].id.clone();
-        let expected: usize = packs.iter().map(|p| p.entries.len()).sum();
         let dir = tempfile::tempdir().expect("tempdir");
-        let idx = HotdocIndex::build(&packs, dir.path()).expect("build");
-        assert_eq!(
-            idx.entry_count(),
-            expected,
-            "duplicate ids must not collapse the count"
+        let res = HotdocIndex::build(&packs, dir.path());
+        assert!(
+            res.is_err(),
+            "cross-pack duplicate entry id must fail build(), not silently succeed"
         );
     }
 }
