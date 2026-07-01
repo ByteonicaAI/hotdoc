@@ -191,23 +191,32 @@ jobs:
       - name: Install size gate (NFR-5, T6)
         run: bash scripts/nfr-install-size.sh target/release/bundle
 
-      - name: Start Xvfb + window manager
+      - name: Start Xvfb
         run: |
           Xvfb :99 -screen 0 1024x768x24 &
           echo "XVFB_PID=$!" >> "$GITHUB_ENV"
           echo "DISPLAY=:99" >> "$GITHUB_ENV"
           sleep 1
+
+      # NFR-4 measures IDLE memory — the window is visible:false (hidden) until
+      # the hotkey. Run it under bare Xvfb, BEFORE starting a window manager: a
+      # WM maps and composites the hidden window, forcing WebKit to allocate
+      # render buffers (~+100MB) that a genuinely idle app never holds. The
+      # memory gate needs no window (pure launch + soak), only the open-time
+      # bench does.
+      - name: Idle memory gate (NFR-4, T5)
+        env:
+          SOAK_SECONDS: "30"
+        run: bash scripts/nfr-memory.sh target/release/hotdoc
+
+      - name: Start window manager
+        run: |
           # A window manager is required for the webview to expose EWMH
           # properties (WM_NAME/visibility) that the open-time bench detects
           # via xdotool; bare Xvfb leaves windows unnamed and unfindable.
           DISPLAY=:99 openbox &
           echo "WM_PID=$!" >> "$GITHUB_ENV"
           sleep 1
-
-      - name: Idle memory gate (NFR-4, T5)
-        env:
-          SOAK_SECONDS: "30"
-        run: bash scripts/nfr-memory.sh target/release/hotdoc
 
       - name: Open-time E2E bench (NFR-1, T4)
         run: bash scripts/nfr-open-bench.sh target/release/hotdoc 30
