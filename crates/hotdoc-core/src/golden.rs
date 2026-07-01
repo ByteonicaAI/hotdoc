@@ -32,13 +32,37 @@ pub struct GoldenFile {
 // Floors pinned to the 2026-07-01 baseline; regressions below these fail CI.
 // Measured: p@1=0.909 p@3=1.000 mrr=0.955 (n=66, full query set).
 // Floor = actual - 0.001 to absorb float jitter.
+//
+// NFR-3 target vs. reality (owner decision 2026-07-01): NFR-3 wants strict
+// first-result accuracy ≥0.95. `p_at_1` below is already STRICT (it only
+// counts `expected_first` landing at rank 1 — `acceptable_top3` plays no
+// part). The real number is ~0.909, a known gap against the 0.95 target;
+// closing it is tracked as alias-curation follow-up work, NOT a reason to
+// relax the ranker or fudge this floor. We are NOT raising EVAL_MIN_P1 to
+// 0.95 today — 0.908 reflects where the corpus actually is.
+//
+// EVAL_MIN_P3 is near-vacuous as a gate: `p_at_3` is lenient (any id in a
+// query's `acceptable_top3` counts as a hit), and the golden set's
+// permissive alternates over-determine a 1.000 measurement — p@3 basically
+// can't drop below its floor without a real regression elsewhere already
+// having tripped p@1 or MRR. Strict p@1 and MRR are the load-bearing gates;
+// p@3 is a secondary tripwire.
 const EVAL_MIN_P1: f64 = 0.908;
 const EVAL_MIN_P3: f64 = 0.999;
 const EVAL_MIN_MRR: f64 = 0.954;
 
 pub struct EvalMetrics {
+    /// Strict precision@1: fraction of queries where `expected_first` lands
+    /// at rank 1. `acceptable_top3` is NOT consulted here — this is the
+    /// literal NFR-3 number.
     pub p_at_1: f64,
+    /// Lenient precision@3: counts a hit if `expected_first` OR any
+    /// `acceptable_top3` id appears in the top 3. This is the gated metric.
     pub p_at_3: f64,
+    /// Strict precision@3: counts a hit only if `expected_first` itself
+    /// appears in the top 3 (ignores `acceptable_top3`). Informational only
+    /// — no floor is defined for this field.
+    pub p_at_3_strict: f64,
     pub mrr: f64,
     pub n: usize,
 }
@@ -58,12 +82,14 @@ impl EvalMetrics {
             return EvalMetrics {
                 p_at_1: 0.0,
                 p_at_3: 0.0,
+                p_at_3_strict: 0.0,
                 mrr: 0.0,
                 n: 0,
             };
         }
         let mut p1_sum = 0.0f64;
         let mut p3_sum = 0.0f64;
+        let mut p3_strict_sum = 0.0f64;
         let mut mrr_sum = 0.0f64;
         for q in &population {
             let expected = q.expected_first.as_deref().expect("filtered to Some above");
@@ -74,7 +100,11 @@ impl EvalMetrics {
             }
             let top3_len = hits.len().min(3);
             let top3 = &hits[..top3_len];
-            let in_top3 = top3.iter().any(|id| id == expected)
+            let strict_in_top3 = top3.iter().any(|id| id == expected);
+            if strict_in_top3 {
+                p3_strict_sum += 1.0;
+            }
+            let in_top3 = strict_in_top3
                 || q.acceptable_top3
                     .iter()
                     .any(|a| top3.iter().any(|id| id == a));
@@ -89,6 +119,7 @@ impl EvalMetrics {
         EvalMetrics {
             p_at_1: p1_sum / n_f,
             p_at_3: p3_sum / n_f,
+            p_at_3_strict: p3_strict_sum / n_f,
             mrr: mrr_sum / n_f,
             n,
         }
@@ -125,13 +156,23 @@ pub fn cmd_eval(
             .unwrap_or_default()
     };
     let m = EvalMetrics::compute(&gf, search);
+    // p@1 is always strict (expected_first at rank 1 only — acceptable_top3
+    // is never consulted). p@3 is the lenient/gated metric; p@3(strict) is
+    // printed alongside for transparency (see doc comment on the floor
+    // constants for why p@3's floor is near-vacuous). Labelled explicitly
+    // so the real NFR-3 number (~0.909, below the 0.95 target) stays
+    // visible instead of hiding behind an ambiguous "p@1".
     println!(
-        "EVAL: p@1={:.3} p@3={:.3} mrr={:.3} (n={})",
-        m.p_at_1, m.p_at_3, m.mrr, m.n
+        "EVAL: p@1(strict)={:.3} p@3={:.3} p@3(strict)={:.3} mrr={:.3} (n={})",
+        m.p_at_1, m.p_at_3, m.p_at_3_strict, m.mrr, m.n
     );
     if !adversarial_only {
         if m.p_at_1 < EVAL_MIN_P1 {
-            anyhow::bail!("p@1 {:.3} dropped below floor {:.3}", m.p_at_1, EVAL_MIN_P1);
+            anyhow::bail!(
+                "p@1(strict) {:.3} dropped below floor {:.3}",
+                m.p_at_1,
+                EVAL_MIN_P1
+            );
         }
         if m.p_at_3 < EVAL_MIN_P3 {
             anyhow::bail!("p@3 {:.3} dropped below floor {:.3}", m.p_at_3, EVAL_MIN_P3);
@@ -163,6 +204,13 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool)
     let idx = HotdocIndex::open(index_dir)?;
     let mut passed = 0usize;
     let mut failed = 0usize;
+    // Finding B: `positive` above is lenient (accepts any acceptable_top3 id
+    // at rank 1), which can mask the real NFR-3 (strict) number. Track the
+    // strict count in parallel — expected_first at rank 1, full stop — and
+    // report it alongside the existing lenient pass/fail line. This is
+    // informational only; it does not change what makes the bench pass/fail.
+    let mut strict_p1_hits = 0usize;
+    let mut strict_p1_total = 0usize;
     let mut durations_ms: Vec<u128> = Vec::with_capacity(queries.len());
     for q in &queries {
         let start = Instant::now();
@@ -181,6 +229,12 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool)
                             .any(|a| first.as_deref() == Some(a.as_str())))
             }
         };
+        if let Some(expected) = &q.expected_first {
+            strict_p1_total += 1;
+            if first.as_deref() == Some(expected.as_str()) {
+                strict_p1_hits += 1;
+            }
+        }
         let forbidden_hit = q.forbidden_top3.iter().any(|f| top3.iter().any(|t| t == f));
         let ok = positive && !forbidden_hit;
         if !ok {
@@ -203,6 +257,15 @@ pub fn cmd_bench(golden_path: &Path, index_dir: &Path, filter_adversarial: bool)
         passed,
         passed + failed,
         p50
+    );
+    let strict_p1_rate = if strict_p1_total == 0 {
+        0.0
+    } else {
+        strict_p1_hits as f64 / strict_p1_total as f64
+    };
+    println!(
+        "BENCH: strict p@1(expected_first only)={}/{} ({:.3}) — informational, not gated here; see `eval` for the floor",
+        strict_p1_hits, strict_p1_total, strict_p1_rate
     );
     if failed > 0 {
         anyhow::bail!("{} golden queries failed", failed);
@@ -386,5 +449,65 @@ mod tests {
         let res = cmd_bench(&f, &index_dir, false);
         let _ = std::fs::remove_dir_all(&index_dir);
         assert!(res.is_err(), "forbidden id in top-3 must fail the bench");
+    }
+
+    // FINDING A (post-v1 eval-floor audit): EVAL_MIN_P1 / EVAL_MIN_P3 /
+    // EVAL_MIN_MRR were previously enforced ONLY by the `eval` step in
+    // .github/workflows/ci.yml. Renaming or dropping that YAML step would
+    // silently disable the NFR-3 gate while `cargo test` stayed green. This
+    // test builds the REAL index from the bundled/dev packs, runs the exact
+    // same `EvalMetrics::compute` path `cmd_eval` uses (no duplicated metric
+    // logic), and asserts the SAME floor constants — so the gate now lives
+    // in version-controlled code, not YAML.
+    //
+    // Uses a real in-index built into a scratch temp dir (never the
+    // persistent OS index dir from `default_index_dir`), following the
+    // pattern already used by `golden_returns_expected_hits` and
+    // `forbidden_top3_fails_when_excluded_id_present` above. Uses its own
+    // dir-name suffix so it doesn't race those tests' index dirs when
+    // `cargo test` runs suites in parallel within the same process.
+    #[test]
+    fn eval_floors_hold_on_real_corpus() {
+        let packs_dir = crate::cli::default_packs_dir();
+        let packs = crate::pack::load_dir(&packs_dir)
+            .expect("load real packs")
+            .loaded;
+        let index_dir =
+            std::env::temp_dir().join(format!("hotdoc-golden-eval-floor-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&index_dir);
+        crate::index::HotdocIndex::build(&packs, &index_dir).expect("build index");
+
+        let idx = crate::index::HotdocIndex::open(&index_dir).expect("open index");
+        let raw = std::fs::read_to_string(default_golden_path()).expect("read golden file");
+        let gf: GoldenFile = serde_json::from_str(&raw).expect("parse golden JSON");
+        // Full query set, unfiltered — matches cmd_eval's default (non
+        // --adversarial) behavior and the n=66 the floors were measured on.
+        let search = |q: &str| -> Vec<String> {
+            idx.search(q, 8)
+                .map(|hits| hits.into_iter().map(|h| h.id).collect())
+                .unwrap_or_default()
+        };
+        let m = EvalMetrics::compute(&gf, search);
+        let _ = std::fs::remove_dir_all(&index_dir);
+
+        assert!(
+            m.p_at_1 >= EVAL_MIN_P1,
+            "p@1(strict) {:.3} dropped below floor {:.3} — this is the version-controlled \
+             NFR-3 gate (previously YAML-only, see FINDING A)",
+            m.p_at_1,
+            EVAL_MIN_P1
+        );
+        assert!(
+            m.p_at_3 >= EVAL_MIN_P3,
+            "p@3 {:.3} dropped below floor {:.3}",
+            m.p_at_3,
+            EVAL_MIN_P3
+        );
+        assert!(
+            m.mrr >= EVAL_MIN_MRR,
+            "mrr {:.3} dropped below floor {:.3}",
+            m.mrr,
+            EVAL_MIN_MRR
+        );
     }
 }
