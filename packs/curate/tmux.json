@@ -18,7 +18,7 @@
         }
       ],
       "tags": ["sessions", "creation"],
-      "aliases": [],
+      "aliases": ["new session split window", "new session"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/tmux.1.html"
     },

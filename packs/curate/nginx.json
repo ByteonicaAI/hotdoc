@@ -258,7 +258,7 @@
         }
       ],
       "tags": ["cli", "test", "config"],
-      "aliases": [],
+      "aliases": ["test reload config", "check config", "test config before reload"],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },

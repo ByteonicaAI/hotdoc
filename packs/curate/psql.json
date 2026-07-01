@@ -18,7 +18,7 @@
         }
       ],
       "tags": ["connection", "authentication"],
-      "aliases": [],
+      "aliases": ["connect to database", "connect to db"],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html"
     },
@@ -50,7 +50,7 @@
         }
       ],
       "tags": ["inspection", "tables"],
-      "aliases": [],
+      "aliases": ["list tables schemas", "list tables and schemas"],
       "source": "curated",
       "source_url": "https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS"
     },
