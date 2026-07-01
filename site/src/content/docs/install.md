@@ -8,9 +8,8 @@ release artifact.
 
 ## Supported platforms
 
-hotdoc targets **Ubuntu 24.04 and later**, which ships WebKitGTK 4.1. Other Debian-family
-distributions with WebKitGTK 4.1 available work the same way. Non-Debian distributions (Fedora,
-Arch, and similar) are not officially supported — they are, at most, community-untested.
+hotdoc targets **Ubuntu 24.04 and later**, which ships WebKitGTK 4.1. Other distributions are not
+officially supported — they are, at most, community-untested.
 
 ## Install from the release `.deb`
 
@@ -80,7 +79,7 @@ Once the index is ready, press **Ctrl+Shift+Space** anywhere on your desktop to 
 hotdoc stores its data locally under your home directory:
 
 - Database: `~/.local/share/hotdoc/hotdoc.sqlite`
-- Logs: `~/.local/share/hotdoc/logs/hotdoc.log`
+- Logs: `~/.local/share/hotdoc/logs/` (daily-rotated files named `hotdoc.log.YYYY-MM-DD`)
 
 ## Uninstall
 
