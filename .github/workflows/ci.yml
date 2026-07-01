@@ -127,7 +127,7 @@ jobs:
 
       - name: Open-time bench (NFR-1 index-build portion)
         working-directory: src-tauri
-        run: cargo run -p hotdoc-core --bin bench-open
+        run: cargo run --release -p hotdoc-core --bin bench-open
 
       - name: Search p50 bench (NFR-2)
         working-directory: src-tauri
