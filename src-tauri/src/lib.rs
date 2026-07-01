@@ -39,22 +39,18 @@ pub fn run() {
     };
     info!(path = %db_path.display(), "store opened");
 
-    // ponytail: build the index first (T16 — populates packs/entries
-    // tables on the same conn), then wrap the conn in Arc<Mutex<>>.
-    // The resolver takes &Connection by reference; we hand it the
-    // un-wrapped conn here.
-    let index = match index_state::load_or_build_index(&conn) {
-        Ok(i) => i,
-        Err(e) => {
-            tracing::error!(error = %format!("{e:#}"), "failed to build index");
-            std::process::exit(1);
-        }
-    };
-
+    // T1 (post-v1 bundling fix): the index used to be built here, before
+    // `.setup()`, using a compile-time `env!("OUT_DIR")` path that only
+    // exists on the build machine — a shipped bundle resolved zero packs.
+    // Building it now happens inside `.setup()` (below), where
+    // `app.path().resource_dir()` is available and resolves to the
+    // packs the bundler actually shipped (see `bundle.resources` in
+    // tauri.conf.json + `index_state::resource_packs_dir`). We still
+    // wrap the connection in `Arc<Mutex<>>` here so `.setup()` can lock
+    // it to build the index and then hand the same `Arc` to `AppState`.
     let db = Arc::new(Mutex::new(conn));
 
     tauri::Builder::default()
-        .manage(index_state::AppState { index: RwLock::new(index), db })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 window_pos::center_on_active_monitor(app, &w);
@@ -103,6 +99,32 @@ pub fn run() {
             }
         })
         .setup(move |app| {
+            // T1: resolve the shipped-packs dir via the Tauri resource
+            // API (only available now that we're inside `.setup()`),
+            // then build/reuse the index. `resource_packs_dir` returns
+            // `None` (after logging) when the resource dir can't be
+            // resolved — `resolve_and_build` (via `load_or_build_index`)
+            // falls back to the dev packs dir in that case, it never
+            // panics on a missing resource dir.
+            let bundled = index_state::resource_packs_dir(app.handle());
+            let index = {
+                let conn = match db.lock() {
+                    Ok(c) => c,
+                    Err(_) => {
+                        tracing::error!("db mutex poisoned before index build");
+                        std::process::exit(1);
+                    }
+                };
+                match index_state::load_or_build_index(&conn, bundled.as_deref()) {
+                    Ok(i) => i,
+                    Err(e) => {
+                        tracing::error!(error = %format!("{e:#}"), "failed to build index");
+                        std::process::exit(1);
+                    }
+                }
+            };
+            app.manage(index_state::AppState { index: RwLock::new(index), db });
+
             if let Some(w) = app.get_webview_window("main") {
                 // ponytail: FR-L2 / §8.2 — center both axes on the cursor
                 // monitor (or primary if cursor unresolvable), accounting for

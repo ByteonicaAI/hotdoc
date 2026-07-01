@@ -23,8 +23,17 @@ use crate::pack::{self, LoadReport};
 /// Works in any context (library, test, binary) because CARGO_MANIFEST_DIR
 /// is always set by Cargo. The bundled-packs dir lives in $OUT_DIR which
 /// only the Tauri app sees; the caller injects that path.
+///
+/// T1 bugfix: this crate's manifest lives at `<repo>/crates/hotdoc-core`,
+/// two directories below the workspace root that holds `packs/curate/`
+/// — a single `..` used to resolve to the nonexistent
+/// `<repo>/crates/packs/curate`. This was previously undetected because
+/// nothing called `resolve_and_build` with `bundled_packs: None` in a
+/// context where the (correctly resolved) OUT_DIR bundled-packs copy
+/// wasn't also present to mask it.
 pub fn dev_packs_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
         .join("..")
         .join("packs")
         .join("curate")
@@ -93,10 +102,18 @@ fn write_pack_fingerprint(db: &Connection, fp: &str) {
 /// persistent state. The resolver writes to it during populate_store
 /// (T16). Pass the same Connection the Tauri commands use.
 ///
-/// `bundled_packs` is the path to the `include_dir!`'d copy (set by
-/// the Tauri build script). The dev packs dir is read from
+/// `bundled_packs` is the caller-resolved "shipped packs" directory.
+/// In the production Tauri app this is the OS resource dir populated
+/// at package time from `bundle.resources` in `tauri.conf.json`
+/// (`src-tauri/src/index_state.rs::resource_packs_dir`); there is no
+/// `include_dir!` involved — packs ship as plain files copied into the
+/// bundle by the Tauri CLI. In dev/test builds, `src-tauri/build.rs`
+/// separately `fs::copy`'s `packs/curate/` into `$OUT_DIR` as a
+/// convenience fixture, but that copy is never passed here in
+/// production. The dev packs dir (`dev_packs_dir`, below) is read from
 /// CARGO_MANIFEST_DIR and is always available; the bundled dir is
-/// optional — the resolver skips a missing path.
+/// optional — the resolver skips a missing path and falls back to dev
+/// packs.
 #[instrument(skip_all)]
 pub fn resolve_and_build(db: &Connection, bundled_packs: Option<&Path>) -> Result<IndexResolution> {
     let mut candidates: Vec<PathBuf> = Vec::new();
@@ -396,6 +413,32 @@ mod tests {
         assert_eq!(n_entries, 2);
         let _ = std::fs::remove_dir_all(&dir);
         let _ = std::fs::remove_dir_all(&index_dir);
+    }
+
+    // T1 (post-v1 bundling fix): proves the dev fallback in
+    // `resolve_and_build` is intact. `bundled_packs: None` mirrors what
+    // production now passes when the Tauri resource dir is unavailable
+    // (see `src-tauri/src/index_state.rs::resource_packs_dir`) and what
+    // `cargo test` / `hotdoc-cli` implicitly rely on: the resolver must
+    // still find packs via `dev_packs_dir()` (this repo's real
+    // `packs/curate/` — not overridable, same caveat as
+    // `resolve_and_build_populates_store` above re: the real
+    // persistent index dir).
+    #[test]
+    fn resolve_and_build_uses_dev_fallback_when_no_bundled_dir() {
+        let (_dbdir, conn) = open_test_db();
+        let res = resolve_and_build(&conn, None).expect("resolve_and_build with no bundled dir");
+        assert!(
+            !res.packs.is_empty(),
+            "resolve_and_build(None) must fall back to dev_packs_dir() and find packs"
+        );
+        let n_entries: i64 = conn
+            .query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0))
+            .expect("count entries");
+        assert!(
+            n_entries > 0,
+            "populate_store must mirror entries into sqlite"
+        );
     }
 
     #[test]

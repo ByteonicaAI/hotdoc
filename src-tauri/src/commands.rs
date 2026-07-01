@@ -265,11 +265,17 @@ pub fn set_autostart(enabled: bool, app: tauri::AppHandle) -> Result<(), String>
 // holding the db lock, then release the db lock before acquiring the
 // index write lock to avoid any lock-order inversion.
 #[tauri::command]
-#[instrument(skip(state))]
-pub fn rebuild_index(state: State<'_, AppState>) -> Result<usize, String> {
+#[instrument(skip(state, app))]
+pub fn rebuild_index(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<usize, String> {
+    // T1: resolve the same shipped-packs resource dir the initial
+    // `.setup()` build used, so a manual "Reload index" in production
+    // rebuilds from the bundled packs rather than a stale/missing
+    // build-machine path.
+    let bundled = index_state::resource_packs_dir(&app);
     let new_index = {
         let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
-        index_state::reload_index(&conn).map_err(|e| format!("rebuild_index: {e:#}"))?
+        index_state::reload_index(&conn, bundled.as_deref())
+            .map_err(|e| format!("rebuild_index: {e:#}"))?
     };
     let entries = new_index.entry_count();
     *state.index.write().map_err(|_| "index write lock poisoned".to_string())? = new_index;
