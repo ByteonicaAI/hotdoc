@@ -34,6 +34,7 @@ export default {
         "settings",
         "scorer",
         "search",
+        "site",
         "a11y",
         "ci",
         "coverage",
