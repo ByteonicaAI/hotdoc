@@ -278,6 +278,29 @@ describe("App launcher", () => {
     expect(wrapped.className).toContain("active");
   });
 
+  it("aria-activedescendant tracks the active result row for screen readers", async () => {
+    const hits = [
+      { ...mockHit, id: "a", syntax: "alpha" },
+      { ...mockHit, id: "b", syntax: "beta" },
+    ];
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: InvokeArgs) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      const q = (args as { query?: string } | undefined)?.query;
+      if (cmd === "search") return Promise.resolve(q ? hits : []);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("alpha")).toBeInTheDocument());
+    const alphaLi = screen.getByText("alpha").closest("li")!;
+    expect(alphaLi.id).toBeTruthy();
+    expect(input.getAttribute("aria-activedescendant")).toBe(alphaLi.id);
+    await fireEvent.keyDown(input, { key: "ArrowDown" });
+    const betaLi = screen.getByText("beta").closest("li")!;
+    expect(input.getAttribute("aria-activedescendant")).toBe(betaLi.id);
+  });
+
   it("ArrowUp wraps to last result when at top", async () => {
     const hits = [
       { ...mockHit, id: "a", syntax: "alpha" },
@@ -802,28 +825,6 @@ describe("XSS regression (SEC-1)", () => {
     expect(marks.length).toBeGreaterThan(0);
     expect([...marks].some((m) => /stash/i.test(m.textContent ?? ""))).toBe(true);
   });
-
-  it("renders hover actions and Copy example copies the example code (G3)", async () => {
-    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    const onCopyExample = vi.fn();
-    render(ResultItem, {
-      hit: mockHit,
-      active: false,
-      pinned: false,
-      query: "",
-      onCopyExample,
-    });
-    const btn = screen.getByText("Copy example");
-    expect(btn).toBeInTheDocument();
-    await fireEvent.mouseDown(btn);
-    expect(onCopyExample).toHaveBeenCalledWith(mockHit);
-  });
-
-  it('hides "Open source" when the card has no source_url (G3)', async () => {
-    const { default: ResultItem } = await import("./lib/ResultItem.svelte");
-    render(ResultItem, { hit: mockHit, active: false, pinned: false });
-    expect(screen.queryByText("Open source")).toBeNull();
-  });
 });
 
 describe("zero-result suggestions + popular (G4/G5)", () => {
@@ -1134,6 +1135,34 @@ describe("FR-C6 details pane (M4.5-T12)", () => {
       expect(pane.textContent).toMatch(/example/i);
       expect(pane.textContent).toContain("git stash");
       expect(pane.textContent).toContain('git stash push -m "wip"');
+    });
+  });
+});
+
+// ponytail: v1.0 decision 9 — the footer must derive its entry/pack
+// counts from indexStatus() rather than a hardcoded number. Sentinel
+// values (999 / 42) make any leaked fallback text obvious in CI.
+describe("derived entry count (decision 9 — no hardcoded numbers)", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(writeText).mockClear();
+  });
+
+  it("footer_renders_entry_and_pack_counts_from_indexStatus", async () => {
+    vi.mocked(invoke).mockImplementation((cmd: string) => {
+      if (cmd === "get_recents") return Promise.resolve([]);
+      if (cmd === "get_pinned") return Promise.resolve([]);
+      if (cmd === "list_packs") return Promise.resolve([]);
+      if (cmd === "index_status") return Promise.resolve({ entry_count: 999, pack_count: 42 });
+      if (cmd === "search") return Promise.resolve([mockHit]);
+      return Promise.resolve(undefined);
+    });
+    render(App);
+    const input = screen.getByPlaceholderText(/type to search/i);
+    await fireEvent.input(input, { target: { value: "git" } });
+    await waitFor(() => expect(screen.getByText("git stash")).toBeInTheDocument());
+    await waitFor(() => {
+      expect(screen.getByText(/999 commands · 42 packs/)).toBeInTheDocument();
     });
   });
 });

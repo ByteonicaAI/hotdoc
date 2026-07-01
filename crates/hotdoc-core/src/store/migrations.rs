@@ -62,7 +62,14 @@ fn current_version(conn: &Connection) -> Result<u32> {
         [],
         |row| row.get::<_, String>(0),
     ) {
-        Ok(v) => Ok(v.parse().unwrap_or(0)),
+        Ok(v) => Ok(v.parse().unwrap_or_else(|e| {
+            tracing::warn!(
+                value = %v,
+                error = %e,
+                "schema_version failed to parse; falling back to 0 (full migration replay)"
+            );
+            0
+        })),
         Err(rusqlite::Error::QueryReturnedNoRows) => Ok(0),
         Err(e) if is_no_such_table(&e) => Ok(0),
         Err(e) => Err(e.into()),

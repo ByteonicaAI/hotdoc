@@ -39,31 +39,18 @@ pub fn run() {
     };
     info!(path = %db_path.display(), "store opened");
 
-    // ponytail: build the index first (T16 — populates packs/entries
-    // tables on the same conn), then wrap the conn in Arc<Mutex<>>.
-    // The resolver takes &Connection by reference; we hand it the
-    // un-wrapped conn here.
-    let index = match index_state::load_or_build_index(&conn) {
-        Ok(i) => i,
-        Err(e) => {
-            tracing::error!(error = %format!("{e:#}"), "failed to build index");
-            std::process::exit(1);
-        }
-    };
-
-    let popularity_map = hotdoc_core::store::popularity::weighted_counts(
-        &conn,
-        hotdoc_core::store::time::unix_now_ms(),
-    )
-    .unwrap_or_default();
+    // T1 (post-v1 bundling fix): the index used to be built here, before
+    // `.setup()`, using a compile-time `env!("OUT_DIR")` path that only
+    // exists on the build machine — a shipped bundle resolved zero packs.
+    // Building it now happens inside `.setup()` (below), where
+    // `app.path().resource_dir()` is available and resolves to the
+    // packs the bundler actually shipped (see `bundle.resources` in
+    // tauri.conf.json + `index_state::resource_packs_dir`). We still
+    // wrap the connection in `Arc<Mutex<>>` here so `.setup()` can lock
+    // it to build the index and then hand the same `Arc` to `AppState`.
     let db = Arc::new(Mutex::new(conn));
 
     tauri::Builder::default()
-        .manage(index_state::AppState {
-            index: RwLock::new(index),
-            db,
-            popularity_map: Arc::new(popularity_map),
-        })
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(w) = app.get_webview_window("main") {
                 window_pos::center_on_active_monitor(app, &w);
@@ -99,6 +86,7 @@ pub fn run() {
             commands::rebuild_index,
             commands::open_url,
             commands::record_search,
+            commands::set_window_size,
             commands::index_status,
             commands::copy_diagnostics
         ])
@@ -111,23 +99,74 @@ pub fn run() {
             }
         })
         .setup(move |app| {
-            if let Some(w) = app.get_webview_window("main") {
-                if let Ok(Some(monitor)) = app.primary_monitor() {
-                    // ponytail: FR-L2 / §8.2 — center-top, 60px logical from
-                    // the top. monitor.size() is physical; the 720px window
-                    // width and 60px margin are logical, so scale them by
-                    // the monitor's factor before the physical-pixel math,
-                    // else the window is off-center on fractional-scale
-                    // displays.
-                    let scale = monitor.scale_factor();
-                    let mon_w = monitor.size().width as f64;
-                    let win_w = 720.0 * scale;
-                    let x = ((mon_w - win_w) / 2.0).max(0.0) as i32;
-                    let y = (60.0 * scale) as i32;
-                    let _ = w.set_position(tauri::PhysicalPosition::new(x, y));
+            // T1: resolve the shipped-packs dir via the Tauri resource
+            // API (only available now that we're inside `.setup()`),
+            // then build/reuse the index. `resource_packs_dir` returns
+            // `None` (after logging) when the resource dir can't be
+            // resolved — `resolve_and_build` (via `load_or_build_index`)
+            // falls back to the dev packs dir in that case, it never
+            // panics on a missing resource dir.
+            let bundled = index_state::resource_packs_dir(app.handle());
+            let index = {
+                let conn = match db.lock() {
+                    Ok(c) => c,
+                    Err(_) => {
+                        tracing::error!("db mutex poisoned before index build");
+                        std::process::exit(1);
+                    }
+                };
+                match index_state::load_or_build_index(&conn, bundled.as_deref()) {
+                    Ok(i) => i,
+                    Err(e) => {
+                        tracing::error!(error = %format!("{e:#}"), "failed to build index");
+                        std::process::exit(1);
+                    }
                 }
-            }
+            };
+            // T1 (reviewed): `app.manage(AppState)` now runs here, inside
+            // `.setup()`, AFTER the window is built — a consequence of
+            // needing `app.path().resource_dir()` (only available on
+            // `App`, not `Builder`) to resolve the bundled packs dir above.
+            // That means a frontend `onMount` invoke can race ahead of
+            // this line and briefly hit "state not managed" during
+            // cold-start index build.
+            //
+            // This is intentional and safe, not an oversight:
+            //   - Tauri's `State` extractor returns a graceful
+            //     `InvokeError` on an unmanaged type; it does not panic.
+            //   - The window is created `visible: false` and only shown
+            //     on the global-hotkey toggle, so a user can't observe a
+            //     command failing before the state is ready.
+            //   - `hotdoc://refresh-empty-view` refires on window focus
+            //     (see `.on_window_event` above), so even if an early
+            //     invoke silently failed, the frontend gets a second
+            //     chance to populate once the window is actually shown.
+            //
+            // Possible future hardening (not implemented): emit a
+            // `backend-ready` event once `.manage()` completes and have
+            // the frontend retry a failed cold-start invoke once on
+            // hearing it, instead of relying solely on the focus refire.
+            app.manage(index_state::AppState { index: RwLock::new(index), db });
+
+            // Bind the toggle listener FIRST, before any windowing-system
+            // query. `center_on_active_monitor` below enumerates monitors via
+            // the display server; under some window managers (e.g. openbox on
+            // a headless Xvfb CI runner) that call can stall for many seconds.
+            // The toggle listener only needs the AppHandle — it resolves the
+            // window lazily on each datagram — so binding it up front makes
+            // `hotdoc-cli toggle` (and the NFR-1 open-time bench) reachable as
+            // soon as core state is managed, independent of monitor/window/
+            // tray/hotkey init timing.
             toggle::spawn(app.handle().clone());
+
+            if let Some(w) = app.get_webview_window("main") {
+                // ponytail: FR-L2 / §8.2 — center both axes on the cursor
+                // monitor (or primary if cursor unresolvable), accounting for
+                // window height. Same path the hotkey/tray/single-instance
+                // plugins take on subsequent activations. Falls back to a
+                // 60px top margin if the monitor is shorter than the window.
+                window_pos::center_on_active_monitor(app.handle(), &w);
+            }
             hotkey::register(app.handle(), hotkey::default_combo())?;
             tray::build(app.handle())?;
             // ponytail: FR-T3 first-launch notification. Reads the

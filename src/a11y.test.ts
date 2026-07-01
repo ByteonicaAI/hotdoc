@@ -16,10 +16,11 @@ const axe = configureAxe({
 });
 
 // Results axe config: also disable nested-interactive.
-// ponytail: ResultItem uses role="option" li with aria-hidden action buttons.
-// The primary keyboard flows (Enter/Shift+Enter/Ctrl+P) work via the input handler;
-// action buttons are visual shortcuts hidden from AT via aria-hidden. The nested-
-// interactive pattern is a known ARIA trade-off; proper role="grid" restructure is v1.1.
+// ponytail: Results area uses role="listbox" with role="option" li items.
+// The nested-interactive rule fires on legitimate listbox patterns where
+// each option carries interactive children; axe doesn't yet model the
+// aria-activedescendant keyboard pattern Hotdoc uses. Proper role="grid"
+// restructure is v1.1; for now the rule is suppressed.
 const axeResults = configureAxe({
   rules: {
     "color-contrast": { enabled: false },
@@ -99,8 +100,8 @@ describe("NFR-9 axe-core accessibility", () => {
     await waitFor(() =>
       expect(container.querySelectorAll("li[role=option]").length).toBeGreaterThan(0),
     );
-    // Uses axeResults config which disables nested-interactive for the role="option"
-    // + aria-hidden action-buttons pattern (documented above).
+    // Uses axeResults config which disables nested-interactive for the
+    // listbox pattern (documented above).
     assertNoViolations(await axeResults(container));
   });
 

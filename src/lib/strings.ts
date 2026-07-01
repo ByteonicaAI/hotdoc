@@ -22,21 +22,9 @@ export const STRINGS = {
   INDEXING_STATUS: "Indexing…",
   // Empty-view section labels
   RECENT_LABEL: "Recent",
-  POPULAR_LABEL: "Popular",
   // Empty-view aria-labels (NFR-10: static aria-label text must live in STRINGS)
   ARIA_RECENT_QUERY: "Recent query",
   ARIA_PINNED: "Pinned",
-  ARIA_POPULAR: "Popular",
-  // ResultItem actions
-  CARD_ACTIONS_ARIA: "Card actions",
-  COPY_EXAMPLE_BTN: "Copy example",
-  COPY_ALL_BTN: "Copy all",
-  PIN_BTN: "Pin",
-  UNPIN_BTN: "Unpin",
-  OPEN_SOURCE_BTN: "Open source",
-  PIN_ARIA: "pinned",
-  // ResultItem report action
-  REPORT_CARD_BTN: "Report",
   // About panel
   ABOUT_ARIA: "About hotdoc",
   ABOUT_TITLE: "About hotdoc",

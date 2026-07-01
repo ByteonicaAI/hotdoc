@@ -88,7 +88,7 @@ fn main() -> ExitCode {
     for run in 0..RUNS {
         for q in QUERIES {
             let start = Instant::now();
-            let res = idx.search(q, LIMIT, &Default::default());
+            let res = idx.search(q, LIMIT);
             let elapsed = start.elapsed().as_millis();
             if let Err(e) = res {
                 eprintln!("run {run} query {q:?}: search failed: {e:#}");

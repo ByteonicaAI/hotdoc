@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["setup", "initialization"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/init"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["plan", "execution", "infrastructure"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/plan"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["execution", "deployment"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/apply"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["cleanup", "destructive"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/destroy"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["validation", "testing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/validate"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["formatting", "style"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/fmt"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["state", "import"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/import"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["state", "introspection"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/list"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["state", "introspection"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/show"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["state", "manipulation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/state/rm"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["workspace", "management"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/list"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["workspace", "management"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/new"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["workspace", "management"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/workspace/select"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["variables", "input"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/language/values/variables"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["modules", "reusability"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/language/modules"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["outputs", "results"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands/output"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["state", "plan", "inspect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["json", "plan", "state"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["output", "json", "automation"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["console", "expression", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["graph", "dependencies", "dot"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["modules", "download", "upgrade"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["providers", "inspect", "dependencies"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["providers", "lock", "checksum"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["test", "module", "validation"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["plan", "replace", "resource"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["state", "refresh", "drift"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["state", "move", "refactor"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["state", "remote", "backup"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["workspace", "current"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["workspace", "delete", "cleanup"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["lock", "state", "recover"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["version", "cli"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["init", "upgrade", "providers"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["plan", "apply", "file"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["apply", "plan", "automation"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["apply", "automation", "approve"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["plan", "target", "resource"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["state", "provider", "migration"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     },
@@ -603,6 +642,7 @@
         }
       ],
       "tags": ["login", "cloud", "credentials"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://developer.hashicorp.com/terraform/cli/commands"
     }

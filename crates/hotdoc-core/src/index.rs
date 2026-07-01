@@ -1,20 +1,31 @@
 use anyhow::{Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tantivy::{
-    collector::TopDocs,
-    query::{BooleanQuery, BoostQuery, FuzzyTermQuery, Occur, Query, RegexQuery, TermQuery},
-    schema::{
-        Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, Value, FAST, STORED,
-    },
-    Index, IndexReader, IndexWriter, ReloadPolicy, Searcher, Term,
+    schema::{Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, FAST, STORED},
+    Index, IndexReader, IndexWriter, ReloadPolicy,
 };
 
-use crate::pack::Pack;
+use crate::pack::{Entry, Pack};
 
-const SRC_PRIORITY_OFFICIAL: f32 = 1.0;
-const SRC_PRIORITY_CHEAT_SHEET: f32 = 0.5;
-const SRC_PRIORITY_CURATED: f32 = 0.0;
+// ponytail: 5.3. Sidecar file name for the full corpus (pairs of
+// (pack_id, Entry)). Mirrors the entry_meta sidecar pattern — lets
+// `open()` repopulate the in-memory ranker's working set without
+// re-parsing pack JSONs on every CLI invocation.
+const ENTRIES_SIDECAR: &str = "hotdoc_entries.json";
+
+// ponytail: below this corpus size, the full in-memory scan (p50≈2ms at
+// 731 entries, 8× under NFR-3) is already optimal and Tantivy retrieval
+// can only LOSE recall (BM25 misses typos the ranker would rescue). So
+// retrieval is dormant here and engages only when the corpus grows past
+// the point where full-scan would threaten the latency budget.
+const RETRIEVAL_FULLSCAN_MAX: usize = 5000;
+// ponytail: when the candidate set is this thin, fall back to a full scan
+// so the ranker's fuzzy/prefix rescue still sees every entry.
+const RETRIEVAL_MIN_CANDIDATES: usize = 16;
+// ponytail: Tantivy candidate cap — generous so the ranker, not BM25,
+// decides order.
+const RETRIEVAL_CANDIDATE_CAP: usize = 256;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SearchHit {
@@ -30,27 +41,39 @@ pub struct SearchHit {
 }
 
 pub struct HotdocIndex {
+    // ponytail: 5.3 — `_index`, `reader`, and `fields` are kept on
+    // the struct for the lifetime of the tantivy index (writer +
+    // reader hold filesystem handles). Tantivy retrieval is now WIRED
+    // (Task 2.6, architecture doc §7 Option B): `reader`/`fields` are
+    // load-bearing — `retrieve_candidates()` reads them to supply BM25
+    // candidates ABOVE RETRIEVAL_FULLSCAN_MAX. At v1 scale the corpus
+    // is below the threshold so retrieval stays dormant and search()
+    // takes the full-scan branch (golden byte-identical).
     _index: Index,
     reader: IndexReader,
     fields: SchemaFields,
-    entry_meta: std::collections::HashMap<String, EntryMeta>,
-}
-
-#[derive(Clone)]
-pub struct EntryMeta {
-    pub description: String,
-    pub source_url: Option<String>,
-    pub example_code: Option<String>,
-    /// ponytail: T17 — tags live here now (not in tantivy's stored
-    /// fields). Used by the exact-match tag bonus (+1.5 per token
-    /// that matches a tag, per spec §7.2). Pre-T17 the tag list
-    /// was lost at search time and the per-tag bonus couldn't be
-    /// applied at all.
-    pub tags: Vec<String>,
+    // ponytail: 5.3 — full corpus for the in-memory ranker. Pairs of
+    // (pack_id, Entry). Persisted to hotdoc_entries.json sidecar so
+    // `open()` doesn't have to re-parse pack JSONs on every CLI run.
+    // Tantivy stays in the struct as a retrieval-side index for
+    // future use; search() no longer touches it.
+    entries: Vec<(String, Entry)>,
+    // ponytail: normalized corpus built ONCE at build()/open(). The
+    // search hot path scores against this slice rather than re-tokenizing
+    // 731 entries per keystroke (the prior per-query normalize was the
+    // real latency cost, not the scan itself).
+    normalized: Vec<crate::ranker::NormalizedEntry>,
 }
 
 impl HotdocIndex {
     pub fn build(packs: &[Pack], path: &Path) -> Result<Self> {
+        // 4c: entry ids are validated unique only WITHIN a pack
+        // (pack::validate_into); the "globally unique" claim `entry_count()`
+        // documents above was previously unenforced across packs. Fail
+        // fast, before touching disk, so a curator id collision can't
+        // silently corrupt the doc→entry lookup in `search()` (which keys
+        // on `entry.id` alone and keeps the last writer on a collision).
+        validate_cross_pack_id_uniqueness(packs)?;
         // ponytail: T13 fix. Distinguish NotFound (legitimate: dir never
         // existed) from real errors (busy, permission, etc). Previously
         // .ok() silently swallowed EACCES/EBUSY and the subsequent
@@ -96,12 +119,23 @@ impl HotdocIndex {
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
-        let entry_meta = collect_entry_meta(packs);
+        // ponytail: 5.3 — also persist the full corpus. The
+        // in-memory ranker needs the entire (pack_id, Entry) set on
+        // every search; loading packs from disk per query would
+        // blow the NFR-3 latency budget. Pair shape matches
+        // `ranker::score_query`'s input.
+        let entries: Vec<(String, Entry)> = packs
+            .iter()
+            .flat_map(|p| p.entries.iter().map(|e| (p.id.clone(), e.clone())))
+            .collect();
+        write_entries_sidecar(path, &entries).context("writing entries sidecar")?;
+        let normalized = build_normalized(&entries);
         Ok(Self {
             _index: index,
             reader,
             fields,
-            entry_meta,
+            entries,
+            normalized,
         })
     }
 
@@ -112,8 +146,15 @@ impl HotdocIndex {
     // The upsert is full-replace (delete then insert in one tx) so a
     // mid-build failure can't leave a half-populated entries table.
     // Caller decides when to invoke — build() stays tantivy-only.
+    /// ponytail: true entry count = number of (pack_id, Entry) pairs, NOT
+    /// a deduped id-map length; this equals `sum(packs.entries.len())`.
+    /// The SQLite IPC count dedups by id (`ON CONFLICT(id)`), so the two
+    /// agree only when entry ids are globally unique. That claim is no
+    /// longer just a convention: `validate_cross_pack_id_uniqueness`
+    /// (4c, called from `build()`) enforces it at build time, so `build()`
+    /// itself can never produce an `Self` with a cross-pack id collision.
     pub fn entry_count(&self) -> usize {
-        self.entry_meta.len()
+        self.entries.len()
     }
 
     pub fn populate_store(conn: &rusqlite::Connection, packs: &[Pack]) -> Result<()> {
@@ -137,6 +178,14 @@ impl HotdocIndex {
         Ok(())
     }
 
+    // ponytail: Approach B (sidecar JSON) — the in-memory ranker's corpus
+    // can't ride in tantivy's own meta.json (a schema descriptor we don't
+    // own), so build() writes hotdoc_entries.json next to the tantivy
+    // index and open() reads it back. Signature stays (path) — no upstream
+    // call-site changes. A missing or version-mismatched sidecar → Err so
+    // the Tauri resolver's open-failure fallthrough (in
+    // index_resolver::resolve_one) rebuilds. Direct CLI users get a clear
+    // error pointing them at `hotdoc-cli index`.
     pub fn open(path: &Path) -> Result<Self> {
         let index = Index::open_in_dir(path).context("opening index dir")?;
         let fields = resolve_fields(&index.schema()).context("resolving schema fields")?;
@@ -144,280 +193,214 @@ impl HotdocIndex {
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
+        let entries = read_entries_sidecar(path).context("reading entries sidecar")?;
+        let normalized = build_normalized(&entries);
         Ok(Self {
             _index: index,
             reader,
             fields,
-            entry_meta: std::collections::HashMap::new(),
+            entries,
+            normalized,
         })
     }
 
-    pub fn search(
+    /// Deterministic, deduped pack_ids over the FULL corpus. Tool
+    /// detection in `parse_query` depends entirely on this set, so it
+    /// must always be derived from `self.normalized` (never a candidate
+    /// subset) — the M1 invariant.
+    fn full_corpus_pack_ids(&self) -> Vec<String> {
+        let mut v: Vec<String> = self.normalized.iter().map(|n| n.pack_id.clone()).collect();
+        v.sort_unstable();
+        v.dedup();
+        v
+    }
+
+    /// BM25 query terms (intents + options) drawn from an already-parsed
+    /// query. Pure projection — does NOT parse, so `search()` can parse
+    /// the query exactly once (M2).
+    fn bm25_terms_of(parsed: &crate::ranker::ParsedQuery) -> Vec<String> {
+        let mut terms: Vec<String> = parsed.intents.clone();
+        terms.extend(parsed.options.iter().cloned());
+        terms
+    }
+
+    /// Extract BM25 query terms from a raw query string. Test seam reused
+    /// by the injectable-threshold tests (`retrieve_candidates_with_max`).
+    #[cfg(test)]
+    fn bm25_terms_for(&self, raw: &str) -> Vec<String> {
+        let parsed = crate::ranker::parse_query(raw, &self.full_corpus_pack_ids());
+        Self::bm25_terms_of(&parsed)
+    }
+
+    /// Tantivy BM25 candidate retrieval with an injectable fullscan threshold.
+    /// Returns indices into `self.normalized`, or `None` to signal "score the
+    /// full corpus" (corpus ≤ fullscan_max, thin candidates, or empty terms).
+    /// Production callers use `retrieve_candidates`; tests can pass `fullscan_max=0`
+    /// to force the BM25 path on a small hermetic corpus.
+    fn retrieve_candidates_with_max(
         &self,
-        raw_query: &str,
-        limit: usize,
-        popularity: &std::collections::HashMap<String, f32>,
-    ) -> Result<Vec<SearchHit>> {
-        let searcher: Searcher = self.reader.searcher();
-        let query = self.build_query(raw_query);
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
-        let fields = self.fields;
-        let query_lc = raw_query.trim().to_lowercase();
-        let query_tokens_lc: Vec<String> = query_lc
-            .split_whitespace()
-            .filter(|t| !t.is_empty())
-            .map(String::from)
-            .collect();
-        let mut hits = Vec::with_capacity(top_docs.len());
-        for (score, addr) in top_docs {
-            let doc: tantivy::TantivyDocument = searcher.doc(addr)?;
-            let id = get_text(&doc, fields.id);
-            let meta = self
-                .entry_meta
-                .get(&id)
-                .cloned()
-                .unwrap_or_else(EntryMeta::empty);
-            let source = get_text(&doc, fields.source);
-            let syntax = get_text(&doc, fields.syntax);
-            let title = get_text(&doc, fields.title);
-            let pack_id = get_text(&doc, fields.pack_id);
-            // ponytail: T17. Additive source priority (was ×2.0/×1.5
-            // pre-T17 — spec §7.2 calls for additive). Plus the four
-            // exact-match bonuses, also additive, applied against
-            // the raw query + the stored syntax/title fields.
-            let exact = apply_exact_match_bonuses(
-                &query_lc,
-                &syntax,
-                &title,
-                &meta.description,
-                &self.entry_meta_tags(&id),
-            );
-            let src = apply_source_priority(&source);
-            let pop = popularity.get(&id).copied().unwrap_or(0.0);
-            // Pack affinity: boost entries whose pack_id is named (or
-            // prefixed) by a query token. Prevents cross-pack entries
-            // from outranking the expected pack when the user explicitly
-            // names it (e.g. "docker rm" should surface docker entries
-            // over terraform ones that also have "rm" in their syntax).
-            const PACK_AFFINITY_BOOST: f32 = 5.0;
-            let pack_id_lc = pack_id.to_lowercase();
-            let pack_affinity: f32 = if query_tokens_lc.iter().any(|t| {
-                pack_id_lc == t.as_str()
-                    || pack_id_lc.starts_with(t.as_str())
-                    || t.as_str().starts_with(pack_id_lc.as_str())
-            }) {
-                PACK_AFFINITY_BOOST
-            } else {
-                0.0
-            };
-            let adjusted_score = score + exact + src + pop + pack_affinity;
-            hits.push(SearchHit {
-                id,
-                pack_id,
-                title,
-                syntax,
-                description: meta.description,
-                source,
-                source_url: meta.source_url,
-                example_code: meta.example_code,
-                score: adjusted_score,
-            });
-        }
-        // ponytail: T17. Deterministic tie-break pack_id → entry_id.
-        // Tantivy's internal docid order leaks into hits with equal
-        // BM25 scores; on the rerank-adjusted total we now break
-        // ties by (pack_id, id) ascending so the top-8 list is
-        // stable across launches.
-        hits.sort_by(|a, b| {
-            b.score
-                .partial_cmp(&a.score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.pack_id.cmp(&b.pack_id))
-                .then_with(|| a.id.cmp(&b.id))
-        });
-        Ok(hits)
-    }
+        terms: &[String],
+        fullscan_max: usize,
+    ) -> Option<Vec<usize>> {
+        use tantivy::collector::TopDocs;
+        use tantivy::query::{BooleanQuery, Occur, Query, TermQuery};
+        use tantivy::schema::document::Value;
+        use tantivy::schema::IndexRecordOption;
+        use tantivy::tokenizer::TokenStream;
+        use tantivy::Term;
 
-    // ponytail: T17 helper. Returns the per-entry tag list so the
-    // exact-match tag bonus can be applied. Stored on EntryMeta
-    // (see collect_entry_meta).
-    fn entry_meta_tags(&self, entry_id: &str) -> Vec<String> {
-        self.entry_meta
-            .get(entry_id)
-            .map(|m| m.tags.clone())
-            .unwrap_or_default()
-    }
-
-    fn build_query(&self, raw_query: &str) -> Box<dyn Query> {
-        // ponytail: T17 — field boosts mirror spec §7.2 verbatim.
-        // §7.2 puts title > syntax deliberately: users search by
-        // remembered title fragments more often than by remembered
-        // syntax. The pre-T17 code inverted these for exact matches
-        // (syntax 5.0, title 1.0) which silently shifted ranking
-        // away from the spec.
-        const BOOST_SYNTAX: f32 = 3.0;
-        const BOOST_TITLE: f32 = 4.0;
-        const BOOST_DESCRIPTION: f32 = 1.0;
-        const BOOST_TAGS: f32 = 2.0;
-        const BOOST_EXAMPLE_CODES: f32 = 0.5;
-        // Prefix boosts are tuned lower than term boosts so a partial
-        // match never outranks a real hit.
-        const BOOST_PREFIX_SYNTAX: f32 = 2.5;
-        const BOOST_PREFIX_TITLE: f32 = 3.0;
-        const BOOST_PREFIX_TAGS: f32 = 1.5;
-        // ponytail: exact-match bonuses (additive, post-rerank in
-        // search()). The spec says "if query == syntax exactly" —
-        // we apply this against the raw (lowercased + trimmed) query,
-        // not per-token. See apply_exact_match_bonuses below.
-        const EXACT_BONUS_SYNTAX: f32 = 15.0;
-        const EXACT_BONUS_TITLE: f32 = 10.0;
-        const EXACT_BONUS_DESCRIPTION: f32 = 2.0;
-        const EXACT_BONUS_PER_TAG: f32 = 1.5;
-        // ponytail: edit-distance tier per spec §7.1. Pre-T17 had
-        // only two tiers (0..=3 → 0, _ → 1) and silently dropped the
-        // 8+ → 2 case the spec calls out. Tokens of length 8+ now
-        // get edit distance 2.
-        const fn edit_distance_for(len: usize) -> u8 {
-            match len {
-                0..=3 => 0,
-                4..=7 => 1,
-                _ => 2,
-            }
+        if self.normalized.len() <= fullscan_max || terms.is_empty() {
+            return None;
         }
-
-        let q = raw_query.trim().to_lowercase();
-        if q.is_empty() {
-            return Box::new(BooleanQuery::new(vec![]));
-        }
-        let fields = self.fields;
+        let searcher = self.reader.searcher();
         let mut clauses: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-        // ponytail: T17 fix. Pre-T17 set tail_description = Some(token)
-        // for tokens len >= 5, which meant only the LAST such token
-        // ever got a description clause. The spec wants the
-        // description clause on every token. We now collect the
-        // tokens and emit a clause per-token at the end.
-        let mut tokens: Vec<&str> = Vec::new();
-        for token in q.split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.')) {
-            if token.is_empty() {
-                continue;
-            }
-            tokens.push(token);
-        }
-        for token in &tokens {
-            let edit_distance = edit_distance_for(token.len());
-            if edit_distance == 0 {
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(TermQuery::new(
-                            Term::from_field_text(fields.syntax, token),
-                            IndexRecordOption::Basic,
-                        )),
-                        BOOST_SYNTAX,
-                    )),
-                ));
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(TermQuery::new(
-                            Term::from_field_text(fields.title, token),
-                            IndexRecordOption::Basic,
-                        )),
-                        BOOST_TITLE,
-                    )),
-                ));
-            } else {
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(FuzzyTermQuery::new(
-                            Term::from_field_text(fields.syntax, token),
-                            edit_distance,
-                            true,
-                        )),
-                        BOOST_SYNTAX,
-                    )),
-                ));
-                clauses.push((
-                    Occur::Should,
-                    Box::new(BoostQuery::new(
-                        Box::new(FuzzyTermQuery::new(
-                            Term::from_field_text(fields.title, token),
-                            edit_distance,
-                            true,
-                        )),
-                        BOOST_TITLE,
-                    )),
-                ));
-            }
-            if edit_distance == 0 && token.len() > 3 {
-                let pattern = format!("^{}.*", regex_sanitize(token));
-                for (field, boost) in [
-                    (fields.syntax, BOOST_PREFIX_SYNTAX),
-                    (fields.title, BOOST_PREFIX_TITLE),
-                    (fields.tags, BOOST_PREFIX_TAGS),
-                ] {
-                    if let Ok(rq) = RegexQuery::from_pattern(&pattern, field) {
-                        clauses.push((
-                            Occur::Should,
-                            Box::new(BoostQuery::new(Box::new(rq), boost)),
-                        ));
-                    }
+        for t in terms {
+            for field in [
+                self.fields.title,
+                self.fields.syntax,
+                self.fields.tags,
+                self.fields.description,
+            ] {
+                // M5: build candidate terms through the field's OWN analyzer
+                // so query tokens fold identically to what Tantivy indexed.
+                // `parse_query` keeps `--hard`/`foo-bar` as one token and
+                // retains >40-byte tokens, but the index analyzer splits on
+                // `-` (SimpleTokenizer) and drops long tokens
+                // (RemoveLongFilter(40)). Feeding the raw token to
+                // `Term::from_field_text` looks for a literal the index never
+                // stored, silently losing candidates on the >5000 BM25 path.
+                // If the analyzer is unavailable, skip this field (a clause
+                // less → at worst a full-scan fallback, never a wrong hit).
+                let mut analyzer = match self._index.tokenizer_for_field(field) {
+                    Ok(a) => a,
+                    Err(_) => continue,
+                };
+                let mut stream = analyzer.token_stream(t);
+                while stream.advance() {
+                    let term = Term::from_field_text(field, &stream.token().text);
+                    clauses.push((
+                        Occur::Should,
+                        Box::new(TermQuery::new(term, IndexRecordOption::WithFreqs)),
+                    ));
                 }
             }
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.tags, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_TAGS,
-                )),
-            ));
-            // ponytail: per-token description clause (was last-only).
-            // §7.2 says description boost 1.0; we don't add an extra
-            // exact-match bonus here — that's handled in
-            // apply_exact_match_bonuses based on ALL tokens.
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.description, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_DESCRIPTION,
-                )),
-            ));
-            clauses.push((
-                Occur::Should,
-                Box::new(BoostQuery::new(
-                    Box::new(TermQuery::new(
-                        Term::from_field_text(fields.example_codes, token),
-                        IndexRecordOption::Basic,
-                    )),
-                    BOOST_EXAMPLE_CODES,
-                )),
-            ));
         }
         if clauses.is_empty() {
-            return Box::new(BooleanQuery::new(vec![]));
+            return None;
         }
-        // ponytail: silence unused-const warnings on the post-rerank
-        // bonuses; they're applied in search() via
-        // apply_exact_match_bonuses / apply_source_priority. Keeping
-        // them declared up here makes the spec mapping self-evident
-        // and is the single source of truth for §7.2's numbers.
-        let _ = (
-            EXACT_BONUS_SYNTAX,
-            EXACT_BONUS_TITLE,
-            EXACT_BONUS_DESCRIPTION,
-            EXACT_BONUS_PER_TAG,
-            SRC_PRIORITY_OFFICIAL,
-            SRC_PRIORITY_CHEAT_SHEET,
-            SRC_PRIORITY_CURATED,
-        );
-        Box::new(BooleanQuery::new(clauses))
+        let query = BooleanQuery::new(clauses);
+        // ponytail: 4b — a persistent BM25 query failure silently falls
+        // back to a full scan (safe, correctness-preserving), but that
+        // fallback must be OBSERVABLE: at scale (>RETRIEVAL_FULLSCAN_MAX)
+        // a search()/IO error here means every query is paying the
+        // full-scan cost the retrieval path exists to avoid, and nothing
+        // would otherwise say why.
+        let top = match searcher.search(&query, &TopDocs::with_limit(RETRIEVAL_CANDIDATE_CAP)) {
+            Ok(top) => top,
+            Err(e) => {
+                tracing::warn!(
+                    error = %e,
+                    "BM25 candidate search failed; falling back to full scan"
+                );
+                return None;
+            }
+        };
+        // ponytail: map retrieved doc ids back to normalized indices via the
+        // stored entry id. Build a one-time id→index map.
+        let id_to_idx: std::collections::HashMap<&str, usize> = self
+            .normalized
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.id.as_str(), i))
+            .collect();
+        let id_field = self.fields.id;
+        let mut idxs = Vec::with_capacity(top.len());
+        for (_score, addr) in top {
+            // ponytail: 4a — a single bad doc fetch must not abort the
+            // whole candidate set (a `?`/`.ok()?` here previously turned
+            // one failed fetch into a silent full-scan by discarding every
+            // OTHER candidate already collected). Skip just this address
+            // and keep collecting the rest.
+            let doc: tantivy::TantivyDocument = match searcher.doc(addr) {
+                Ok(doc) => doc,
+                Err(e) => {
+                    tracing::warn!(error = %e, "BM25 candidate doc fetch failed; skipping candidate");
+                    continue;
+                }
+            };
+            if let Some(val) = doc.get_first(id_field).and_then(|v| v.as_str()) {
+                if let Some(&i) = id_to_idx.get(val) {
+                    idxs.push(i);
+                }
+            }
+        }
+        if idxs.len() < RETRIEVAL_MIN_CANDIDATES {
+            return None; // thin candidates → fall back to full scan
+        }
+        Some(idxs)
+    }
+
+    /// Tantivy BM25 candidate retrieval. One-line wrapper around
+    /// `retrieve_candidates_with_max` using the production threshold.
+    fn retrieve_candidates(&self, terms: &[String]) -> Option<Vec<usize>> {
+        self.retrieve_candidates_with_max(terms, RETRIEVAL_FULLSCAN_MAX)
+    }
+
+    pub fn search(&self, raw_query: &str, limit: usize) -> Result<Vec<SearchHit>> {
+        let raw = raw_query.trim();
+        if raw.is_empty() {
+            return Ok(Vec::new());
+        }
+        // ponytail: parse ONCE against full-corpus pack_ids. The same
+        // `parsed` drives BM25 retrieval AND scoring, so tool detection is
+        // stable regardless of which rows survive retrieval (M1), and the
+        // dormant path no longer parses twice (M2).
+        let parsed = crate::ranker::parse_query(raw, &self.full_corpus_pack_ids());
+        let terms = Self::bm25_terms_of(&parsed);
+
+        // KNOWN LIMITATION (dormant ≤5000): BM25 candidate path scores only
+        // the retrieved subset; ranking may diverge from full-scan for
+        // entries BM25 did not retrieve. Ranking-equivalence is not tested.
+        // Revisit before the corpus crosses RETRIEVAL_FULLSCAN_MAX.
+        let ranked = match self.retrieve_candidates(&terms) {
+            Some(idxs) => {
+                let subset: Vec<crate::ranker::NormalizedEntry> = idxs
+                    .into_iter()
+                    .map(|i| self.normalized[i].clone())
+                    .collect();
+                crate::ranker::score_query_normalized_with(&subset, &parsed)
+            }
+            None => crate::ranker::score_query_normalized_with(&self.normalized, &parsed),
+        };
+        // ponytail: 5.3 — O(1) entry lookup by id for SearchHit
+        // construction. RankedHit carries NormalizedEntry (id +
+        // pack_id + token sets) but not the original strings; we need
+        // the Entry for description/syntax/title/source_url/example_code.
+        // 731 entries × ~30 bytes per key is a 20 KB hashmap — trivial.
+        let by_id: std::collections::HashMap<&str, &Entry> = self
+            .entries
+            .iter()
+            .map(|(_, e)| (e.id.as_str(), e))
+            .collect();
+        let hits: Vec<SearchHit> = ranked
+            .into_iter()
+            .take(limit)
+            .filter_map(|h| {
+                let entry = by_id.get(h.entry.id.as_str())?;
+                Some(SearchHit {
+                    id: entry.id.clone(),
+                    pack_id: h.entry.pack_id.clone(),
+                    title: entry.title.clone(),
+                    syntax: entry.syntax.clone(),
+                    description: entry.description.clone(),
+                    source: h.entry.source.as_str().to_string(),
+                    source_url: entry.source_url.clone(),
+                    example_code: entry.examples.first().map(|ex| ex.code.clone()),
+                    score: h.score as f32,
+                })
+            })
+            .collect();
+        Ok(hits)
     }
 }
 
@@ -449,99 +432,6 @@ fn resolve_fields(schema: &Schema) -> Result<SchemaFields> {
         example_codes: get(schema, "example_codes")?,
         source: get(schema, "source")?,
     })
-}
-
-fn regex_sanitize(token: &str) -> String {
-    let mut out = String::with_capacity(token.len() + 2);
-    for c in token.chars() {
-        if c.is_ascii_alphanumeric() {
-            out.push(c);
-        } else {
-            out.push('\\');
-            out.push(c);
-        }
-    }
-    out
-}
-
-// ponytail: T17 — exact-match bonuses (additive) per spec §7.2.
-// All four conditions are checked against the raw query (trimmed +
-// lowercased) and the stored field text. Returns a single additive
-// bonus to be added to the BM25 score in search().
-fn apply_exact_match_bonuses(
-    raw_query: &str,
-    syntax: &str,
-    title: &str,
-    description: &str,
-    tags: &[String],
-) -> f32 {
-    let mut bonus = 0.0;
-    // +15.0 if query == syntax exactly
-    if !raw_query.is_empty() && raw_query == syntax.to_lowercase() {
-        bonus += 15.0;
-    }
-    // +12.0 if query tokens (sorted) == syntax tokens (sorted) — order-independent match
-    if !raw_query.is_empty() {
-        let mut query_tokens: Vec<&str> = raw_query.split_whitespace().collect();
-        let mut syntax_tokens: Vec<&str> = syntax.split_whitespace().collect();
-        query_tokens.sort_unstable();
-        syntax_tokens.sort_unstable();
-        let syntax_tokens_lc: Vec<String> =
-            syntax_tokens.iter().map(|t| t.to_lowercase()).collect();
-        let syntax_tokens_lc_refs: Vec<&str> =
-            syntax_tokens_lc.iter().map(|s| s.as_str()).collect();
-        if !query_tokens.is_empty() && query_tokens == syntax_tokens_lc_refs {
-            bonus += 12.0;
-        }
-    }
-    // +10.0 if query == title exactly
-    if !raw_query.is_empty() && raw_query == title.to_lowercase() {
-        bonus += 10.0;
-    }
-    // +2.0 if ALL query tokens appear in description (lowercased)
-    if !raw_query.is_empty() && !description.is_empty() {
-        let tokens: Vec<&str> = raw_query
-            .split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.'))
-            .filter(|t| !t.is_empty())
-            .collect();
-        if !tokens.is_empty() {
-            let desc_lc = description.to_lowercase();
-            if tokens.iter().all(|t| desc_lc.contains(t)) {
-                bonus += 2.0;
-            }
-        }
-    }
-    // +1.5 per matching tag (token-substring match)
-    if !raw_query.is_empty() && !tags.is_empty() {
-        let tokens: Vec<&str> = raw_query
-            .split(|c: char| c.is_whitespace() || matches!(c, '-' | '_' | '/' | '.'))
-            .filter(|t| !t.is_empty())
-            .collect();
-        for t in &tokens {
-            for tag in tags {
-                if tag.to_lowercase().contains(t) || t.contains(&tag.to_lowercase()) {
-                    bonus += 1.5;
-                }
-            }
-        }
-    }
-    bonus
-}
-
-// Source priority ADDITIVE offset applied as a post-rerank step on
-// top of BM25 + exact-match bonuses. Higher offset = more
-// authoritative. Pre-T17 was multiplicative (×2.0/×1.5/×1.0);
-// spec §7.2 calls for additive so the priority doesn't dwarf the
-// exact-match bonuses. Personal is rejected by pack validation
-// and never reaches here. Score-relative scaling was dropped: the
-// offset is a fixed f32 per source, not a function of the BM25
-// score — keeps the additive stacking in `search` deterministic.
-fn apply_source_priority(source: &str) -> f32 {
-    match source {
-        "official" => SRC_PRIORITY_OFFICIAL,
-        "cheat-sheet" => SRC_PRIORITY_CHEAT_SHEET,
-        _ => SRC_PRIORITY_CURATED,
-    }
 }
 
 fn build_schema() -> (Schema, SchemaFields) {
@@ -610,40 +500,89 @@ fn build_schema() -> (Schema, SchemaFields) {
     )
 }
 
-fn get_text(doc: &tantivy::TantivyDocument, field: Field) -> String {
-    doc.get_first(field)
-        .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string()
+const ENTRIES_SIDECAR_VERSION: u32 = 1;
+
+// ponytail: 5.3 — entries sidecar. Wrapped in a struct so the JSON
+// shape is self-documenting; serde otherwise serialises
+// Vec<(String, Entry)> as a flat array of [pack_id, entry] pairs,
+// which is harder to read and forward-incompatible (no place to add
+// metadata later without breaking readers).
+#[derive(Serialize, Deserialize)]
+struct EntriesSidecar {
+    // ponytail: bumped whenever the on-disk Entry shape changes in a way
+    // a prior reader would misinterpret. open() rejects a mismatch so the
+    // resolver rebuilds rather than ranking a stale/misread corpus.
+    version: u32,
+    entries: Vec<(String, Entry)>,
 }
 
-fn collect_entry_meta(packs: &[Pack]) -> std::collections::HashMap<String, EntryMeta> {
-    let mut m = std::collections::HashMap::new();
-    for p in packs {
-        for e in &p.entries {
-            m.insert(
-                e.id.clone(),
-                EntryMeta {
-                    description: e.description.clone(),
-                    source_url: e.source_url.clone(),
-                    example_code: e.examples.first().map(|x| x.code.clone()),
-                    tags: e.tags.clone(),
-                },
-            );
-        }
-    }
-    m
+fn write_entries_sidecar(dir: &Path, entries: &[(String, Entry)]) -> Result<()> {
+    let path = dir.join(ENTRIES_SIDECAR);
+    let tmp = dir.join(format!("{ENTRIES_SIDECAR}.tmp"));
+    let sidecar = EntriesSidecar {
+        version: ENTRIES_SIDECAR_VERSION,
+        entries: entries.to_vec(),
+    };
+    let json = serde_json::to_vec_pretty(&sidecar).context("serializing entries sidecar")?;
+    // ponytail: write to a sibling temp then rename — rename is atomic on
+    // the same filesystem, so a crash/ENOSPC mid-write can never leave a
+    // truncated sidecar that open() would parse as a partial corpus.
+    std::fs::write(&tmp, json).with_context(|| format!("writing {}", tmp.display()))?;
+    std::fs::rename(&tmp, &path).with_context(|| format!("renaming into {}", path.display()))?;
+    Ok(())
 }
 
-impl EntryMeta {
-    fn empty() -> Self {
-        Self {
-            description: String::new(),
-            source_url: None,
-            example_code: None,
-            tags: Vec::new(),
+fn read_entries_sidecar(dir: &Path) -> Result<Vec<(String, Entry)>> {
+    let path = dir.join(ENTRIES_SIDECAR);
+    let raw = std::fs::read(&path).with_context(|| {
+        format!(
+            "reading {} (re-run `hotdoc-cli index` to rebuild)",
+            path.display()
+        )
+    })?;
+    let sidecar: EntriesSidecar =
+        serde_json::from_slice(&raw).context("parsing entries sidecar")?;
+    if sidecar.version != ENTRIES_SIDECAR_VERSION {
+        anyhow::bail!(
+            "entries sidecar version {} != expected {} (re-run `hotdoc-cli index`)",
+            sidecar.version,
+            ENTRIES_SIDECAR_VERSION
+        );
+    }
+    Ok(sidecar.entries)
+}
+
+// 4c: load-time global-uniqueness gate. `pack::validate_into` only checks
+// for duplicate ids WITHIN one pack; across packs there was no check at
+// all. A cross-pack collision would make the `by_id`/`id_to_idx` maps in
+// this file keep whichever pack happened to be inserted last, silently
+// rendering the WRONG pack's entry for a retrieved doc — a data-integrity
+// bug that would be invisible until someone noticed the wrong card. This
+// gate turns that into a fail-fast, descriptive build error instead.
+fn validate_cross_pack_id_uniqueness(packs: &[Pack]) -> Result<()> {
+    let mut seen: std::collections::HashMap<&str, &str> = std::collections::HashMap::new();
+    for pack in packs {
+        for entry in &pack.entries {
+            if let Some(&first_pack_id) = seen.get(entry.id.as_str()) {
+                return Err(anyhow::anyhow!(
+                    "entry id {:?} appears in more than one pack ({:?} and {:?}); \
+                     entry ids must be globally unique across all packs",
+                    entry.id,
+                    first_pack_id,
+                    pack.id
+                ));
+            }
+            seen.insert(entry.id.as_str(), pack.id.as_str());
         }
     }
+    Ok(())
+}
+
+fn build_normalized(entries: &[(String, Entry)]) -> Vec<crate::ranker::NormalizedEntry> {
+    entries
+        .iter()
+        .map(|(pid, e)| crate::ranker::normalize_entry(pid, e))
+        .collect()
 }
 
 #[cfg(test)]
@@ -677,9 +616,7 @@ mod tests {
     #[test]
     fn git_stash_returns_git_stash() {
         let idx = fresh_index();
-        let hits = idx
-            .search("git stash", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git stash", 8).expect("search");
         assert!(!hits.is_empty(), "expected hits for 'git stash'");
         assert_eq!(hits[0].id, "git-stash", "top hit should be git-stash");
     }
@@ -687,9 +624,7 @@ mod tests {
     #[test]
     fn git_stash_pop_top_hit() {
         let idx = fresh_index();
-        let hits = idx
-            .search("git stash pop", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git stash pop", 8).expect("search");
         assert!(!hits.is_empty());
         assert_eq!(hits[0].id, "git-stash-pop");
     }
@@ -697,9 +632,7 @@ mod tests {
     #[test]
     fn fuzzy_typo_finds_target() {
         let idx = fresh_index();
-        let hits = idx
-            .search("git stsh pop", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git stsh pop", 8).expect("search");
         assert!(
             hits.iter().any(|h| h.id == "git-stash-pop"),
             "typo 'stsh' should still resolve to git-stash-pop; got {:?}",
@@ -708,20 +641,9 @@ mod tests {
     }
 
     #[test]
-    fn gibberish_returns_empty() {
-        let idx = fresh_index();
-        let hits = idx
-            .search("asdfqwer", 8, &Default::default())
-            .expect("search");
-        assert!(hits.is_empty(), "gibberish should yield zero results");
-    }
-
-    #[test]
     fn prefix_match_finds_target() {
         let idx = fresh_index();
-        let hits = idx
-            .search("git stas", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git stas", 8).expect("search");
         assert!(
             hits.iter().any(|h| h.id == "git-stash"),
             "prefix 'stas' should resolve to git-stash; got {:?}",
@@ -732,9 +654,7 @@ mod tests {
     #[test]
     fn short_token_skips_prefix_clause() {
         let idx = fresh_index();
-        let hits = idx
-            .search("git st", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git st", 8).expect("search");
         for h in &hits {
             assert_ne!(h.id, "git-st", "no card has id 'git-st'");
         }
@@ -743,16 +663,14 @@ mod tests {
     #[test]
     fn empty_query_returns_empty() {
         let idx = fresh_index();
-        let hits = idx.search("   ", 8, &Default::default()).expect("search");
+        let hits = idx.search("   ", 8).expect("search");
         assert!(hits.is_empty(), "empty query should yield zero results");
     }
 
     #[test]
     fn simple_tokenizer_splits_hyphenated_syntax() {
         let idx = fresh_index();
-        let hits = idx
-            .search("reset soft head", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("reset soft head", 8).expect("search");
         assert!(
             hits.iter().take(3).any(|h| h.id == "git-reset-soft-head-1"),
             "SimpleTokenizer should split 'git-reset-soft-head-1' so 'reset soft head' hits it; got {:?}",
@@ -763,9 +681,7 @@ mod tests {
     #[test]
     fn exact_match_boost_lifts_docker_logs_over_logs_tail() {
         let idx = fresh_index();
-        let hits = idx
-            .search("docker logs", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("docker logs", 8).expect("search");
         // With the full 18-pack corpus, BM25 TF variance can push
         // cross-pack entries (e.g. aws-ecr-login has "docker" twice) above
         // docker-logs at position 1. The invariant we lock is that
@@ -785,9 +701,7 @@ mod tests {
     #[test]
     fn source_priority_lifts_official_over_curated_sibling() {
         let idx = fresh_index();
-        let hits = idx
-            .search("kubectl get pods", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("kubectl get pods", 8).expect("search");
         // kubectl-get-pods is source:"official" in the curated pack.
         // It should appear as the top result, beating any curated siblings.
         assert_eq!(
@@ -831,6 +745,68 @@ mod tests {
         );
     }
 
+    // 4c — cross-pack entry-id uniqueness gate. `entry.id` is validated
+    // unique only WITHIN a pack (pack.rs); the "globally unique" claim
+    // documented on `entry_count()` above was previously unenforced. On a
+    // real cross-pack collision the doc→entry / hit→Entry maps in
+    // `search()` key on `entry.id` alone and keep the last writer, so a
+    // retrieved doc would silently render the WRONG pack's entry. Fail
+    // fast at build time instead.
+    #[test]
+    fn build_rejects_cross_pack_duplicate_entry_id() {
+        let (pack_a, _) = make_entry_with(
+            "dup-id",
+            "alpha",
+            "foo bar",
+            "Foo",
+            "foo desc",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let (pack_b, _) = make_entry_with(
+            "dup-id",
+            "beta",
+            "baz qux",
+            "Baz",
+            "baz desc",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-dup-id-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        let res = HotdocIndex::build(&[pack_a, pack_b], &dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(
+            res.is_err(),
+            "a cross-pack duplicate entry id must fail the build, got Ok"
+        );
+        let msg = format!("{:#}", res.err().expect("err"));
+        assert!(
+            msg.contains("dup-id"),
+            "error should name the colliding id; got: {msg}"
+        );
+        assert!(
+            msg.contains("alpha") && msg.contains("beta"),
+            "error should name both colliding pack ids; got: {msg}"
+        );
+    }
+
+    // 4c — no false positive on the real 18-pack corpus (729 distinct
+    // entry ids per the corpus audit). Guards the gate above against
+    // ever blocking a legitimate build.
+    #[test]
+    fn build_succeeds_on_real_corpus_with_globally_unique_ids() {
+        let idx = fresh_index();
+        assert!(idx.entry_count() > 0, "real corpus must build and load");
+    }
+
     // T17 tests — each one asserts a specific clause of spec §7.2.
     // Build a minimal pack set so the test is hermetic (no dependency
     // on packs/curate shape).
@@ -870,6 +846,7 @@ mod tests {
                 description: description.to_string(),
                 examples: vec![],
                 tags: tags.iter().map(|s| s.to_string()).collect(),
+                aliases: vec![],
                 source,
                 source_url: None,
             }],
@@ -902,9 +879,7 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_a, pack_b]);
-        let hits = idx
-            .search("git stash", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("git stash", 8).expect("search");
         assert!(
             hits.len() >= 2,
             "need 2 hits, got {}: {:?}",
@@ -930,49 +905,6 @@ mod tests {
     }
 
     #[test]
-    fn desc_bonus_requires_all_tokens() {
-        // Spec §7.2: +2.0 if ALL query tokens appear in description.
-        // Build two cards with the same syntax/title; one's description
-        // has both tokens, the other has only one. The "all tokens"
-        // card must outscore the partial card by 2.0.
-        let (pack_full, _) = make_entry_with(
-            "full",
-            "alpha",
-            "git undo",
-            "Undo last commit",
-            "git undo last commit history",
-            crate::pack::EntrySource::Curated,
-            vec![],
-        );
-        let (pack_partial, _) = make_entry_with(
-            "partial",
-            "alpha",
-            "git undo",
-            "Undo last commit",
-            "undo only",
-            crate::pack::EntrySource::Curated,
-            vec![],
-        );
-        let idx = t17_build(&[pack_full, pack_partial]);
-        let hits = idx
-            .search("git undo", 8, &Default::default())
-            .expect("search");
-        let f = hits.iter().find(|h| h.id == "full").expect("hit full");
-        let p = hits
-            .iter()
-            .find(|h| h.id == "partial")
-            .expect("hit partial");
-        assert!(
-            f.score > p.score,
-            "full-desc card should outscore partial; f={} p={}",
-            f.score,
-            p.score
-        );
-        let delta = f.score - p.score;
-        assert!(delta >= 1.5, "expected ~2.0 desc bonus, got delta={delta}");
-    }
-
-    #[test]
     fn edit_distance_8plus_allows_ed2() {
         // Spec §7.1: tokens of length 8+ get edit distance 2. Build
         // a card whose syntax is "kubernetes" (10 chars). A 2-edit
@@ -989,9 +921,7 @@ mod tests {
         );
         let idx = t17_build(&[pack]);
         // "kubernates" is 10 chars, 2 edits from "kubernetes"
-        let hits = idx
-            .search("kubernates", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("kubernates", 8).expect("search");
         assert!(
             hits.iter().any(|h| h.id == "k8s"),
             "2-edit typo of an 8+ token should still hit; got: {:?}",
@@ -1024,9 +954,7 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_official, pack_curated]);
-        let hits = idx
-            .search("kubectl get pods", 8, &Default::default())
-            .expect("search");
+        let hits = idx.search("kubectl get pods", 8).expect("search");
         let o = hits.iter().find(|h| h.id == "official").expect("hit o");
         let c = hits.iter().find(|h| h.id == "curated").expect("hit c");
         let delta = o.score - c.score;
@@ -1039,6 +967,28 @@ mod tests {
             o.score,
             c.score
         );
+    }
+
+    #[test]
+    fn open_rejects_wrong_sidecar_version() {
+        let dir = std::env::temp_dir().join(format!(
+            "hotdoc-ver-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        HotdocIndex::build(&packs_for_test(), &dir).expect("build");
+        // Corrupt the sidecar version.
+        let p = dir.join(ENTRIES_SIDECAR);
+        let raw = std::fs::read_to_string(&p).expect("read sidecar");
+        let bumped = raw.replacen("\"version\": 1", "\"version\": 999", 1);
+        std::fs::write(&p, bumped).expect("rewrite sidecar");
+        let res = HotdocIndex::open(&dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(res.is_err(), "open must reject an unknown sidecar version");
     }
 
     #[test]
@@ -1065,7 +1015,7 @@ mod tests {
             vec![],
         );
         let idx = t17_build(&[pack_a, pack_b]);
-        let hits = idx.search("x", 8, &Default::default()).expect("search");
+        let hits = idx.search("x", 8).expect("search");
         assert!(hits.len() >= 2);
         // With identical BM25, pack_id "aaa" should sort before "zzz"
         let first_pack = &hits[0].pack_id;
@@ -1076,48 +1026,431 @@ mod tests {
         );
     }
 
-    // Golden-lock: popular entry outranks an equal-BM25 unpopular sibling.
-    // Spec §7.2: popularity = ln(1 + raw) * 0.1 as additive post-rerank bonus.
-    // Two cards with identical syntax/title/description/source → same BM25.
-    // The popular card has a pre-built popularity map entry; the unpopular one
-    // does not. The popular card must rank first.
     #[test]
-    fn popularity_bonus_lifts_popular_over_unpopular_sibling() {
-        let (pack_popular, _) = make_entry_with(
-            "popular-card",
+    fn retrieve_candidates_with_max_forces_bm25_branch() {
+        // Small corpus — well below RETRIEVAL_FULLSCAN_MAX but with enough
+        // "git" entries (21 total) that the BM25 result set survives the
+        // RETRIEVAL_MIN_CANDIDATES (16) thin-candidate guard.
+        //
+        // Pack id is "alpha" (NOT "git") so parse_query does NOT consume
+        // "git" as the `tool` slot.  That keeps "git", "commit", "amend"
+        // all in `intents`, giving BM25 terms that match every entry.
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("git-cmd-{i}"),
+                "alpha",
+                &format!("git cmd-{i}"),
+                &format!("Git Cmd {i}"),
+                "git utility",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let (target, _) = make_entry_with(
+            "git-commit-amend",
             "alpha",
-            "git push origin main",
-            "Push to origin",
-            "push to remote",
+            "git commit --amend",
+            "Git Commit Amend",
+            "amend the most recent commit",
             crate::pack::EntrySource::Curated,
             vec![],
         );
-        let (pack_unpopular, _) = make_entry_with(
-            "unpopular-card",
-            "alpha",
-            "git push origin main",
-            "Push to origin",
-            "push to remote",
-            crate::pack::EntrySource::Curated,
-            vec![],
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        let terms = idx.bm25_terms_for("git commit amend");
+        // fullscan_max=0 → corpus.len() (21) > 0 → BM25 branch engages.
+        let cands = idx.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands.is_some(),
+            "must take BM25 branch when corpus.len() > fullscan_max"
         );
-        let idx = t17_build(&[pack_popular, pack_unpopular]);
+        let ids: Vec<&str> = cands
+            .expect("Some")
+            .iter()
+            .map(|&i| idx.normalized[i].id.as_str())
+            .collect();
+        assert!(
+            ids.contains(&"git-commit-amend"),
+            "BM25 candidates must include the target; got {ids:?}"
+        );
+        // Real threshold on this small corpus → full scan (dormant branch).
+        assert!(
+            idx.retrieve_candidates(&terms).is_none(),
+            "real threshold must keep retrieval dormant on a small corpus"
+        );
+    }
 
-        // Build a popularity map with one fresh activation for the popular card.
-        let mut pop_map = std::collections::HashMap::new();
-        let raw = 1.0f32; // one fresh activation → weight = 1.0
-        let term = (1.0f32 + raw).ln() * 0.1;
-        pop_map.insert("popular-card".to_string(), term);
+    // 4f — boundary test for the fullscan_max comparison itself
+    // (`self.normalized.len() <= fullscan_max`). Existing coverage only
+    // exercised MAX+50 (well clear of the edge); this pins the actual `<=`
+    // vs `>` boundary so a future off-by-one (e.g. `<` instead of `<=`)
+    // fails a test instead of silently changing when retrieval engages.
+    #[test]
+    fn retrieve_candidates_fullscan_boundary_exact_vs_plus_one() {
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("card-{i}"),
+                "alpha",
+                &format!("widget item {i}"),
+                &format!("Widget {i}"),
+                "a widget",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let idx = t17_build(&packs);
+        let terms = vec!["widget".to_string()];
+        let n = idx.normalized.len(); // 20
 
-        let hits = idx
-            .search("git push origin main", 8, &pop_map)
-            .expect("search");
-        assert!(hits.len() >= 2, "expected at least 2 hits");
+        // corpus.len() == fullscan_max → full-scan (dormant).
+        assert!(
+            idx.retrieve_candidates_with_max(&terms, n).is_none(),
+            "corpus.len() == fullscan_max must stay full-scan"
+        );
+        // corpus.len() == fullscan_max + 1 (fullscan_max = n - 1) → BM25 engages.
+        assert!(
+            idx.retrieve_candidates_with_max(&terms, n - 1).is_some(),
+            "corpus.len() == fullscan_max + 1 must engage the BM25 branch"
+        );
+    }
+
+    // 4f — boundary test for RETRIEVAL_MIN_CANDIDATES (the thin-candidate
+    // full-scan fallback: `idxs.len() < RETRIEVAL_MIN_CANDIDATES`).
+    // Existing coverage never pinned the exact edge between "BM25 result
+    // set kept" and "too thin, fall back". fullscan_max=0 forces every
+    // call into the BM25 branch so only the candidate-count guard is
+    // under test.
+    #[test]
+    fn retrieve_candidates_min_candidates_boundary() {
+        fn build_with_matches(n_matches: usize) -> HotdocIndex {
+            let mut packs = Vec::new();
+            for i in 0..n_matches {
+                let (p, _) = make_entry_with(
+                    &format!("match-{i}"),
+                    "alpha",
+                    &format!("widget item {i}"),
+                    &format!("Widget {i}"),
+                    "a widget",
+                    crate::pack::EntrySource::Curated,
+                    vec![],
+                );
+                packs.push(p);
+            }
+            // Filler entries that never contain "widget" in any indexed
+            // field, so they can't leak into the BM25 candidate set and
+            // skew the count under test.
+            for i in 0..5_usize {
+                let (p, _) = make_entry_with(
+                    &format!("filler-{i}"),
+                    "alpha",
+                    &format!("gadget item {i}"),
+                    &format!("Gadget {i}"),
+                    "a gadget",
+                    crate::pack::EntrySource::Curated,
+                    vec![],
+                );
+                packs.push(p);
+            }
+            t17_build(&packs)
+        }
+        let terms = vec!["widget".to_string()];
+
+        // Exactly RETRIEVAL_MIN_CANDIDATES matches → kept (>= not >).
+        let idx_at_min = build_with_matches(super::RETRIEVAL_MIN_CANDIDATES);
+        let cands = idx_at_min.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands.is_some(),
+            "exactly RETRIEVAL_MIN_CANDIDATES matches must be kept, not treated as thin"
+        );
         assert_eq!(
-            hits[0].id,
-            "popular-card",
-            "popular-card must outrank unpopular-card; got {:?}",
-            hits.iter().map(|h| &h.id).collect::<Vec<_>>()
+            cands.expect("Some").len(),
+            super::RETRIEVAL_MIN_CANDIDATES,
+            "candidate count should equal the number of matching entries"
+        );
+
+        // One below RETRIEVAL_MIN_CANDIDATES → thin, falls back to full scan.
+        let idx_below_min = build_with_matches(super::RETRIEVAL_MIN_CANDIDATES - 1);
+        let cands_below = idx_below_min.retrieve_candidates_with_max(&terms, 0);
+        assert!(
+            cands_below.is_none(),
+            "one below RETRIEVAL_MIN_CANDIDATES must fall back to full scan"
+        );
+    }
+
+    #[test]
+    fn bm25_terms_match_hyphenated_tokens() {
+        // M5: BM25 query terms must pass through the index analyzer so a
+        // hyphenated query option like `--hard` folds to the same `hard`
+        // token Tantivy indexed. Building `Term::from_field_text(field,
+        // "--hard")` directly (pre-fix) looks for a literal `--hard` token
+        // that the SimpleTokenizer never produces → the target is invisible
+        // to the BM25 branch even though its syntax clearly contains it.
+        //
+        // pack_id "git" → parse_query consumes "git" as the tool slot, so
+        // the live BM25 terms are ["reset", "--hard"]. The 20 filler rows
+        // match "reset" (NOT "hard"), clearing RETRIEVAL_MIN_CANDIDATES so
+        // the BM25 branch returns Some in BOTH worlds. The ONLY bridge to
+        // the target is the analyzer mapping "--hard" → "hard"; its
+        // searchable fields deliberately omit a bare "reset"/"hard" query
+        // term so its presence hinges solely on the hyphen fold.
+        let mut packs = Vec::new();
+        for i in 0..20_usize {
+            let (p, _) = make_entry_with(
+                &format!("git-reset-hunk-{i}"),
+                "git",
+                &format!("git reset hunk-{i}"),
+                &format!("Reset Hunk {i}"),
+                "unstage a reset hunk",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        let (target, _) = make_entry_with(
+            "git-reset-hard",
+            "git",
+            "git switch --hard <ref>",
+            "Hard Switch",
+            "force overwrite the working tree using the hard flag",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        let terms = idx.bm25_terms_for("git reset --hard");
+        let cands = idx
+            .retrieve_candidates_with_max(&terms, 0)
+            .expect("bm25 branch");
+        let ids: Vec<&str> = cands
+            .iter()
+            .map(|&i| idx.normalized[i].id.as_str())
+            .collect();
+        assert!(
+            ids.contains(&"git-reset-hard"),
+            "hyphenated `--hard` must fold to the indexed `hard` token; got {ids:?}"
+        );
+    }
+
+    #[test]
+    fn scoring_uses_full_corpus_pack_ids_above_threshold() {
+        // M1: the above-threshold path scores a candidate SUBSET. Tool
+        // detection must use pack_ids from the FULL corpus, never the
+        // subset — otherwise a query token like "beta" goes unrecognized
+        // whenever no candidate row happens to be in the "beta" pack, and
+        // the TOOL_HARD_FILTER pack scoping silently disappears.
+        //
+        // Full corpus: many "alpha" rows + one "beta" row. The candidate
+        // subset is deliberately beta-sparse (alpha rows only), mimicking
+        // a BM25 result set that missed the weak beta entry.
+        let mut full: Vec<crate::ranker::NormalizedEntry> = Vec::new();
+        let mut alpha_subset: Vec<crate::ranker::NormalizedEntry> = Vec::new();
+        for i in 0..5_usize {
+            let (p, _) = make_entry_with(
+                &format!("alpha-thing-{i}"),
+                "alpha",
+                &format!("thing widget {i}"),
+                &format!("Thing {i}"),
+                "configure a thing",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            let n = crate::ranker::normalize_entry(&p.id, &p.entries[0]);
+            full.push(n.clone());
+            alpha_subset.push(n);
+        }
+        let (beta_pack, _) = make_entry_with(
+            "beta-thing",
+            "beta",
+            "beta thing",
+            "Beta Thing",
+            "a beta thing",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        full.push(crate::ranker::normalize_entry(
+            &beta_pack.id,
+            &beta_pack.entries[0],
+        ));
+
+        // Full-corpus pack_ids include "beta" → parse recognizes the tool.
+        let full_pack_ids: Vec<String> = {
+            let mut v: Vec<String> = full.iter().map(|n| n.pack_id.clone()).collect();
+            v.sort_unstable();
+            v.dedup();
+            v
+        };
+        let parsed = crate::ranker::parse_query("beta thing", &full_pack_ids);
+        assert_eq!(
+            parsed.tool.as_deref(),
+            Some("beta"),
+            "full-corpus parse must recognize 'beta' as the tool"
+        );
+
+        // Score the beta-sparse subset with the full-corpus parse. Every
+        // alpha row must be hard-filtered (NEG_INFINITY → dropped), so no
+        // finite-scored hit may belong to any pack other than "beta".
+        let hits = crate::ranker::score_query_normalized_with(&alpha_subset, &parsed);
+        assert!(
+            hits.iter().all(|h| h.entry.pack_id == "beta"),
+            "alpha rows must be hard-filtered when tool=beta is recognized \
+             from the full corpus; leaked: {:?}",
+            hits.iter().map(|h| &h.entry.id).collect::<Vec<_>>()
+        );
+        // And the alpha-only subset yields zero survivors (tool filter bites).
+        assert!(
+            hits.is_empty(),
+            "beta-sparse subset must produce no finite hits under tool=beta"
+        );
+    }
+
+    #[test]
+    fn retrieval_engages_above_threshold_and_fuzzy_falls_back() {
+        // Build a synthetic corpus larger than RETRIEVAL_FULLSCAN_MAX so
+        // the tantivy candidate path activates. A clean query must hit its
+        // card via candidates; a typo'd query must still resolve via the
+        // full-scan fallback (fuzzy recall preserved).
+        let mut packs = Vec::new();
+        for i in 0..(super::RETRIEVAL_FULLSCAN_MAX + 50) {
+            let (p, _) = make_entry_with(
+                &format!("card-{i}"),
+                "alpha",
+                &format!("widget {i} configure"),
+                &format!("Widget {i}"),
+                "configure a widget",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+        // A distinctive target for the fuzzy case.
+        let (target, _) = make_entry_with(
+            "kubernetes-card",
+            "beta",
+            "kubernetes orchestrate",
+            "Kubernetes",
+            "container orchestrator",
+            crate::pack::EntrySource::Curated,
+            vec![],
+        );
+        packs.push(target);
+        let idx = t17_build(&packs);
+
+        // Clean query → candidate path returns the right card.
+        let clean = idx.search("widget 7 configure", 8).expect("search");
+        assert!(
+            clean.iter().any(|h| h.id == "card-7"),
+            "clean query must find its card"
+        );
+
+        // Typo query (BM25 won't match "kubernates") → fallback full-scan
+        // lets the ranker's fuzzy rescue resolve it.
+        let typo = idx.search("kubernates", 8).expect("search");
+        assert!(
+            typo.iter().any(|h| h.id == "kubernetes-card"),
+            "typo must still resolve via fallback; got {:?}",
+            typo.iter().map(|h| &h.id).collect::<Vec<_>>()
+        );
+    }
+
+    // M1 end-to-end guard (production search() path).
+    //
+    // Background: before commit 6b6989e, search() derived pack_ids from the
+    // BM25 candidate SUBSET rather than the full corpus. When the target tool
+    // pack ("ziptool") was absent from the BM25 candidates, parse_query could
+    // not recognize "ziptool" as a tool token, so TOOL_HARD_FILTER was never
+    // applied and the noise pack's entries leaked into results.
+    //
+    // Why the BM25 subset is alpha-only here:
+    // The target pack ("ziptool") has 3 entries that contain NO "download"
+    // token in any indexed field (title, syntax, description, tags). BM25
+    // retrieval searches for "download" (the only intent term on the fixed
+    // path) and returns the top-256 alpha entries, all of which have
+    // "download" prominently in title + syntax. The 3 ziptool entries score
+    // 0 for the "download" BM25 term and never appear in candidates.
+    //
+    // Fixed path (search parses against full corpus):
+    //   full_corpus_pack_ids = ["alpha", "ziptool"]
+    //   parse_query("ziptool download", ...) → tool="ziptool", intents=["download"]
+    //   BM25 subset = 256 alpha entries
+    //   score subset with tool="ziptool" → TOOL_HARD_FILTER for every alpha
+    //   entry → zero finite hits. Assertion holds vacuously (empty slice).
+    //
+    // Buggy path (search parses against subset):
+    //   subset pack_ids = ["alpha"]
+    //   parse_query("ziptool download", ["alpha"]) → tool=None ("ziptool"
+    //   absent from subset), intents=["ziptool","download"]
+    //   Score 256 alpha entries with tool=None → no hard filter.
+    //   Per alpha entry: "download" → INTENT_EXACT(25) + field_weighted(8);
+    //   "ziptool" → INTENT_MISSING(-25). Total = 8 > 0 → finite.
+    //   256 alpha entries survive → assertion `pack_id == "ziptool"` fails.
+    #[test]
+    fn above_threshold_search_scopes_hits_to_target_pack_m1() {
+        let dir = tempfile::tempdir().expect("create tempdir for m1 e2e test");
+        let mut packs = Vec::new();
+
+        // Noise pack: RETRIEVAL_FULLSCAN_MAX+50 entries, all with "download"
+        // in title + syntax + description → strong, uniform BM25 signal.
+        // This guarantees the BM25 candidate set is well above the 16-entry
+        // thin-candidate floor and is entirely populated by alpha entries.
+        for i in 0..(super::RETRIEVAL_FULLSCAN_MAX + 50) {
+            let (p, _) = make_entry_with(
+                &format!("alpha-{i}"),
+                "alpha",
+                &format!("alpha download cmd {i}"),
+                &format!("Alpha Download {i}"),
+                "download a file from the network",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+
+        // Target pack: 3 entries with NO "download" in any indexed field.
+        // They will not appear in the BM25 candidate set for "download",
+        // making the candidate subset alpha-only — the M1 adversarial shape.
+        for i in 0..3_usize {
+            let (p, _) = make_entry_with(
+                &format!("ziptool-archive-{i}"),
+                "ziptool",
+                &format!("ziptool archive files {i}"),
+                &format!("Ziptool Archive {i}"),
+                "compress and extract archive files",
+                crate::pack::EntrySource::Curated,
+                vec![],
+            );
+            packs.push(p);
+        }
+
+        let idx = HotdocIndex::build(&packs, dir.path()).expect("build m1 e2e index");
+
+        assert!(
+            idx.entry_count() > super::RETRIEVAL_FULLSCAN_MAX,
+            "corpus must exceed RETRIEVAL_FULLSCAN_MAX to exercise the BM25 \
+             candidate branch; got {}",
+            idx.entry_count()
+        );
+
+        // Production search() call — no injectable seam, no hand-crafted
+        // ParsedQuery. This is the path the fix guards.
+        let hits = idx.search("ziptool download", 8).expect("search m1 e2e");
+
+        // Every returned hit must belong to the target pack. On the fixed
+        // path this holds vacuously (the alpha-only BM25 subset is entirely
+        // hard-filtered by tool="ziptool", leaving zero finite hits). On the
+        // buggy path 256 alpha entries survive with score ≈ 8.0, and their
+        // pack_id "alpha" != "ziptool" causes this assertion to fail.
+        assert!(
+            hits.iter().all(|h| h.pack_id == "ziptool"),
+            "search must not return non-ziptool hits (M1 regression); got: {:?}",
+            hits.iter()
+                .map(|h| (h.id.as_str(), h.pack_id.as_str()))
+                .collect::<Vec<_>>()
         );
     }
 }

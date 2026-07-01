@@ -1,11 +1,13 @@
 {
   "_meta": {
-    "description": "M5 golden query set: 50 queries across 18 packs. CI gate for NFR-3 (first-result accuracy). Authored 2026-06-21 (25 original) + expanded 2026-06-24 (25 new covering all curated packs).",
-    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Queries that the indexer tie-breaks awkwardly (e.g. docker logs vs logs-tail) are intentionally skipped — those are T5 problems, not T4 problems.",
+    "description": "Golden query set for NFR-3 (first-result accuracy). 50 baseline queries across 18 packs (CI gate for v1.0) + 18 adversarial queries (WS-A.1 baseline; normalized ranker wired in bfd5f76 — 12/18 adversarial pass pre-3.2, 6 fail on expected_first). Task 3.2 adds forbidden_top3 exclusion assertions to 7 adversarial queries; post-3.2 adversarial: 11/18 pass (systemctl-restart concern: forbidden id still in top-3). Authored 2026-06-21 (25 baseline) + 2026-06-24 (25 baseline) + 2026-06-29 (18 adversarial) + 2026-06-30 (3.2 de-tautologize).",
+    "_comment": "Gibberish queries (asdfqwer, zxqbzxqb blblblblb vvwwxxyz) now assert the empty state (expected_first=null): the task-5.2 confidence gate empties Weak-confidence top hits scoring below the floor (score.rs CONFIDENCE_SCORE_FLOOR). These queries still exist (draft_count unchanged) but leave the eval positive-target population.",
+    "rules": "Per query: assert expected_first is at rank 1, and every id in acceptable_top3 is within the top 3. expected_first=null asserts the zero-result state renders (FR-S9). Adversarial queries (adversarial: true) have expected_first pinned to the TARGET behavior the 5.3 rewrite must produce; the current ranker's actual output is recorded in each query's _comment field. The default bench runs all 68 queries; --adversarial filters to the 18. Neither is gated by verify:all until Phase 6 wires the adversarial gate in.",
     "target_count_v1": 50,
     "target_count_v1_1": 200,
-    "draft_count": 50,
-    "scope": "git (10) + docker (5) + kubectl (4) + gh (3) + curl (3) + aws-cli (2) + bash (2) + jq (2) + make (2) + nginx (2) + pnpm (2) + psql (2) + python (2) + ripgrep (2) + ssh (2) + systemctl (2) + terraform (1) + tmux (1) + zero-match (2)."
+    "adversarial_count": 18,
+    "draft_count": 68,
+    "scope": "git (10) + docker (5) + kubectl (4) + gh (3) + curl (3) + aws-cli (2) + bash (2) + jq (2) + make (2) + nginx (2) + pnpm (2) + psql (2) + python (2) + ripgrep (2) + ssh (2) + systemctl (2) + terraform (1) + tmux (1) + zero-match (2) + adversarial (18)."
   },
   "queries": [
     {
@@ -56,12 +58,13 @@
     {
       "query": "asdfqwer",
       "expected_first": null,
-      "acceptable_top3": []
+      "_comment": "confidence-gate returns empty"
     },
     {
       "query": "docker ps",
       "expected_first": "docker-ps",
-      "acceptable_top3": ["docker-ps", "docker-ps-all", "docker-network-ls"]
+      "acceptable_top3": ["docker-ps", "docker-ps-all", "docker-compose-ps"],
+      "_comment": "task-5.1b owner decision 'plain command wins': bare `docker ps` (no compose intent) ranks plain docker-ps first. Base syntax scores are EQUAL (docker-ps and docker-compose-ps both exact-match at 100); the variant only led earlier via its +1 official-source bonus. The command-modifier penalty (-2 per uncovered command token, here `compose`) now overcomes that bonus so the plain card wins. Reverses the prior fixture, mirroring the docker-logs decision."
     },
     {
       "query": "docker stop",
@@ -260,7 +263,139 @@
     {
       "query": "zxqbzxqb blblblblb vvwwxxyz",
       "expected_first": null,
-      "acceptable_top3": []
+      "_comment": "confidence-gate returns empty"
+    },
+    {
+      "query": "git reset",
+      "expected_first": "git-reset-soft-head-1",
+      "acceptable_top3": ["git-reset-soft-head-1", "git-reset-hard-head"],
+      "adversarial": true,
+      "_comment": "TARGET: git-reset-soft-head-1. Current ranker returns git-stash (tool token 'reset' is treated as low-signal and a high-frequency card wins). 5.3 rewrite must return git-reset-soft-head-1 — a reset query must rank a reset card first."
+    },
+    {
+      "query": "reset git",
+      "expected_first": "git-reset-soft-head-1",
+      "acceptable_top3": ["git-reset-soft-head-1", "git-reset-hard-head"],
+      "adversarial": true,
+      "_comment": "TARGET: git-reset-soft-head-1. Current ranker returns git-stash; query order is irrelevant to BM25 token overlap, so 'reset git' has the same wrong outcome as 'git reset'. 5.3 rewrite must return git-reset-soft-head-1 for both orderings."
+    },
+    {
+      "query": "git reset soft",
+      "expected_first": "git-reset-soft-head-1",
+      "acceptable_top3": ["git-reset-soft-head-1", "git-reset-hard-head"],
+      "forbidden_top3": ["git-stash"],
+      "adversarial": true,
+      "_comment": "TARGET: git-reset-soft-head-1. Current ranker returns git-reset-soft-head-1 first (already correct) but also surfaces git-stash in the top 3 even though no token matches. 5.3 rewrite must keep git-reset-soft-head-1 first AND drop unrelated git cards out of the top 3. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "nginx redirect http to https",
+      "expected_first": "nginx-redirect",
+      "acceptable_top3": ["nginx-redirect"],
+      "forbidden_top3": ["jq-to-entries"],
+      "adversarial": true,
+      "_comment": "TARGET: nginx-redirect. Current ranker returns jq-to-entries because the stopword 'to' inflates its score across the entire corpus. 5.3 rewrite must return nginx-redirect — stopwords must not be scored as command-field evidence. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "kubectl roolout restar",
+      "expected_first": "kubectl-rollout-restart",
+      "acceptable_top3": ["kubectl-rollout-restart"],
+      "forbidden_top3": ["kubectl-logs"],
+      "adversarial": true,
+      "_comment": "TARGET: kubectl-rollout-restart. Current ranker returns kubectl-logs because the typo 'roolout' blocks intent match. 5.3 rewrite must use fuzzy rescue and return kubectl-rollout-restart — fuzzy should help typo queries but stay behind exact/prefix/alias matches for the second token. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "docker logs",
+      "expected_first": "docker-logs",
+      "acceptable_top3": ["docker-logs", "docker-logs-tail"],
+      "adversarial": true,
+      "_comment": "RESOLVED (task-5.1b): docker-logs now ranks first. Base syntax scores tie at 105; docker-compose-logs previously edged ahead only on its +1 official-source bonus. The command-modifier penalty (-2 for the uncovered `compose` token) overcomes that bonus, so the plain exact-subcommand card wins when the query carries no compose intent."
+    },
+    {
+      "query": "ssh copy file to server",
+      "expected_first": "ssh-scp",
+      "acceptable_top3": ["ssh-scp", "scp-recursive"],
+      "forbidden_top3": ["tmux-save-buffer"],
+      "adversarial": true,
+      "_comment": "TARGET: ssh-scp. Current ranker returns tmux-save-buffer because 'save' fuzzy-matches 'copy' and tmux wins on raw token score. 5.3 rewrite must return ssh-scp — alias 'copy file to server' must hit the ssh pack. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "undo last commit",
+      "expected_first": "git-reset-soft-head-1",
+      "acceptable_top3": ["git-reset-soft-head-1", "git-revert"],
+      "adversarial": true,
+      "_comment": "TARGET: git-reset-soft-head-1. Current ranker passes by accident (no alias support yet). 5.3 rewrite must preserve this AND make it explicit via alias match — must add 'undo last commit' as an alias on git-reset-soft-head-1 so the result is robust to pack content changes."
+    },
+    {
+      "query": "copy key to server",
+      "expected_first": "ssh-copy-id",
+      "acceptable_top3": ["ssh-copy-id"],
+      "adversarial": true,
+      "_comment": "TARGET: ssh-copy-id. Current ranker returns ssh-add because 'add' fuzzy-matches 'key' and ssh-add has higher popularity. 5.3 rewrite must return ssh-copy-id via alias — alias 'copy key to server' must outscore fuzzy matches."
+    },
+    {
+      "query": "discard all changes",
+      "expected_first": "git-reset-hard-head",
+      "acceptable_top3": ["git-reset-hard-head", "git-reset-soft-head-1"],
+      "forbidden_top3": ["make-all"],
+      "adversarial": true,
+      "_comment": "TARGET: git-reset-hard-head. Current ranker returns make-all because 'all' is a high-frequency token in the make pack. 5.3 rewrite must return git-reset-hard-head via alias — stopword-like intent words must not bleed across packs. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "http to https",
+      "expected_first": "nginx-redirect",
+      "acceptable_top3": ["nginx-redirect"],
+      "adversarial": true,
+      "_comment": "TARGET: nginx-redirect. Current ranker returns jq-to-entries because 'to' is scored as a real token. 5.3 rewrite must return nginx-redirect via alias 'http to https' — stopwords must be removed from intent scoring."
+    },
+    {
+      "query": "follow redirects curl",
+      "expected_first": "curl-follow-redirects",
+      "acceptable_top3": ["curl-follow-redirects", "curl-location-trusted"],
+      "adversarial": true,
+      "_comment": "TARGET: curl-follow-redirects. Current ranker passes (curl-follow-redirects ranks first). 5.3 rewrite must preserve this and confirm it via alias match (no pack_id change needed)."
+    },
+    {
+      "query": "copy file to server",
+      "expected_first": "ssh-scp",
+      "acceptable_top3": ["ssh-scp", "scp-recursive"],
+      "adversarial": true,
+      "_comment": "TARGET: ssh-scp. Current ranker returns tmux-save-buffer; 'save' fuzzy-matches 'copy'. 5.3 rewrite must return ssh-scp via alias — copy-as-action intent must hit the ssh pack."
+    },
+    {
+      "query": "psql list databases",
+      "expected_first": "psql-list-databases",
+      "acceptable_top3": ["psql-list-databases"],
+      "adversarial": true,
+      "_comment": "TARGET: psql-list-databases. Current ranker passes — psql-list-databases ranks first. 5.3 rewrite must preserve this."
+    },
+    {
+      "query": "jq filter",
+      "expected_first": "jq-select",
+      "acceptable_top3": ["jq-select"],
+      "adversarial": true,
+      "_comment": "TARGET: jq-select. Current ranker returns jq-exit-status because of -e/-n option fuzzy matches. 5.3 rewrite must return jq-select — 'filter' as intent should match the syntax field, not option flags."
+    },
+    {
+      "query": "tmux split window",
+      "expected_first": "tmux-split-window",
+      "acceptable_top3": ["tmux-split-window"],
+      "forbidden_top3": ["tmux-rename-window"],
+      "adversarial": true,
+      "_comment": "TARGET: tmux-split-window. Current ranker returns tmux-rename-window above tmux-split-window despite all 3 tokens matching the second card. 5.3 rewrite must return tmux-split-window — within-pack ordering must respect full token coverage. forbidden_top3 added by task-3.2 to enforce the exclusion."
+    },
+    {
+      "query": "systemctl restart service",
+      "expected_first": "systemctl-restart",
+      "acceptable_top3": ["systemctl-restart", "systemctl-reload-or-restart"],
+      "adversarial": true,
+      "_comment": "RESOLVED (task-5.1b owner decision): systemctl-restart is the decisive #1 (exact match on the dominant verb). The prior forbidden_top3:[systemctl-try-restart] was removed — try-restart and reload-or-restart are symmetric, equally-legitimate restart variants (each carries exactly one uncovered command token, so the command-modifier penalty hits both equally and cannot separate them). Excluding one but accepting the other was arbitrary; restart already wins rank 1, which is what matters."
+    },
+    {
+      "query": "ssh key auth",
+      "expected_first": "ssh-copy-id",
+      "acceptable_top3": ["ssh-copy-id", "ssh-keygen-ed25519"],
+      "adversarial": true,
+      "_comment": "TARGET: ssh-copy-id. Current ranker returns ssh-add (lowest-ID ssh-* card with 'key' in syntax). 5.3 rewrite must rank an authentication card (ssh-copy-id or ssh-keygen-ed25519) first — ambiguous intent must not default to first-by-id."
     }
   ]
 }

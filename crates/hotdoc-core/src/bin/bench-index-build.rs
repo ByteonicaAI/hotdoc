@@ -1,3 +1,9 @@
+// Index-build benchmark: measures how long `HotdocIndex::build` takes to
+// construct the full search index from the shipped packs. This is NOT the
+// NFR-1 window-open bench — the app opens against an already-built index, so
+// build time only matters on first launch / rebuild. NFR-1 warm-open latency
+// is measured by scripts/nfr-open-bench.sh (real display) and its liveness
+// path by scripts/nfr-open-liveness.sh (headless CI).
 use std::process::ExitCode;
 use std::time::Instant;
 
@@ -42,7 +48,7 @@ fn main() -> ExitCode {
     let mut durations_ms: Vec<u128> = Vec::with_capacity(RUNS);
     for i in 0..RUNS {
         let tmp = std::env::temp_dir().join(format!(
-            "hotdoc-bench-open-{}-{}-{}",
+            "hotdoc-bench-index-build-{}-{}-{}",
             std::process::id(),
             i,
             std::time::SystemTime::now()
@@ -69,9 +75,15 @@ fn main() -> ExitCode {
         .get((durations_ms.len() * 19) / 20)
         .copied()
         .unwrap_or(0);
-    println!("OPEN_BENCH: p50={}ms p95={}ms runs={}", p50, p95, RUNS);
+    println!(
+        "INDEX_BUILD_BENCH: p50={}ms p95={}ms runs={}",
+        p50, p95, RUNS
+    );
     if p50 > MAX_P50_MS {
-        eprintln!("OPEN_BENCH: p50={}ms exceeds ceiling {}ms", p50, MAX_P50_MS);
+        eprintln!(
+            "INDEX_BUILD_BENCH: p50={}ms exceeds ceiling {}ms",
+            p50, MAX_P50_MS
+        );
         return ExitCode::from(1);
     }
     ExitCode::SUCCESS

@@ -7,7 +7,7 @@
 
 use rusqlite::{params, Connection};
 use serde::Serialize;
-use tracing::instrument;
+use tracing::{instrument, warn};
 
 use crate::pack::Example;
 use crate::store::Result;
@@ -68,10 +68,18 @@ pub fn list(conn: &Connection) -> Result<Vec<PinnedHit>> {
          ORDER BY p.pinned_at DESC LIMIT ?1",
     )?;
     let rows = stmt.query_map(params![MAX_PINNED as i64], |row| {
+        let entry_id: String = row.get(0)?;
         let examples_json: String = row.get(7)?;
-        let examples: Vec<Example> = serde_json::from_str(&examples_json).unwrap_or_default();
+        let examples: Vec<Example> = serde_json::from_str(&examples_json).unwrap_or_else(|e| {
+            warn!(
+                entry_id = %entry_id,
+                error = %e,
+                "examples_json failed to parse; falling back to empty examples list"
+            );
+            Vec::new()
+        });
         Ok(PinnedHit {
-            id: row.get(0)?,
+            id: entry_id,
             pack_id: row.get(1)?,
             title: row.get(2)?,
             syntax: row.get(3)?,

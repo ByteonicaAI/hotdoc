@@ -23,8 +23,17 @@ use crate::pack::{self, LoadReport};
 /// Works in any context (library, test, binary) because CARGO_MANIFEST_DIR
 /// is always set by Cargo. The bundled-packs dir lives in $OUT_DIR which
 /// only the Tauri app sees; the caller injects that path.
+///
+/// T1 bugfix: this crate's manifest lives at `<repo>/crates/hotdoc-core`,
+/// two directories below the workspace root that holds `packs/curate/`
+/// — a single `..` used to resolve to the nonexistent
+/// `<repo>/crates/packs/curate`. This was previously undetected because
+/// nothing called `resolve_and_build` with `bundled_packs: None` in a
+/// context where the (correctly resolved) OUT_DIR bundled-packs copy
+/// wasn't also present to mask it.
 pub fn dev_packs_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
         .join("..")
         .join("packs")
         .join("curate")
@@ -77,11 +86,17 @@ fn read_pack_fingerprint(db: &Connection) -> Option<String> {
 }
 
 fn write_pack_fingerprint(db: &Connection, fp: &str) {
-    let _ = db.execute(
+    // 4e: a failed write is non-fatal (the next launch just sees
+    // `packs_changed` and rebuilds), but silently dropping the error via
+    // `let _ =` hides a real DB fault (disk full, corrupt meta table,
+    // etc.) that a curator/operator would otherwise want to know about.
+    if let Err(e) = db.execute(
         "INSERT INTO meta(key, value) VALUES ('pack_dir_fingerprint', ?1) \
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         params![fp],
-    );
+    ) {
+        warn!(error = %e, "failed to write pack_dir_fingerprint (non-fatal; next launch will rebuild)");
+    }
 }
 
 /// Resolve + build (or reuse) the launcher's tantivy index, and mirror
@@ -93,10 +108,18 @@ fn write_pack_fingerprint(db: &Connection, fp: &str) {
 /// persistent state. The resolver writes to it during populate_store
 /// (T16). Pass the same Connection the Tauri commands use.
 ///
-/// `bundled_packs` is the path to the `include_dir!`'d copy (set by
-/// the Tauri build script). The dev packs dir is read from
+/// `bundled_packs` is the caller-resolved "shipped packs" directory.
+/// In the production Tauri app this is the OS resource dir populated
+/// at package time from `bundle.resources` in `tauri.conf.json`
+/// (`src-tauri/src/index_state.rs::resource_packs_dir`); there is no
+/// `include_dir!` involved — packs ship as plain files copied into the
+/// bundle by the Tauri CLI. In dev/test builds, `src-tauri/build.rs`
+/// separately `fs::copy`'s `packs/curate/` into `$OUT_DIR` as a
+/// convenience fixture, but that copy is never passed here in
+/// production. The dev packs dir (`dev_packs_dir`, below) is read from
 /// CARGO_MANIFEST_DIR and is always available; the bundled dir is
-/// optional — the resolver skips a missing path.
+/// optional — the resolver skips a missing path and falls back to dev
+/// packs.
 #[instrument(skip_all)]
 pub fn resolve_and_build(db: &Connection, bundled_packs: Option<&Path>) -> Result<IndexResolution> {
     let mut candidates: Vec<PathBuf> = Vec::new();
@@ -232,7 +255,15 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
     if let Err(e) = HotdocIndex::populate_store(db, &packs) {
         warn!(error = %format!("{e:#}"), "populate_store on tmp failed");
     }
-    write_pack_fingerprint(db, &current_fp);
+    // 4d: do NOT write the fingerprint here. This branch only runs after
+    // the persistent build already failed (or no persistent_index_dir is
+    // available), so no persistent index exists on disk. Recording the
+    // fingerprint anyway would claim "packs are indexed" when they are
+    // only indexed in an ephemeral tmp dir — the next launch would see
+    // `!packs_changed`, skip straight to trying to open the missing/empty
+    // persistent dir, fail, and only then rebuild. Leaving the stored
+    // fingerprint stale (or absent) keeps `packs_changed` accurate so the
+    // next launch retries the persistent build honestly.
     Ok(Some(IndexResolution {
         index: std::sync::Arc::new(idx),
         packs,
@@ -323,6 +354,7 @@ mod tests {
                     code: format!("code-{id}"),
                 }],
                 tags: vec![],
+                aliases: vec![],
                 source: EntrySource::Curated,
                 source_url: None,
             }],
@@ -397,6 +429,53 @@ mod tests {
         let _ = std::fs::remove_dir_all(&index_dir);
     }
 
+    // T1 (post-v1 bundling fix): proves the dev-fallback path (the
+    // `dev_packs_dir()` two-`..` fix) resolves to this repo's real
+    // `packs/curate/` dir and that it actually contains pack JSONs.
+    //
+    // This deliberately does NOT call `resolve_and_build` (as the old
+    // version of this test did): that function routes through
+    // `persistent_index_dir()` → `cli::default_index_dir_option()`,
+    // which is not test-injectable and resolves to the developer's/CI's
+    // REAL `~/.local/share/hotdoc/index`. Driving it end-to-end here
+    // would let the test contend for the real tantivy index lock (if
+    // the app is running) and make the reuse-vs-rebuild path
+    // nondeterministic depending on whatever is cached on the machine
+    // — exactly the hazard `resolve_and_build_populates_store` (above)
+    // was already written to avoid. A lighter, path-only assertion is
+    // enough to prove the off-by-one fix without touching persistent
+    // state.
+    #[test]
+    fn dev_packs_dir_resolves_to_repo_packs_curate() {
+        let dir = dev_packs_dir();
+        assert!(
+            dir.is_dir(),
+            "dev_packs_dir() must resolve to an existing directory, got {}",
+            dir.display()
+        );
+        assert!(
+            dir.ends_with("packs/curate"),
+            "dev_packs_dir() must end with packs/curate, got {}",
+            dir.display()
+        );
+        // A known curated pack must be present (proves this is the real
+        // repo packs dir, not an empty/unrelated one).
+        assert!(
+            dir.join("git.json").is_file(),
+            "expected packs/curate/git.json to exist at {}",
+            dir.display()
+        );
+        let json_count = std::fs::read_dir(&dir)
+            .expect("readdir dev_packs_dir")
+            .filter_map(|e| e.ok())
+            .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("json"))
+            .count();
+        assert!(
+            json_count > 0,
+            "dev_packs_dir() must contain at least one pack JSON"
+        );
+    }
+
     #[test]
     fn pinned_list_returns_real_card_after_index_populate() {
         // The "real pin is dead" audit finding (T16 acceptance):
@@ -438,7 +517,7 @@ mod tests {
 
         // Build a valid index.
         let idx = HotdocIndex::build(&packs, &dir).expect("initial build");
-        let hits = idx.search("x", 8, &Default::default()).expect("search ok");
+        let hits = idx.search("x", 8).expect("search ok");
         assert!(!hits.is_empty(), "initial index must be searchable");
         drop(idx);
 
@@ -466,9 +545,7 @@ mod tests {
 
         // Rebuild must succeed (build() removes and recreates the dir).
         let rebuilt = HotdocIndex::build(&packs, &dir).expect("rebuild after corruption");
-        let hits = rebuilt
-            .search("x", 8, &Default::default())
-            .expect("search after rebuild");
+        let hits = rebuilt.search("x", 8).expect("search after rebuild");
         assert!(
             !hits.is_empty(),
             "rebuilt index must be searchable; got zero hits"

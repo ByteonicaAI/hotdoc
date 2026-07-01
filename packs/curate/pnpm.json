@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["dependencies", "installation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/install"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["dependencies", "package-management"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["dependencies", "package-management"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/remove"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["scripts", "execution"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/run"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["dependencies", "updates"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/update"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["inspection", "packages"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/list"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["inspection", "debugging"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/why"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["security", "vulnerability"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/audit"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["publishing", "npm"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/publish"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["optimization", "lock-file"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/dedupe"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["development", "linking"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/link"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["cleanup", "store"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/store"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["workspace", "monorepo"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/workspaces"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["execution", "binaries"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/exec"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["testing", "scripts"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/cli/test"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["workspace", "filtering"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://pnpm.io/filtering"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["execute", "temporary", "package"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["create", "scaffold", "project"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["init", "package", "manifest"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["lockfile", "migration", "npm"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["rebuild", "native", "scripts"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["cleanup", "dependencies", "node_modules"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["offline", "store", "ci"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["updates", "dependencies", "inspect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["config", "settings", "registry"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["patch", "dependency", "fix"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["patch", "commit", "dependency"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["licenses", "audit", "dependencies"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["node", "version", "env"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["security", "build scripts", "approval"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["install", "ci", "lockfile"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/install"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["add", "devDependency", "package"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["workspace", "root", "add"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/add"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["workspace", "recursive", "scripts"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/run"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["scripts", "optional", "run"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/run"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["registry", "metadata", "package"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/view"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["build scripts", "security", "approval"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/ignored-builds"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["deploy", "workspace", "package"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://pnpm.io/cli/deploy"
     }

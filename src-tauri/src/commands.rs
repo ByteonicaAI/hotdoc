@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use tauri::State;
+use tauri::{LogicalSize, State, WebviewWindow};
 use tauri_plugin_autostart::ManagerExt as AutostartExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
@@ -24,9 +24,7 @@ use crate::settings as hotkey_settings;
 #[instrument(skip(state))]
 pub fn search(query: String, state: State<'_, AppState>) -> Result<Vec<SearchHit>, String> {
     let idx = state.index.read().map_err(|_| "index lock poisoned".to_string())?.clone();
-    let hits = idx
-        .search(&query, 8, &state.popularity_map)
-        .map_err(|e| format!("search failed: {e:#}"))?;
+    let hits = idx.search(&query, 8).map_err(|e| format!("search failed: {e:#}"))?;
     info!(query = %query, hits = hits.len(), "search");
     Ok(hits)
 }
@@ -267,11 +265,17 @@ pub fn set_autostart(enabled: bool, app: tauri::AppHandle) -> Result<(), String>
 // holding the db lock, then release the db lock before acquiring the
 // index write lock to avoid any lock-order inversion.
 #[tauri::command]
-#[instrument(skip(state))]
-pub fn rebuild_index(state: State<'_, AppState>) -> Result<usize, String> {
+#[instrument(skip(state, app))]
+pub fn rebuild_index(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<usize, String> {
+    // T1: resolve the same shipped-packs resource dir the initial
+    // `.setup()` build used, so a manual "Reload index" in production
+    // rebuilds from the bundled packs rather than a stale/missing
+    // build-machine path.
+    let bundled = index_state::resource_packs_dir(&app);
     let new_index = {
         let conn = state.db.lock().map_err(|e| format!("db lock poisoned: {e}"))?;
-        index_state::reload_index(&conn).map_err(|e| format!("rebuild_index: {e:#}"))?
+        index_state::reload_index(&conn, bundled.as_deref())
+            .map_err(|e| format!("rebuild_index: {e:#}"))?
     };
     let entries = new_index.entry_count();
     *state.index.write().map_err(|_| "index write lock poisoned".to_string())? = new_index;
@@ -296,4 +300,20 @@ pub fn open_url(url: String, app: tauri::AppHandle) -> Result<(), String> {
         return Err(format!("open_url: only https: URLs allowed, got {url:?}"));
     }
     app.opener().open_path(url, None::<&str>).map_err(|e| format!("open_url: {e}"))
+}
+
+// ponytail: WS-F phase 1 fix — frontend-driven compact/tall snap.
+// Settings/About open force tall (820px); everything else is compact
+// (660px). Window is centered both axes by center_on_active_monitor on
+// subsequent activations; this command only resizes, it does not
+// reposition. Height is clamped to [400, 1200] so a tampered frontend
+// can't drive the window off-screen.
+#[tauri::command]
+#[instrument(skip(window))]
+pub fn set_window_size(window: WebviewWindow, height: u32) -> Result<(), String> {
+    let height = height.clamp(400, 1200) as f64;
+    window
+        .set_size(LogicalSize::new(crate::window_pos::WINDOW_WIDTH, height))
+        .map_err(|e| format!("failed to set window size: {e}"))?;
+    Ok(())
 }

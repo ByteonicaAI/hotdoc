@@ -23,6 +23,7 @@ vite.config.ts.timestamp-*
 
 # Internal Documentation
 docs/internal
+docs/*.zip
 
 # AI Agents
 CLAUDE.md

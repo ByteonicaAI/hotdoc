@@ -13,6 +13,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "clean": "rm -rf dist .svelte-kit build package target src-tauri/target",
+    "build:clean": "pnpm clean && pnpm tauri build",
+    "build:linux": "pnpm tauri build --bundles deb",
+    "build:mac": "pnpm tauri build --bundles app dmg",
+    "verify:open-latency": "scripts/nfr-open-bench.sh target/release/hotdoc 30",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -27,15 +32,13 @@
     "audit:pnpm": "pnpm audit --audit-level=high",
     "audit:cargo": "command -v cargo-audit >/dev/null || cargo install cargo-audit --locked --quiet && cargo audit",
     "string:check": "bash scripts/nfr-string-extract.sh",
-    "verify:all": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run && pnpm run audit:pnpm && pnpm run audit:cargo && pnpm run string:check && (cd src-tauri && cargo fmt --all --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace) && pnpm tauri build --no-bundle && xvfb-run -a bash -c 'scripts/nfr-open-bench.sh src-tauri/target/release/hotdoc 30' && xvfb-run -a bash -c 'scripts/nfr-memory.sh src-tauri/target/release/hotdoc' && (cd src-tauri && cargo run -p hotdoc-core --bin bench-search) && (cd src-tauri && cargo run -p hotdoc-core --bin hotdoc-cli -- index --out target/bench-index && cargo run -p hotdoc-core --bin hotdoc-cli -- bench --index target/bench-index)",
+    "verify:all": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run && pnpm run audit:pnpm && pnpm run audit:cargo && pnpm run string:check && (cd src-tauri && cargo fmt --all --check && cargo clippy --all-targets -- -D warnings && cargo test --workspace) && pnpm tauri build --no-bundle && xvfb-run -a bash -c 'scripts/nfr-open-liveness.sh target/release/hotdoc' && xvfb-run -a bash -c 'scripts/nfr-memory.sh target/release/hotdoc' && (cd src-tauri && cargo run -p hotdoc-core --bin bench-search) && (cd src-tauri && cargo run -p hotdoc-core --bin hotdoc-cli -- index --out target/bench-index && cargo run -p hotdoc-core --bin hotdoc-cli -- bench --index target/bench-index) && (cd src-tauri && cargo run -p hotdoc-core --bin hotdoc-cli -- bench --index target/bench-index --adversarial)",
     "prepare": "husky"
   },
   "license": "MIT OR Apache-2.0",
   "dependencies": {
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
-    "@tauri-apps/plugin-global-shortcut": "^2.3.2",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",

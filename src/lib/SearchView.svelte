@@ -18,13 +18,34 @@
     footerKeys: string[];
     /** Exit fade duration (ms) for the Enter-to-copy dismiss; 0 = reduced motion. */
     exitMs: number;
-    onReport: (hit: SearchHit) => void;
   }
-  const { launcher, status, showResults, footerKeys, exitMs, onReport }: Props = $props();
+  const { launcher, status, showResults, footerKeys, exitMs }: Props = $props();
 
   // Internal fade for the results list appearing/collapsing (independent of the
   // dismiss choreography's exit fade on the whole view).
   const resultsMs = $derived(prefersReducedMotion.current ? 0 : 140);
+
+  // a11y: id of the currently-active row in the listbox below, so the input
+  // can point at it via aria-activedescendant (screen readers announce the
+  // active option during arrow-key nav without moving DOM focus off the
+  // input). Mirrors the same pinned/recent/result index math useLauncher
+  // uses to drive the `active` classes — see EmptyView/ResultItem `id`s.
+  const activeOptionId = $derived.by(() => {
+    if (!showResults) return undefined;
+    const i = launcher.selectedIndex;
+    if (i < 0) return undefined;
+    if (launcher.emptyQuery) {
+      const pLen = launcher.pinnedList.length;
+      if (i < pLen) {
+        const p = launcher.pinnedList[i];
+        return p ? `option-pinned-${p.id}` : undefined;
+      }
+      const r = launcher.recentList[i - pLen];
+      return r ? `option-recent-${i - pLen}` : undefined;
+    }
+    const r = launcher.results[i];
+    return r ? `option-result-${r.id}` : undefined;
+  });
 </script>
 
 <!-- Wraps input + results + footer so the whole launcher fades out as one on
@@ -50,6 +71,7 @@
     <input
       id="q"
       aria-label={STRINGS.SEARCH_INPUT_ARIA}
+      aria-activedescendant={activeOptionId}
       placeholder={STRINGS.SEARCH_PLACEHOLDER}
       bind:value={launcher.query}
       oninput={(e) => launcher.onInput(e.currentTarget.value)}
@@ -71,7 +93,6 @@
             pinned={launcher.pinnedList}
             onSelectRecent={(q: string) => launcher.selectRecent(q)}
             onSelectPinned={(h: SearchHit) => launcher.selectPinned(h)}
-            onCopyText={(text: string) => launcher.copyText(text)}
             selectedIndex={launcher.selectedIndex}
             pinnedOffset={0}
             recentsOffset={launcher.pinnedList.length}
@@ -79,15 +100,11 @@
         {:else}
           {#each launcher.results as r, i (r.id)}
             <ResultItem
+              id="option-result-{r.id}"
               hit={r}
               active={i === launcher.selectedIndex}
               pinned={launcher.pinnedIds.has(r.id)}
               query={launcher.query}
-              onCopyExample={(h: SearchHit) => launcher.copyExample(h)}
-              onCopyAll={(h: SearchHit) => launcher.copyAll(h)}
-              onTogglePin={(h: SearchHit) => launcher.togglePinHit(h)}
-              onOpenSource={(h: SearchHit) => launcher.openSource(h)}
-              onReport={(h: SearchHit) => onReport(h)}
             />
           {/each}
           {#if launcher.zeroResult}
@@ -148,6 +165,15 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    /* Window snaps between compact/tall heights (see App.svelte's
+       set_window_size $effect). This pane's height animates so the snap
+       isn't abrupt. */
+    transition: height 140ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .search-view {
+      transition: none;
+    }
   }
   :global(main.tall) .search-view {
     height: 100%;

@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["keys", "authentication"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh-keygen.1.html"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["keys", "setup"],
+      "aliases": ["copy key to server", "ssh key auth", "key auth"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh-copy-id.1.html"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["keys", "hosts"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh-keyscan.1.html"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["config", "setup"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man5/ssh_config.5.html"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["connection", "remote"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["file-transfer", "remote"],
+      "aliases": ["copy file to server"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/scp.1.html"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["tunneling", "forwarding"],
+      "aliases": ["tunnel port forward", "port forward", "ssh tunnel"],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["authentication", "keys"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh-agent.1.html"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["ports", "connection"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["keys", "authentication"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["tunneling", "jump"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["debugging", "logs"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["scripting", "automation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html#OPTIONS"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["remote", "commands"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["file-transfer", "remote"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://man7.org/linux/man-pages/man1/sftp.1.html"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["keygen", "ed25519", "key"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["agent", "key", "auth"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["known_hosts", "host key", "remove"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["github", "auth", "test"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["option", "config", "keepalive"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["tunnel", "local", "port"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["socks", "proxy", "tunnel"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["agent", "forwarding", "auth"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["x11", "forwarding", "gui"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["multiplex", "controlmaster", "performance"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["host key", "security", "config"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["compression", "network"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["config", "debug", "inspect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["config", "include"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["config", "match", "conditional"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["keepalive", "connection", "option"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["tunnel", "forward", "failure"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["keygen", "fingerprint", "keys"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh-keygen"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["keygen", "passphrase", "keys"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/ssh-keygen"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["scp", "copy", "recursive"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/scp"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["sftp", "batch", "files"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man.openbsd.org/sftp"
     }

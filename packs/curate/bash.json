@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["loops", "iteration", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Looping-Constructs"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["loops", "iteration", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Looping-Constructs"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["conditions", "control-flow", "testing", "if", "condition"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Conditional-Constructs"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["functions", "reusability"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Functions"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["pipes", "chaining", "redirection"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Pipelines"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["redirection", "io", "output"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Redirections"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["variables", "data-storage"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Parameters"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["quoting", "escaping", "strings"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Quoting"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["arrays", "data-structures"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Arrays"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["strings", "substitution", "manipulation"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Parameter-Expansion"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["substitution", "command-output", "dynamic"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Command-Substitution"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["conditions", "pattern-matching", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Conditional-Constructs"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["arithmetic", "math", "variables"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Shell-Arithmetic"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["testing", "conditions", "operators"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#Bash-Conditional-Expressions"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["error-handling", "exit-codes", "control-flow"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["script", "shebang", "portable"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["script", "error", "strict"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["input", "read", "variable"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["heredoc", "redirect", "multiline"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["herestring", "stdin", "redirect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["process substitution", "diff", "pipe"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["trap", "cleanup", "signal"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["options", "arguments", "script"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["parameter", "default", "expansion"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["array", "map", "associative"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["test", "file", "condition"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["group", "subshell", "scope"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["jobs", "background", "fg"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["glob", "recursive", "shopt"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["source", "script", "environment"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["environment", "variable", "export"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["debug", "trace", "shell"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["regex", "condition", "test"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["expansion", "brace", "paths"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["array", "read", "lines"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["print", "format", "output"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["command", "path", "check"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["redirect", "logging", "exec"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["jobs", "background", "parallel"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://www.gnu.org/software/bash/manual/bash.html"
     }

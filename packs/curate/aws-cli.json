@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["s3", "listing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/ls.html"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["s3", "transfer"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/cp.html"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["s3", "deletion"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3/rm.html"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["ec2", "instances"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instances.html"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["lambda", "functions"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/lambda/invoke.html"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["iam", "users"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/iam/create-user.html"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["iam", "policies"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/iam/attach-user-policy.html"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["dynamodb", "tables"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/dynamodb/scan.html"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["dynamodb", "tables"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/dynamodb/query.html"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["cloudformation", "infrastructure"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/deploy.html"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["cloudformation", "infrastructure"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/cloudformation/describe-stacks.html"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["rds", "databases"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/rds/describe-db-instances.html"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["cloudwatch", "logging"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/describe-log-groups.html"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["cloudwatch", "logging"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/filter-log-events.html"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["config", "authentication"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/configure/index.html"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["sts", "identity", "auth"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["s3", "sync", "files"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["s3", "bucket", "create"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["s3", "presign", "url"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["ec2", "instance", "start"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["ec2", "instance", "stop"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["ec2", "security group", "network"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["ecr", "docker", "auth"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["ecs", "service", "deploy"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["secretsmanager", "secret", "read"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["ssm", "parameter", "secret"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["ssm", "session", "shell"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["lambda", "deploy", "zip"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["cloudfront", "cache", "invalidate"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["sqs", "queue", "message"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["sns", "publish", "topic"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["sso", "configure", "profile"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["sso", "login", "profile"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["profile", "region", "global options"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["eks", "kubeconfig", "kubernetes"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/eks/update-kubeconfig.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["ecr", "images", "registry"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ecr/list-images.html"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["logs", "cloudwatch", "tail"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/logs/tail.html"
     },
@@ -573,6 +610,7 @@
         }
       ],
       "tags": ["ecs", "exec", "container"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/ecs/execute-command.html"
     },
@@ -588,6 +626,7 @@
         }
       ],
       "tags": ["s3api", "buckets", "json"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://docs.aws.amazon.com/cli/latest/reference/s3api/list-buckets.html"
     }

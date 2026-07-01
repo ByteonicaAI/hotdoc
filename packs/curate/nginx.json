@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["config", "server"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#server"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["config", "routing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#location"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["proxy", "routing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["config", "ports"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#listen"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["ssl", "security"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["logging", "config"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/ngx_core_module.html#error_log"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["logging", "config"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["load-balancing", "upstream"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_upstream_module.html#upstream"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["routing", "redirect"],
+      "aliases": ["http to https", "redirect http to https"],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["compression", "performance"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_gzip_module.html"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["proxy", "headers"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["config", "structure"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_core_module.html#http"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["config", "modular"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/ngx_core_module.html#include"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["caching", "performance"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["security", "rate-limiting"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_limit_req_module.html"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["cli", "test", "config"],
+      "aliases": ["test reload config", "check config", "test config before reload"],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["cli", "reload", "config"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["cli", "stop", "graceful"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["routing", "static", "fallback"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["static", "root", "alias"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["static", "index", "files"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["upload", "limit", "body"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["proxy", "timeout", "upstream"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["map", "variable", "routing"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["log", "format", "access"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["header", "security", "response"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["auth", "basic", "security"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["dns", "resolver", "proxy"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["tcp", "stream", "proxy"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["cli", "config", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["logs", "reload", "cli"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["server", "host", "virtual host"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/server_names.html"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["listen", "default", "server"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/request_processing.html"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["status", "monitoring"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_stub_status_module.html"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["http2", "tls", "server"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_v2_module.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["proxy", "client ip", "headers"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_realip_module.html"
     },
@@ -558,6 +594,7 @@
         }
       ],
       "tags": ["cache", "headers", "static"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://nginx.org/en/docs/http/ngx_http_headers_module.html"
     }

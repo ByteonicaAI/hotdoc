@@ -125,3 +125,10 @@ export async function indexStatus(): Promise<IndexStatus> {
 export async function copyDiagnostics(): Promise<string> {
   return invoke<string>("copy_diagnostics");
 }
+
+// ponytail: WS-F phase 1 fix — compact/tall snap. Frontend calls this
+// from App.svelte's $effect whenever settingsOpen/aboutOpen flips.
+// Backend clamps the height to [400, 1200] before applying.
+export async function setWindowSize(height: number): Promise<void> {
+  await invoke("set_window_size", { height });
+}

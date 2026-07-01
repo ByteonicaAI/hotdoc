@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["get", "fetch", "request"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -32,7 +33,8 @@
           "code": "curl -I https://example.com"
         }
       ],
-      "tags": ["head", "headers", "response"],
+      "tags": ["head", "headers", "response", "http", "HEAD request"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-I"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["output", "save", "download", "file", "curl"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["follow", "redirect", "location"],
+      "aliases": ["follow redirects"],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-L"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["insecure", "tls", "ssl", "self-signed"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-k"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["post", "method", "create"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-X"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["data", "post", "form"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-d"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["header", "auth", "bearer", "token"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-H"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["auth", "basic", "user", "credentials"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-u"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["cookie", "session", "jar"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-b"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["verbose", "debug", "trace"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-v"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["silent", "quiet", "script"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-s"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["silent", "error", "script"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-S"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["timeout", "max-time", "limit"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#--max-time"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["resolve", "dns", "override", "host"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#--resolve"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["compressed", "gzip", "brotli"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#--compressed"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["form", "multipart", "upload"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-F"
     },
@@ -272,7 +289,8 @@
           "code": "curl -O https://example.com/file.tar.gz"
         }
       ],
-      "tags": ["remote-name", "download", "filename"],
+      "tags": ["remote-name", "download", "filename", "file", "save"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-O"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["request", "target", "path"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#--request-target"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["location", "redirect", "auth"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#--location-trusted"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["bearer", "auth", "token", "oauth"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://curl.se/docs/manpage.html#-H"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["json", "post", "api"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["http", "error", "ci"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["retry", "network", "resilience"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["timeout", "connect", "network"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["download", "resume", "file"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["proxy", "network"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["tls", "certificate", "ca"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["tls", "mtls", "certificate"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["http2", "protocol"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["metrics", "timing", "status"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["query", "urlencode", "get"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -498,21 +530,7 @@
         }
       ],
       "tags": ["upload", "put", "file"],
-      "source": "official",
-      "source_url": "https://curl.se/docs/manpage.html"
-    },
-    {
-      "id": "curl-head-request",
-      "title": "Send HEAD request",
-      "syntax": "curl -I <url>",
-      "description": "Fetch response headers using an HTTP HEAD request.",
-      "examples": [
-        {
-          "description": "Check response headers",
-          "code": "curl -I https://example.com"
-        }
-      ],
-      "tags": ["headers", "head", "http"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -528,6 +546,7 @@
         }
       ],
       "tags": ["put", "json", "http"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -543,21 +562,7 @@
         }
       ],
       "tags": ["delete", "http", "api"],
-      "source": "official",
-      "source_url": "https://curl.se/docs/manpage.html"
-    },
-    {
-      "id": "curl-remote-name",
-      "title": "Save with remote filename",
-      "syntax": "curl -O <url>",
-      "description": "Write output to a local file named like the remote file.",
-      "examples": [
-        {
-          "description": "Download tarball with remote name",
-          "code": "curl -O https://example.com/archive.tar.gz"
-        }
-      ],
-      "tags": ["download", "file", "remote-name"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -573,6 +578,7 @@
         }
       ],
       "tags": ["auth", "netrc", "credentials"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -588,6 +594,7 @@
         }
       ],
       "tags": ["unix socket", "http", "local"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -603,6 +610,7 @@
         }
       ],
       "tags": ["query", "url", "encoding"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     },
@@ -618,6 +626,7 @@
         }
       ],
       "tags": ["http3", "protocol", "network"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://curl.se/docs/manpage.html"
     }

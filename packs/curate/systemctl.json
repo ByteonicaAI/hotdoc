@@ -18,6 +18,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#start%20UNIT%E2%80%A6"
     },
@@ -33,6 +34,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#stop%20UNIT%E2%80%A6"
     },
@@ -48,6 +50,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#restart%20UNIT%E2%80%A6"
     },
@@ -63,6 +66,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#reload%20UNIT%E2%80%A6"
     },
@@ -78,6 +82,7 @@
         }
       ],
       "tags": ["services", "boot"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#enable%20UNIT%E2%80%A6"
     },
@@ -93,6 +98,7 @@
         }
       ],
       "tags": ["services", "boot"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#disable%20UNIT%E2%80%A6"
     },
@@ -108,6 +114,7 @@
         }
       ],
       "tags": ["services", "monitoring"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#status%20PATTERN%E2%80%A6%7CPID%E2%80%A6"
     },
@@ -123,6 +130,7 @@
         }
       ],
       "tags": ["services", "monitoring"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#is-active%20PATTERN%E2%80%A6"
     },
@@ -138,6 +146,7 @@
         }
       ],
       "tags": ["services", "boot"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#is-enabled%20UNIT%E2%80%A6"
     },
@@ -153,6 +162,7 @@
         }
       ],
       "tags": ["system", "config"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#daemon-reload"
     },
@@ -168,6 +178,7 @@
         }
       ],
       "tags": ["services", "listing"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#list-units%20PATTERN%E2%80%A6"
     },
@@ -183,6 +194,7 @@
         }
       ],
       "tags": ["services", "properties"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#show%20PATTERN%E2%80%A6%7CPID%E2%80%A6"
     },
@@ -198,6 +210,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#mask%20UNIT%E2%80%A6"
     },
@@ -213,6 +226,7 @@
         }
       ],
       "tags": ["services", "control"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/systemctl.html#unmask%20UNIT%E2%80%A6"
     },
@@ -228,6 +242,7 @@
         }
       ],
       "tags": ["services", "logging"],
+      "aliases": [],
       "source": "curated",
       "source_url": "https://www.freedesktop.org/software/systemd/man/journalctl.html"
     },
@@ -243,6 +258,7 @@
         }
       ],
       "tags": ["enable", "start", "service"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -258,6 +274,7 @@
         }
       ],
       "tags": ["disable", "stop", "service"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -273,6 +290,7 @@
         }
       ],
       "tags": ["list", "unit files", "enablement"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -288,6 +306,7 @@
         }
       ],
       "tags": ["timer", "list", "schedule"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -303,6 +322,7 @@
         }
       ],
       "tags": ["unit", "config", "inspect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -318,6 +338,7 @@
         }
       ],
       "tags": ["unit", "override", "edit"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -333,6 +354,7 @@
         }
       ],
       "tags": ["failed", "reset", "status"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -348,6 +370,7 @@
         }
       ],
       "tags": ["reload", "restart", "service"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -363,6 +386,7 @@
         }
       ],
       "tags": ["restart", "active", "service"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -378,6 +402,7 @@
         }
       ],
       "tags": ["user", "service", "session"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -393,6 +418,7 @@
         }
       ],
       "tags": ["dependencies", "unit", "inspect"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -408,6 +434,7 @@
         }
       ],
       "tags": ["resource", "cgroup", "property"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -423,6 +450,7 @@
         }
       ],
       "tags": ["system", "reboot", "power"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -438,6 +466,7 @@
         }
       ],
       "tags": ["sockets", "units", "list"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -453,6 +482,7 @@
         }
       ],
       "tags": ["jobs", "queue", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -468,6 +498,7 @@
         }
       ],
       "tags": ["target", "boot", "default"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -483,6 +514,7 @@
         }
       ],
       "tags": ["target", "boot", "default"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -498,6 +530,7 @@
         }
       ],
       "tags": ["target", "isolate", "rescue"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -513,6 +546,7 @@
         }
       ],
       "tags": ["power", "shutdown"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -528,6 +562,7 @@
         }
       ],
       "tags": ["power", "sleep", "suspend"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     },
@@ -543,6 +578,7 @@
         }
       ],
       "tags": ["environment", "manager", "debug"],
+      "aliases": [],
       "source": "official",
       "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html"
     }
