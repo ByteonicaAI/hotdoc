@@ -86,11 +86,17 @@ fn read_pack_fingerprint(db: &Connection) -> Option<String> {
 }
 
 fn write_pack_fingerprint(db: &Connection, fp: &str) {
-    let _ = db.execute(
+    // 4e: a failed write is non-fatal (the next launch just sees
+    // `packs_changed` and rebuilds), but silently dropping the error via
+    // `let _ =` hides a real DB fault (disk full, corrupt meta table,
+    // etc.) that a curator/operator would otherwise want to know about.
+    if let Err(e) = db.execute(
         "INSERT INTO meta(key, value) VALUES ('pack_dir_fingerprint', ?1) \
          ON CONFLICT(key) DO UPDATE SET value = excluded.value",
         params![fp],
-    );
+    ) {
+        warn!(error = %e, "failed to write pack_dir_fingerprint (non-fatal; next launch will rebuild)");
+    }
 }
 
 /// Resolve + build (or reuse) the launcher's tantivy index, and mirror
@@ -249,7 +255,15 @@ fn resolve_one(dir: &Path, db: &Connection) -> Result<Option<IndexResolution>> {
     if let Err(e) = HotdocIndex::populate_store(db, &packs) {
         warn!(error = %format!("{e:#}"), "populate_store on tmp failed");
     }
-    write_pack_fingerprint(db, &current_fp);
+    // 4d: do NOT write the fingerprint here. This branch only runs after
+    // the persistent build already failed (or no persistent_index_dir is
+    // available), so no persistent index exists on disk. Recording the
+    // fingerprint anyway would claim "packs are indexed" when they are
+    // only indexed in an ephemeral tmp dir — the next launch would see
+    // `!packs_changed`, skip straight to trying to open the missing/empty
+    // persistent dir, fail, and only then rebuild. Leaving the stored
+    // fingerprint stale (or absent) keeps `packs_changed` accurate so the
+    // next launch retries the persistent build honestly.
     Ok(Some(IndexResolution {
         index: std::sync::Arc::new(idx),
         packs,
