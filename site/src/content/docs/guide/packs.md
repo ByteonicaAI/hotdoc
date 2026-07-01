@@ -29,23 +29,23 @@ Every command card in a pack has:
 
 | Pack       | ID          |
 | ---------- | ----------- |
-| AWS CLI    | `aws-cli`   |
-| Bash       | `bash`      |
+| aws-cli    | `aws-cli`   |
+| bash       | `bash`      |
 | curl       | `curl`      |
 | Docker     | `docker`    |
 | GitHub CLI | `gh`        |
 | Git        | `git`       |
 | jq         | `jq`        |
 | kubectl    | `kubectl`   |
-| Make       | `make`      |
+| make       | `make`      |
 | nginx      | `nginx`     |
 | pnpm       | `pnpm`      |
 | psql       | `psql`      |
-| Python     | `python`    |
+| python     | `python`    |
 | ripgrep    | `ripgrep`   |
-| SSH        | `ssh`       |
+| ssh        | `ssh`       |
 | systemctl  | `systemctl` |
-| Terraform  | `terraform` |
+| terraform  | `terraform` |
 | tmux       | `tmux`      |
 
 You can jump straight to any one of these from the launcher with the command palette — type `>`
