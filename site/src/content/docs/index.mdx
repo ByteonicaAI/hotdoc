@@ -1,0 +1,33 @@
+---
+title: hotdoc
+description: Local-first, keyboard-driven launcher for command syntax. No AI, no account, no network.
+template: splash
+hero:
+  tagline: The exact syntax for the tool you already know — hotkey to paste in under five seconds. Local-first. No AI, no account, no network.
+  actions:
+    - text: Download
+      link: https://github.com/ByteonicaAI/hotdoc/releases/latest
+      icon: down-arrow
+      variant: primary
+    - text: Get started
+      link: /hotdoc/guide/getting-started/
+      icon: right-arrow
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid stagger>
+  <Card title="Under five seconds" icon="rocket">
+    Press `Ctrl+Shift+Space`, type a few fuzzy words, copy the command, paste, back to flow.
+  </Card>
+  <Card title="Local-first" icon="approve-check">
+    No network, no account, no telemetry. Your data stays in `~/.local/share/hotdoc`.
+  </Card>
+  <Card title="Keyboard-driven" icon="laptop">
+    Every action has a shortcut. Arrows navigate, Enter copies, Tab reveals details.
+  </Card>
+  <Card title="18 curated packs" icon="open-book">
+    729 command cards across git, docker, kubectl, ssh, jq, ripgrep, and more.
+  </Card>
+</CardGrid>
