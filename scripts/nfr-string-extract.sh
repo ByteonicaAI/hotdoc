@@ -12,14 +12,14 @@
 # string:check and CI share one source of truth.
 set -euo pipefail
 
-VIOLATIONS=$(grep -Prn 'aria-label="[^{\"]*"' src/ --include='*.svelte' || true)
+VIOLATIONS=$(grep -Ern 'aria-label="[^\{\"]*"' src/ --include='*.svelte' || true)
 if [ -n "$VIOLATIONS" ]; then
   echo "NFR-10 FAIL: hard-coded aria-label strings:" >&2
   echo "$VIOLATIONS" >&2
   exit 1
 fi
 
-VIOLATIONS=$(grep -Prn 'placeholder="[^{\"]*"' src/ --include='*.svelte' || true)
+VIOLATIONS=$(grep -Ern 'placeholder="[^\{\"]*"' src/ --include='*.svelte' || true)
 if [ -n "$VIOLATIONS" ]; then
   echo "NFR-10 FAIL: hard-coded placeholder strings:" >&2
   echo "$VIOLATIONS" >&2
